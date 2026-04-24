@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title></title>
+  <meta property="og:type"        content="website" />
+  <meta property="og:title"       content="" />
+  <meta property="og:description" content="" />
+  <meta property="og:image"       content="" />
+  <meta name="twitter:card"       content="summary_large_image" />
+  <meta name="twitter:image"      content="" />
+  <link rel="icon" id="site-favicon" href="data:image/svg+xml,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%23c9a96e' stroke-width='1.5' stroke-linejoin='round'%3E%3Cpolygon points='16,2 28,9 16,16 4,9'/%3E%3Cpolygon points='28,9 28,23 16,30 16,16'/%3E%3Cpolygon points='4,9 16,16 16,30 4,23'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet" />
+
+  <script>
+    /* Runs before paint to prevent theme flash */
+    (function() {
+      function _applyTheme(mode) {
+        var resolved = mode === 'light' ? 'light'
+          : mode === 'dark' ? 'dark'
+          : (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+        if (resolved === 'light') document.documentElement.setAttribute('data-theme','light');
+        else document.documentElement.removeAttribute('data-theme');
+      }
+      try {
+        var s = JSON.parse(sessionStorage.getItem('cr_preview') || '{}');
+        var cfg = s.siteConfig || s;
+        _applyTheme(cfg.themeMode || 'auto');
+      } catch(e) { _applyTheme('auto'); }
+    })();
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #131110;
+      --bg2:        #1c1917;
+      --bg3:        #231f1c;
+      --fg:         #ede8e0;
+      --fg-mid:     #a89e90;
+      --fg-dim:     #5a5248;
+      --fg-dimmer:  #2a2623;
+      --accent:     #c9a96e;
+      --font-serif: 'Playfair Display', Georgia, serif;
+      --font-sans:  'DM Sans', sans-serif;
+      --nav-h:      60px;
+      --ease:       cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    [data-theme="light"] {
+      --bg:        #f0ece6;
+      --bg2:       #e8e3dc;
+      --bg3:       #ddd8d0;
+      --fg:        #1a1714;
+      --fg-mid:    #5a5248;
+      --fg-dim:    #8a8078;
+      --fg-dimmer: #ccc7be;
+    }
+
+    html { background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-weight: 300; -webkit-font-smoothing: antialiased; }
+    body { min-height: 100vh; }
+
+    /* film grain */
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: 9999;
+      pointer-events: none; opacity: var(--film-grain-opacity, 0.028);
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 180px 180px;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      height: var(--nav-h);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 44px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--fg-dimmer);
+    }
+
+    .nav-brand { display: flex; align-items: baseline; gap: 14px; cursor: pointer; text-decoration: none; flex-shrink: 0; }
+    .nav-brand-name { font-family: var(--font-serif); font-size: 19px; font-weight: 500; letter-spacing: 0.02em; color: var(--fg); line-height: 1; }
+    .nav-brand-rule { width: 1px; height: 13px; background: var(--fg-dim); }
+    .nav-brand-title { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #a89e90; font-weight: 300; }
+
+    .nav-links { display: flex; gap: 32px; list-style: none; align-items: center; }
+    .nav-links a {
+      text-decoration: none; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--fg-dim); transition: color 0.25s var(--ease); font-weight: 400;
+      cursor: pointer; position: relative; padding-bottom: 3px; white-space: nowrap;
+    }
+    .nav-links a::after {
+      content: ''; position: absolute; bottom: -2px; left: 0; right: 0;
+      height: 1px; background: var(--accent);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.3s var(--ease);
+    }
+    .nav-links a:hover { color: var(--fg-mid); }
+    .nav-links a:hover::after { transform: scaleX(0.5); }
+    .nav-links a.active { color: var(--fg); }
+    .nav-links a.active::after { transform: scaleX(1); }
+
+    .nav-right { display: flex; align-items: center; gap: 6px; }
+
+    .theme-toggle { background: none; border: none; cursor: pointer; color: var(--fg-dim); font-size: 14px; padding: 4px 6px; transition: color 0.2s; line-height: 1; }
+    .theme-toggle:hover { color: var(--fg); }
+    .theme-toggle.hidden { display: none; }
+
+    .nav-hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 4px; }
+    .nav-hamburger span { display: block; width: 22px; height: 1px; background: var(--fg-mid); transition: all 0.25s var(--ease); }
+
+    .nav-drawer {
+      position: fixed; top: var(--nav-h); left: 0; right: 0;
+      background: var(--bg); border-bottom: 1px solid var(--fg-dimmer);
+      padding: 0 24px; z-index: 190;
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.35s var(--ease), padding 0.35s var(--ease);
+    }
+    .nav-drawer.open { max-height: 500px; padding: 16px 24px 20px; }
+    .nav-drawer a {
+      display: block; text-decoration: none; font-size: 12px; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--fg-dim); padding: 14px 0;
+      border-bottom: 1px solid var(--fg-dimmer); cursor: pointer;
+      transition: color 0.25s var(--ease); font-weight: 400;
+    }
+    .nav-drawer a:last-child { border-bottom: none; }
+    .nav-drawer a:hover { color: var(--fg); }
+    .nav-drawer a.active { color: var(--accent); }
+
+    /* ── MAIN ── */
+    main { padding-top: var(--nav-h); }
+    .page { display: none; }
+    .page.visible { display: block; animation: pageIn 0.35s var(--ease) both; }
+    @keyframes pageIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── GRID — DESKTOP ── */
+    .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 3px; }
+
+    .grid-item {
+      position: relative; aspect-ratio: 16/9; overflow: hidden; cursor: pointer;
+      background: var(--bg2); animation: gridIn 0.45s var(--ease) both;
+    }
+    .grid-item:nth-child(1)   { animation-delay: 0.02s; }
+    .grid-item:nth-child(2)   { animation-delay: 0.07s; }
+    .grid-item:nth-child(3)   { animation-delay: 0.12s; }
+    .grid-item:nth-child(4)   { animation-delay: 0.17s; }
+    .grid-item:nth-child(5)   { animation-delay: 0.22s; }
+    .grid-item:nth-child(6)   { animation-delay: 0.27s; }
+    .grid-item:nth-child(n+7) { animation-delay: 0.32s; }
+    @keyframes gridIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+
+    .grid-thumb { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.65s var(--ease), filter 0.65s var(--ease); filter: saturate(0.8) brightness(0.85); }
+    .grid-item:hover .grid-thumb { transform: scale(1.04); filter: saturate(0.55) brightness(0.28); }
+
+    .grid-scrim { position: absolute; inset: 0; pointer-events: none; opacity: 1; transition: opacity 0.4s var(--ease); }
+    .grid-item:hover .grid-scrim { opacity: 0; }
+
+    .grid-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--bg2); transition: background 0.5s var(--ease); }
+    .grid-item:hover .grid-placeholder { background: #1e1b17; }
+
+    .grid-placeholder-icon { width: 28px; height: 20px; border: 1.5px solid var(--fg-dim); border-radius: 2px; position: relative; opacity: 0; transition: opacity 0.4s var(--ease); }
+    .grid-item:hover .grid-placeholder-icon { opacity: 0.45; }
+    .grid-placeholder-icon::after { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-38%,-50%); border-left: 7px solid var(--fg-dim); border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
+
+    .grid-play { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 36px; height: 25px; border: 1.5px solid rgba(237,232,224,0.35); border-radius: 2px; opacity: 0; transition: opacity 0.4s var(--ease); pointer-events: none; }
+    .grid-play::after { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-38%,-50%); border-left: 7px solid rgba(237,232,224,0.35); border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
+    .grid-item:hover .grid-play { opacity: 1; }
+
+    .grid-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 12px 18px; gap: 4px; pointer-events: none; }
+    /* grid text always light — it sits on dark thumbnails regardless of site theme */
+    .grid-client { font-size: 8px; letter-spacing: 0.22em; text-transform: uppercase; color: #c9a96e; font-weight: 500; line-height: 1; transition: font-size 0.4s var(--ease), letter-spacing 0.4s var(--ease), opacity 0.4s var(--ease), transform 0.4s var(--ease); }
+    .grid-title { font-family: var(--font-serif); font-size: 9px; font-style: italic; font-weight: 500; color: #ede8e0; line-height: 1.35; transition: font-size 0.4s var(--ease), opacity 0.4s var(--ease), transform 0.4s var(--ease); }
+    .grid-award { position: absolute; bottom: 10px; left: 0; right: 0; text-align: center; font-size: 7px; letter-spacing: 0.14em; text-transform: uppercase; color: #c9a96e; font-weight: 400; opacity: 0; pointer-events: none; transition: opacity 0.3s 0.1s var(--ease); }
+
+    .grid-item:hover .grid-center { gap: 0; }
+    .grid-item:hover .grid-client { font-size: 10px; letter-spacing: 0.26em; opacity: 1 !important; transform: translateY(-22px); }
+    .grid-item:hover .grid-title  { font-size: 14px; opacity: 1 !important; transform: translateY(34px); }
+    .grid-item:hover .grid-award  { opacity: 1; }
+
+    /* solo — title only, no client */
+    .grid-center.solo .grid-title { font-size: 10px; opacity: 0.55; }
+    .grid-item:hover .grid-center.solo .grid-title { font-size: 15px; opacity: 1; transform: none; }
+
+    /* editorial — slightly favors title at rest; client more subdued on hover */
+    .grid-center.overlay-editorial .grid-title { font-size: 11px; }
+    .grid-center.overlay-editorial .grid-client { font-size: 7px; opacity: 0.75; }
+    .grid-item:hover .grid-center.overlay-editorial .grid-client { font-size: 8px; letter-spacing: 0.18em; opacity: 0.55; transform: translateY(-22px); }
+    .grid-item:hover .grid-center.overlay-editorial .grid-title  { font-size: 17px; opacity: 1; transform: translateY(36px); }
+
+    /* centered — title only, single line, no play/client/award */
+    .grid-center.overlay-centered .grid-client,
+    .grid-center.overlay-centered .grid-play,
+    .grid-center.overlay-centered .grid-award { display: none !important; }
+    .grid-center.overlay-centered .grid-title {
+      font-size: 11px; opacity: 0.6;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 90%; transform: none;
+    }
+    .grid-item:hover .grid-center.overlay-centered .grid-title {
+      font-size: 17px; opacity: 1 !important; transform: none !important;
+    }
+
+    /* reveal — hide the whole overlay container at rest, fade in on hover */
+    /* Children stay at full opacity so parent fade-in is the only transition; default hover transforms still apply */
+    .grid-center.overlay-reveal { opacity: 0 !important; transition: opacity 0.4s var(--ease); }
+    .grid-center.overlay-reveal .grid-client { opacity: 1 !important; }
+    .grid-center.overlay-reveal .grid-title  { opacity: 1 !important; }
+    .grid-center.overlay-reveal .grid-play   { opacity: 1 !important; }
+    .grid-center.overlay-reveal .grid-award  { opacity: 1 !important; }
+    .grid-item:hover .grid-center.overlay-reveal { opacity: 1 !important; }
+    .grid-item .grid-center.overlay-none,
+    .grid-item:hover .grid-center.overlay-none { display: none; }
+
+    /* ── MOBILE LIST ── */
+    .mobile-list { display: none; }
+    .mobile-item { display: flex; flex-direction: column; border-bottom: 1px solid var(--fg-dimmer); cursor: pointer; transition: background 0.3s var(--ease); animation: gridIn 0.5s var(--ease) both; position: relative; }
+    .mobile-item:nth-child(2) { animation-delay: 0.06s; }
+    .mobile-item:nth-child(3) { animation-delay: 0.12s; }
+    .mobile-item:nth-child(4) { animation-delay: 0.18s; }
+    .mobile-item:nth-child(n+5) { animation-delay: 0.24s; }
+    .mobile-item:active { background: var(--bg2); }
+    .mobile-thumb-wrap { width: 100%; flex-shrink: 0; aspect-ratio: 16/9; overflow: hidden; background: var(--bg2); display: flex; align-items: center; justify-content: center; position: relative; }
+    .mobile-thumb-wrap img { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.85) brightness(0.9); transition: transform 0.5s var(--ease); }
+    .mobile-item:active .mobile-thumb-wrap img { transform: scale(1.02); }
+    .mobile-thumb-wrap::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(19,17,16,0.65) 100%); pointer-events: none; }
+    .mobile-placeholder-icon { width: 28px; height: 20px; border: 1.5px solid var(--fg-dim); border-radius: 2px; position: relative; opacity: 0.15; }
+    .mobile-placeholder-icon::after { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-38%,-50%); border-left: 7px solid var(--fg-dim); border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
+    .mobile-meta { padding: 14px 18px 18px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+    .mobile-client { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); font-weight: 400; }
+    .mobile-title { font-family: var(--font-serif); font-size: 17px; font-style: italic; font-weight: 400; color: var(--fg); line-height: 1.35; }
+    .mobile-award { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); opacity: 0.8; margin-top: 3px; }
+
+    /* ── LIGHTBOX ── */
+    .lightbox { display: none; position: fixed; inset: 0; z-index: 500; background: rgba(9,7,6,0.97); flex-direction: column; align-items: center; justify-content: center; }
+    .lightbox.open { display: flex; animation: lbIn 0.28s var(--ease); }
+    @keyframes lbIn { from { opacity: 0; } to { opacity: 1; } }
+    .lb-inner { width: 100%; max-width: 1020px; padding: 0 24px; display: flex; flex-direction: column; align-items: center; }
+    .lb-image-wrap { width: 100%; aspect-ratio: 16/9; background: var(--bg2); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .lb-image-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .lb-ph { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+    .lb-ph-icon { width: 52px; height: 36px; border: 2px solid var(--fg-dim); border-radius: 3px; position: relative; opacity: 0.15; }
+    .lb-ph-icon::after { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-38%,-50%); border-left: 14px solid var(--fg-dim); border-top: 9px solid transparent; border-bottom: 9px solid transparent; }
+    .lb-meta { width: 100%; margin-top: 20px; display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+    .lb-client { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+    .lb-title { font-family: var(--font-serif); font-size: 21px; font-weight: 400; font-style: italic; color: var(--fg); line-height: 1.3; }
+    .lb-award { margin-top: 7px; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); display: none; }
+    .lb-desc { margin-top: 12px; font-size: 12px; line-height: 1.7; color: var(--fg-mid); max-width: 480px; display: none; white-space: pre-wrap; max-height: calc(1.7em * 5); overflow: hidden; -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent 100%); mask-image: linear-gradient(to bottom, black 55%, transparent 100%); }
+    .lb-controls { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+    .lb-btn { background: none; border: 1px solid var(--fg-dimmer); color: var(--fg-mid); cursor: pointer; font-family: var(--font-sans); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; padding: 8px 16px; transition: border-color 0.2s, color 0.2s; }
+    .lb-btn:hover { border-color: var(--fg-dim); color: var(--fg); }
+    .lb-btn:disabled { opacity: 0.18; cursor: default; }
+    .lb-counter { font-size: 11px; color: var(--fg-dim); letter-spacing: 0.08em; min-width: 48px; text-align: center; }
+    .lb-close { position: fixed; top: 22px; right: 30px; background: none; border: none; cursor: pointer; color: var(--fg-dim); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; font-family: var(--font-sans); transition: color 0.2s; }
+    .lb-close:hover { color: var(--fg); }
+
+    /* ── ABOUT ── */
+    .about-wrap { max-width: 680px; margin: 0 auto; padding: 72px 44px 100px; }
+    .about-eyebrow { font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--fg-dim); margin-bottom: 36px; }
+    .about-layout { display: flex; flex-direction: column; gap: 28px; align-items: flex-start; }
+    .about-layout.placement-left  { flex-direction: row; align-items: flex-start; }
+    .about-layout.placement-right { flex-direction: row-reverse; align-items: flex-start; }
+    .about-photo-frame { flex-shrink: 0; overflow: hidden; position: relative; border: 1px solid var(--fg-dimmer); }
+    .about-photo-frame.shape-circle { width: 150px; height: 150px; border-radius: 50%; }
+    .about-photo-frame.shape-square { width: 150px; height: 150px; border-radius: 3px; }
+    .about-photo-frame.shape-natural { border-radius: 2px; }
+    .about-photo-img { display: block; }
+    .about-photo-frame.shape-circle .about-photo-img,
+    .about-photo-frame.shape-square .about-photo-img { width: 100%; height: 100%; object-fit: cover; }
+    .about-photo-frame.shape-natural .about-photo-img { max-width: var(--photo-natural-maxw, 380px); max-height: var(--photo-natural-maxh, 280px); width: auto; height: auto; }
+    .about-content { flex: 1; }
+    .about-bio { font-family: var(--font-serif); font-size: 20px; font-weight: 400; line-height: 1.75; color: var(--fg); margin-bottom: 12px; }
+    .about-bio2 { font-family: var(--font-serif); font-size: 17px; font-weight: 400; line-height: 1.8; color: var(--fg-mid); margin-bottom: 36px; }
+    .about-contact-line { font-size: 12px; color: var(--fg-dim); font-style: italic; margin-bottom: 56px; }
+    .about-contact-line a { color: var(--accent); text-decoration: none; transition: color 0.2s; }
+    .about-contact-line a:hover { color: var(--fg); }
+    .about-divider { width: 40px; height: 1px; background: var(--fg-dimmer); margin-bottom: 44px; }
+    .about-col-label { font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--fg-dim); margin-bottom: 16px; }
+    .about-col-list { list-style: none; }
+    .about-col-list li { font-family: var(--font-serif); font-size: 15px; color: var(--fg-mid); line-height: 2; }
+    .about-footer { border-top: 1px solid var(--fg-dimmer); padding-top: 28px; margin-top: 52px; }
+    .about-footer p { font-size: 12px; color: var(--fg-dim); line-height: 2.4; }
+    .about-social-links { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 28px; align-items: center; }
+    .about-social-links a { display: flex; align-items: center; gap: 6px; color: var(--fg-dim); text-decoration: none; transition: color 0.2s; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; }
+    .about-social-links a:hover { color: var(--accent); }
+
+    /* logo wall */
+    .about-logo-wall { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--fg-dimmer); }
+    .about-logo-wall img { height: 28px; width: auto; max-width: 100px; object-fit: contain; display: block; filter: grayscale(1); opacity: 0.5; transition: filter 0.25s ease, opacity 0.25s ease; }
+    .about-logo-wall img:hover { filter: none; opacity: 1; }
+
+    /* ── CONTACT ── */
+    .contact-wrap { max-width: 560px; margin: 0 auto; padding: 72px 44px 100px; }
+    .contact-field { margin-bottom: 22px; }
+    .contact-field label { display: block; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--fg-mid); margin-bottom: 8px; font-weight: 400; }
+    .contact-field input,
+    .contact-field textarea { width: 100%; background: var(--bg2); border: 1px solid var(--fg-dimmer); border-radius: 3px; padding: 10px 14px; color: var(--fg); font-family: var(--font-sans); font-size: 14px; font-weight: 300; transition: border-color 0.2s; outline: none; }
+    .contact-field input:focus,
+    .contact-field textarea:focus { border-color: var(--fg-dim); }
+    .contact-field textarea { resize: vertical; min-height: 130px; }
+    .contact-submit { background: none; border: 1px solid var(--fg-dim); color: var(--fg-mid); font-family: var(--font-sans); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; padding: 12px 32px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+    .contact-submit:hover { border-color: var(--accent); color: var(--fg); }
+    .contact-submit:disabled { opacity: 0.4; cursor: default; }
+    .contact-result { margin-top: 18px; font-size: 13px; color: var(--fg-mid); min-height: 20px; }
+
+    /* ── SPLASH ── */
+    #splash { position: fixed; inset: 0; z-index: 800; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.6s var(--ease); }
+    #splash.fading { opacity: 0; pointer-events: none; }
+    #splash.gone { display: none; }
+    .splash-video-bg { position: absolute; inset: 0; overflow: hidden; }
+    .splash-video-bg iframe,
+    .splash-video-bg video { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 140%; height: 140%; object-fit: cover; pointer-events: none; }
+    .splash-overlay { position: absolute; inset: 0; background: rgba(19,17,16,0.6); }
+    .splash-content { position: relative; z-index: 1; text-align: center; }
+    .splash-name { font-family: var(--font-serif); font-size: clamp(28px, 5vw, 52px); font-weight: 400; font-style: italic; color: var(--fg); letter-spacing: 0.02em; margin-bottom: 10px; }
+    .splash-title-text { font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--fg-mid); margin-bottom: 40px; }
+    .splash-skip { background: none; border: none; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--fg-dim); cursor: pointer; transition: color 0.2s; font-family: var(--font-sans); }
+    .splash-skip:hover { color: var(--accent); }
+
+    /* ── PREVIEW ── */
+    .preview-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 210; background: var(--accent); color: #1a1714; text-align: center; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 12px; font-weight: 600; }
+    body.is-preview { padding-top: 28px; }
+    body.is-preview nav { top: 28px; }
+    .grid-item .preview-hide-btn { position: absolute; top: 6px; right: 6px; z-index: 10; width: 22px; height: 22px; border-radius: 50%; border: none; background: rgba(0,0,0,0.65); color: #fff; font-size: 15px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s; }
+    .grid-item:hover .preview-hide-btn { opacity: 1; }
+    .grid-draft-badge { position: absolute; top: 6px; left: 6px; z-index: 10; background: rgba(0,0,0,0.65); color: var(--accent); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; padding: 2px 6px; border-radius: 2px; pointer-events: none; }
+    .mobile-item .preview-hide-btn { margin-left: auto; flex-shrink: 0; background: var(--bg3); border: 1px solid var(--fg-dimmer); color: var(--fg-dim); width: 24px; height: 24px; border-radius: 50%; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .preview-tray { padding: 16px 6px 24px; border-top: 1px solid var(--fg-dimmer); margin-top: 3px; }
+    .preview-tray-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--fg-dim); margin-bottom: 10px; }
+    .preview-tray-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .preview-chip { background: var(--bg2); border: 1px solid var(--fg-dimmer); color: var(--fg-dim); border-radius: 20px; padding: 4px 12px; font-size: 11px; letter-spacing: 0.04em; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: border-color 0.15s, color 0.15s; }
+    .preview-chip:hover { border-color: var(--accent); color: var(--fg); }
+    .preview-chip-restore { color: var(--accent); font-size: 13px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      :root { --nav-h: 56px; }
+      nav { padding: 0 20px; }
+      .nav-brand-name { font-size: 17px; }
+      .nav-brand-rule, .nav-brand-title { display: none; }
+      .nav-links { display: none; }
+      .nav-hamburger { display: flex; }
+      .gallery-grid { display: none; }
+      .mobile-list { display: block; padding: 4px 0 32px; }
+      .about-wrap { padding: 52px 22px 80px; }
+      .contact-wrap { padding: 52px 22px 80px; }
+      .about-layout.placement-left,
+      .about-layout.placement-right { flex-direction: column; }
+      .about-photo-frame.shape-circle,
+      .about-photo-frame.shape-square { width: 120px; height: 120px; }
+      .about-photo-frame.shape-natural .about-photo-img { max-width: min(var(--photo-natural-maxw, 380px), 100%); max-height: var(--photo-natural-maxh, 280px); }
+      .about-eyebrow { font-size: 8px; letter-spacing: 0.28em; margin-bottom: 28px; }
+      .about-bio { font-size: 19px; line-height: 1.7; }
+      .about-bio2 { font-size: 15px; line-height: 1.75; }
+      .about-contact-line { font-size: 13px; }
+      .about-col-list li { font-size: 14px; line-height: 2.1; }
+      .lb-inner { padding: 0 12px; }
+      .lb-meta { flex-direction: column; gap: 18px; margin-top: 16px; }
+      .lb-client { font-size: 9px; margin-bottom: 4px; }
+      .lb-title { font-size: 18px; }
+      .lb-controls { width: 100%; justify-content: space-between; }
+      .lb-btn { font-size: 9px; padding: 10px 18px; }
+      .lb-close { top: 16px; right: 18px; font-size: 10px; }
+      .lb-desc { font-size: 11px; max-height: calc(1.7em * 3); }
+    }
+
+    @media (max-width: 400px) {
+      .mobile-title { font-size: 15px; }
+      .mobile-meta { padding: 12px 16px 16px; }
+      .about-bio { font-size: 17px; }
+      .lb-title { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Splash -->
+  <div id="splash" class="gone">
+    <div class="splash-video-bg" id="splash-video-bg"></div>
+    <div class="splash-overlay"></div>
+    <div class="splash-content">
+      <div class="splash-name" id="splash-name"></div>
+      <div class="splash-title-text" id="splash-title"></div>
+      <button class="splash-skip" onclick="dismissSplash()">Enter ↗</button>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav>
+    <a class="nav-brand" href="#" onclick="event.preventDefault();showFirst()">
+      <span class="nav-brand-name" id="nav-name"></span>
+      <span class="nav-brand-rule" id="nav-rule" style="display:none"></span>
+      <span class="nav-brand-title" id="nav-title-el"></span>
+    </a>
+    <div class="nav-right">
+      <ul class="nav-links" id="nav-links"></ul>
+      <button class="theme-toggle hidden" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">◐</button>
+      <button class="nav-hamburger" onclick="toggleDrawer()"><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <div class="nav-drawer" id="nav-drawer"></div>
+
+  <main id="main-content"></main>
+
+  <!-- Lightbox -->
+  <div id="lightbox" class="lightbox" onclick="closeLbOverlay(event)">
+    <button class="lb-close" onclick="closeLb()">Close</button>
+    <div class="lb-inner" onclick="event.stopPropagation()">
+      <div class="lb-image-wrap" id="lb-frame"></div>
+      <div class="lb-meta">
+        <div class="lb-info">
+          <div class="lb-client" id="lb-client"></div>
+          <h2 class="lb-title" id="lb-title"></h2>
+          <div class="lb-award" id="lb-award"></div>
+          <div class="lb-desc" id="lb-desc"></div>
+        </div>
+        <div class="lb-controls">
+          <button class="lb-btn" id="lb-prev" onclick="lbNav(-1)">Prev</button>
+          <div class="lb-counter"><span id="lb-current">1</span> / <span id="lb-total">1</span></div>
+          <button class="lb-btn" id="lb-next" onclick="lbNav(1)">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ── MODULE-LEVEL CONSTANTS ── */
+    const _params     = new URLSearchParams(location.search);
+    const isPreview   = _params.get('preview') === '1';
+    const forceSplash = _params.get('splash')  === '1';
+    const SPLASH_SEEN_KEY = 'cr_splash_seen';
+
+    /* ── STATE ── */
+    let siteConfig = { categories: [], about: {}, contact: {}, splash: {} };
+    let projects   = [];
+    const builtCats    = new Set();
+    const previewHidden = new Set();
+    let lbCat    = '';
+    let lbIdx    = 0;
+    let lbShared = null; // project object when opened via share link
+    let _currentThemeSetting = 'auto';
+    let _aboutRendered = false;
+
+    /* ── XSS HELPER ── */
+    function x(str) {
+      return String(str == null ? '' : str)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    /* ── INIT ── */
+    async function init() {
+      try {
+        if (isPreview) {
+          const raw  = JSON.parse(sessionStorage.getItem('cr_preview') || '{}');
+          siteConfig = raw.siteConfig || raw || {};
+          projects   = raw.projects   || [];
+          if (raw.hideUnpublished) {
+            projects.forEach((p, gi) => { if (p.published === false) previewHidden.add(gi); });
+          }
+        } else {
+          const [sRes, pRes] = await Promise.all([fetch('site.json'), fetch('projects.json')]);
+          if (sRes.ok) siteConfig = await sRes.json();
+          if (pRes.ok) projects   = await pRes.json();
+        }
+      } catch(e) {
+        console.error('Failed to load site data', e);
+      }
+
+      siteConfig.categories = siteConfig.categories || [];
+      projects = Array.isArray(projects) ? projects : [];
+
+      applyConfig();
+
+      const visibleCats = isPreview
+        ? siteConfig.categories
+        : siteConfig.categories.filter(c => c.published !== false);
+
+      buildNav(visibleCats);
+      buildPages(visibleCats);
+
+      if (isPreview) {
+        document.body.classList.add('is-preview');
+        const banner = document.createElement('div');
+        banner.className = 'preview-banner';
+        banner.textContent = 'Preview mode — changes not saved to live site';
+        document.body.prepend(banner);
+        if (forceSplash) {
+          sessionStorage.removeItem(SPLASH_SEEN_KEY);
+          maybeShowSplash();
+        }
+      } else {
+        maybeShowSplash();
+      }
+
+      showFirst();
+
+      // Share link: ?share=ID&key=SHAREKEY — opens any project (incl. unpublished) directly
+      const _sp = new URLSearchParams(location.search);
+      const _shareId  = _sp.get('share');
+      const _shareKey = _sp.get('key');
+      if (_shareId && _shareKey) {
+        const _shared = projects.find(p => String(p.id) === _shareId && p.shareKey === _shareKey);
+        if (_shared) openLbDirect(_shared);
+      }
+    }
+
+    /* ── APPLY CONFIG ── */
+    function applyConfig() {
+      const cfg = siteConfig;
+      const ownerName  = cfg.ownerName  || '';
+      const ownerTitle = cfg.ownerTitle || '';
+
+      if (ownerName) document.title = ownerName;
+      document.querySelector('meta[property="og:title"]')?.setAttribute('content', ownerName);
+
+      document.getElementById('nav-name').textContent    = ownerName;
+      document.getElementById('nav-title-el').textContent = ownerTitle;
+      const rule = document.getElementById('nav-rule');
+      if (rule) rule.style.display = ownerTitle ? '' : 'none';
+
+      document.getElementById('splash-name').textContent  = ownerName;
+      document.getElementById('splash-title').textContent = ownerTitle;
+
+      if (cfg.accentColor) {
+        document.documentElement.style.setProperty('--accent', cfg.accentColor);
+      }
+      if (cfg.filmGrain !== undefined) {
+        document.documentElement.style.setProperty('--film-grain-opacity', cfg.filmGrain);
+      }
+
+      const mode = cfg.themeMode || 'auto';
+      _currentThemeSetting = mode;
+      applyTheme(mode);
+
+      const toggleBtn = document.getElementById('theme-toggle-btn');
+      if (toggleBtn) toggleBtn.classList.toggle('hidden', !cfg.allowThemeToggle);
+
+      if (cfg.favicon) document.getElementById('site-favicon').href = cfg.favicon;
+      if (cfg.ogImage) {
+        document.querySelector('meta[property="og:image"]')?.setAttribute('content', cfg.ogImage);
+        document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', cfg.ogImage);
+      }
+    }
+
+    function applyTheme(mode) {
+      const resolved = mode === 'light' ? 'light'
+        : mode === 'dark'  ? 'dark'
+        : (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      if (resolved === 'light') document.documentElement.setAttribute('data-theme','light');
+      else document.documentElement.removeAttribute('data-theme');
+    }
+
+    function toggleTheme() {
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      applyTheme(isLight ? 'dark' : 'light');
+    }
+
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+      if (_currentThemeSetting === 'auto') applyTheme('auto');
+    });
+
+    /* ── NAV ── */
+    function buildNav(cats) {
+      const linksEl  = document.getElementById('nav-links');
+      const drawerEl = document.getElementById('nav-drawer');
+      linksEl.innerHTML  = '';
+      drawerEl.innerHTML = '';
+
+      function addLink(id, label) {
+        const li = document.createElement('li');
+        const a  = document.createElement('a');
+        a.href = '#' + id;
+        a.dataset.page = id;
+        a.textContent = label;
+        a.onclick = e => { e.preventDefault(); showPage(id); };
+        li.appendChild(a);
+        linksEl.appendChild(li);
+
+        const da = document.createElement('a');
+        da.href = '#' + id;
+        da.dataset.page = id;
+        da.textContent = label;
+        da.onclick = e => { e.preventDefault(); showPage(id); closeDrawer(); };
+        drawerEl.appendChild(da);
+      }
+
+      cats.forEach(cat => addLink(cat.id, cat.label));
+      if (siteConfig.about?.show !== false) addLink('about', siteConfig.about?.navLabel || 'About');
+      if (siteConfig.contact?.enabled)      addLink('contact', 'Contact');
+    }
+
+    /* ── PAGES ── */
+    function buildPages(cats) {
+      const main = document.getElementById('main-content');
+      main.innerHTML = '';
+
+      cats.forEach(cat => {
+        const sec = document.createElement('section');
+        sec.id = 'page-' + cat.id;
+        sec.className = 'page';
+        sec.innerHTML = [
+          `<div class="gallery-grid" id="grid-${x(cat.id)}"></div>`,
+          `<div class="mobile-list"  id="mlist-${x(cat.id)}"></div>`,
+          isPreview ? `<div class="preview-tray" id="preview-tray-${x(cat.id)}" style="display:none"></div>` : ''
+        ].join('');
+        main.appendChild(sec);
+      });
+
+      // About
+      const abt = document.createElement('section');
+      abt.id = 'page-about';
+      abt.className = 'page';
+      abt.innerHTML = '<div class="about-wrap" id="about-container"></div>';
+      main.appendChild(abt);
+
+      // Contact
+      const ctc = document.createElement('section');
+      ctc.id = 'page-contact';
+      ctc.className = 'page';
+      ctc.innerHTML = `
+        <div class="contact-wrap">
+          <h2 class="about-eyebrow">Get in Touch</h2>
+          <form id="contact-form" onsubmit="handleContact(event)">
+            <div class="contact-field"><label>Name</label><input type="text" name="name" required placeholder="Your name"></div>
+            <div class="contact-field"><label>Email</label><input type="email" name="email" required placeholder="your@email.com"></div>
+            <div class="contact-field"><label>Message</label><textarea name="message" required placeholder="Tell me about your project..."></textarea></div>
+            <button type="submit" id="contact-submit" class="contact-submit">Send Message</button>
+            <div id="contact-result" class="contact-result"></div>
+          </form>
+        </div>`;
+      main.appendChild(ctc);
+    }
+
+    /* ── SHOW PAGE ── */
+    function showPage(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('visible'));
+      const pg = document.getElementById('page-' + id);
+      if (!pg) return;
+      pg.classList.add('visible');
+      history.replaceState(null, '', '#' + id);
+      window.scrollTo(0, 0);
+
+      // update active nav
+      document.querySelectorAll('#nav-links a, #nav-drawer a').forEach(a => {
+        a.classList.toggle('active', a.dataset.page === id);
+      });
+
+      // lazy build
+      const cats = isPreview
+        ? siteConfig.categories
+        : siteConfig.categories.filter(c => c.published !== false);
+      if (cats.some(c => c.id === id)) buildCat(id);
+
+      if (id === 'about') renderAbout();
+    }
+
+    function showFirst() {
+      const hash = location.hash.slice(1);
+      if (hash === 'about')   { showPage('about');   return; }
+      if (hash === 'contact') { showPage('contact'); return; }
+      const visible = isPreview
+        ? siteConfig.categories
+        : siteConfig.categories.filter(c => c.published !== false);
+      if (hash && visible.some(c => c.id === hash)) { showPage(hash); return; }
+      const first = visible[0];
+      if (first) { showPage(first.id); return; }
+      if (siteConfig.about?.show !== false) showPage('about');
+    }
+
+    /* ── AUTO THUMBNAILS ── */
+    const _vimeoThumbCache = {};
+
+    function getAutoThumb(p) {
+      if (p.thumbnail || !p.url) return null;
+      const yt = p.url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+      if (yt) return { type: 'url', url: `https://img.youtube.com/vi/${yt[1]}/hqdefault.jpg` };
+      if (/vimeo\.com\/\d+/.test(p.url)) return { type: 'vimeo', vimeoUrl: p.url };
+      return null;
+    }
+
+    async function fetchVimeoThumb(vimeoUrl) {
+      if (_vimeoThumbCache[vimeoUrl]) return _vimeoThumbCache[vimeoUrl];
+      try {
+        const res = await fetch(`https://vimeo.com/api/oembed.json?url=${encodeURIComponent(vimeoUrl)}`);
+        if (res.ok) {
+          const d = await res.json();
+          if (d.thumbnail_url) { _vimeoThumbCache[vimeoUrl] = d.thumbnail_url; return d.thumbnail_url; }
+        }
+      } catch(e) {}
+      return null;
+    }
+
+    function resolveVimeoThumbs(container) {
+      container.querySelectorAll('[data-vimeo-url]').forEach(img => {
+        fetchVimeoThumb(img.dataset.vimeoUrl).then(url => {
+          if (!url) return;
+          img.src = url;
+          img.style.display = '';
+          const ph = img.nextElementSibling;
+          if (ph?.dataset.vimeoPh !== undefined) ph.remove();
+        });
+      });
+    }
+
+    /* ── BUILD CATEGORY ── */
+    function buildCat(catId) {
+      if (!isPreview && builtCats.has(catId)) return;
+      builtCats.add(catId);
+      const items = previewGetItems(catId);
+      buildDesktopGrid(catId, items);
+      buildMobileList(catId, items);
+      if (isPreview) renderPreviewTray(catId);
+    }
+
+    function buildDesktopGrid(cat, items) {
+      const grid = document.getElementById('grid-' + cat);
+      if (!grid) return;
+      grid.innerHTML = '';
+      items.forEach((p, i) => {
+        const overlayClass = p.overlay || (p.opacity === 0 ? 'reveal' : 'default');
+        const hideBtn = isPreview
+          ? `<button class="preview-hide-btn" onclick="event.stopPropagation();previewHideProject(${p._gi},'${x(cat)}')" title="Hide">×</button>`
+          : '';
+        const draftBadge = (isPreview && p.published === false)
+          ? `<div class="grid-draft-badge">Draft</div>` : '';
+        const auto = getAutoThumb(p);
+        const thumbHtml = p.thumbnail
+          ? `<img src="${x(p.thumbnail)}" class="grid-thumb" loading="lazy" alt="">`
+          : auto?.type === 'url'
+            ? `<img src="${x(auto.url)}" class="grid-thumb" loading="lazy" alt="">`
+            : auto?.type === 'vimeo'
+              ? `<img class="grid-thumb" data-vimeo-url="${x(auto.vimeoUrl)}" style="display:none" alt=""><div class="grid-placeholder" data-vimeo-ph><div class="grid-placeholder-icon"></div></div>`
+              : `<div class="grid-placeholder"><div class="grid-placeholder-icon"></div></div>`;
+        const el = document.createElement('div');
+        el.className = 'grid-item';
+        el.onclick = () => openLb(cat, i);
+        el.innerHTML = `
+          ${hideBtn}${draftBadge}
+          ${thumbHtml}
+          <div class="grid-scrim" style="background:radial-gradient(circle,rgba(19,17,16,${p.vignette ?? 0.35}) 0%,transparent 70%)"></div>
+          <div class="grid-center overlay-${x(overlayClass)}${!p.client ? ' solo' : ''}">
+            ${p.client ? `<div class="grid-client">${x(p.client)}</div>` : ''}
+            <div class="grid-title">${x(p.title)}</div>
+            <div class="grid-play"></div>
+            ${p.award ? `<div class="grid-award">${x(p.award)}</div>` : ''}
+          </div>`;
+        grid.appendChild(el);
+      });
+      resolveVimeoThumbs(grid);
+    }
+
+    function buildMobileList(cat, items) {
+      const list = document.getElementById('mlist-' + cat);
+      if (!list) return;
+      list.innerHTML = '';
+      items.forEach((p, i) => {
+        const auto = getAutoThumb(p);
+        const mobileThumbHtml = p.thumbnail
+          ? `<img src="${x(p.thumbnail)}" loading="lazy" alt="">`
+          : auto?.type === 'url'
+            ? `<img src="${x(auto.url)}" loading="lazy" alt="">`
+            : auto?.type === 'vimeo'
+              ? `<img data-vimeo-url="${x(auto.vimeoUrl)}" style="display:none" alt=""><div class="mobile-placeholder-icon" data-vimeo-ph></div>`
+              : `<div class="mobile-placeholder-icon"></div>`;
+        const el = document.createElement('div');
+        el.className = 'mobile-item';
+        el.onclick = () => openLb(cat, i);
+        el.innerHTML = `
+          <div class="mobile-thumb-wrap">
+            ${mobileThumbHtml}
+          </div>
+          <div class="mobile-meta">
+            ${p.client ? `<div class="mobile-client">${x(p.client)}</div>` : ''}
+            <div class="mobile-title">${x(p.title)}</div>
+            ${p.award ? `<div class="mobile-award">${x(p.award)}</div>` : ''}
+            ${isPreview ? `<button class="preview-hide-btn" onclick="event.stopPropagation();previewHideProject(${p._gi},'${x(cat)}')">×</button>` : ''}
+          </div>`;
+        list.appendChild(el);
+      });
+      resolveVimeoThumbs(list);
+    }
+
+    /* ── PREVIEW HELPERS ── */
+    function previewGetItems(catId) {
+      if (isPreview) {
+        return projects
+          .map((p, gi) => ({ ...p, _gi: gi }))
+          .filter(p => p.category === catId && !previewHidden.has(p._gi));
+      }
+      return projects
+        .map((p, gi) => ({ ...p, _gi: gi }))
+        .filter(p => p.category === catId && p.published !== false);
+    }
+
+    function previewHideProject(gi, catId) {
+      previewHidden.add(gi);
+      builtCats.delete(catId);
+      buildCat(catId);
+      renderPreviewTray(catId);
+    }
+
+    function previewRestoreProject(gi, catId) {
+      previewHidden.delete(gi);
+      builtCats.delete(catId);
+      buildCat(catId);
+      renderPreviewTray(catId);
+    }
+
+    function renderPreviewTray(catId) {
+      const tray = document.getElementById('preview-tray-' + catId);
+      if (!tray) return;
+      const hidden = projects
+        .map((p, gi) => ({ ...p, gi }))
+        .filter(p => p.category === catId && previewHidden.has(p.gi));
+      if (!hidden.length) { tray.style.display = 'none'; tray.innerHTML = ''; return; }
+      tray.style.display = '';
+      tray.innerHTML = `
+        <div class="preview-tray-label">Hidden from preview</div>
+        <div class="preview-tray-chips">
+          ${hidden.map(p => `
+            <button class="preview-chip" onclick="previewRestoreProject(${p.gi},'${x(catId)}')">
+              ${x(p.title)} <span class="preview-chip-restore">+</span>
+            </button>`).join('')}
+        </div>`;
+    }
+
+    /* ── ABOUT ── */
+    function renderAbout() {
+      if (_aboutRendered) return;
+      _aboutRendered = true;
+      const container = document.getElementById('about-container');
+      if (!container) return;
+      const a = siteConfig.about || {};
+
+      let photoHtml = '';
+      if (a.photo) {
+        const shape = a.photoShape || 'natural';
+        const ox    = (a.photoX != null ? a.photoX : 50) + '%';
+        const oy    = (a.photoY != null ? a.photoY : 50) + '%';
+        const zoom  = a.photoZoom != null ? a.photoZoom : 1;
+        const posStyle = (shape === 'circle' || shape === 'square')
+          ? `object-fit:cover;object-position:${ox} ${oy};transform:scale(${zoom});transform-origin:${ox} ${oy};`
+          : '';
+        photoHtml = `<div class="about-photo-frame shape-${x(shape)}"><img src="${x(a.photo)}" class="about-photo-img" style="${posStyle}" alt="${x(siteConfig.ownerName||'')}"></div>`;
+      }
+
+      const resumeLink = a.resume
+        ? `<a href="${x(a.resume)}" target="_blank" style="display:inline-block;margin-top:14px;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--fg-dim);text-decoration:none;border-bottom:1px solid var(--fg-dimmer);padding-bottom:2px">Download Résumé ↓</a>`
+        : '';
+
+      // Social
+      const soc = a.social || {};
+      const socialDefs = [
+        ['imdb',      'IMDb'],
+        ['vimeo',     'Vimeo'],
+        ['instagram', 'Instagram'],
+        ['linkedin',  'LinkedIn'],
+        ['youtube',   'YouTube'],
+        ['twitter',   'X / Twitter'],
+      ];
+      const socialHtml = socialDefs
+        .filter(([k]) => soc[k])
+        .map(([k, label]) => `<a href="${x(soc[k])}" target="_blank" rel="noopener">${x(label)}</a>`)
+        .join('');
+
+      // Clients
+      const clients = a.clients || [];
+      let clientsSection = '';
+      if (clients.length) {
+        const hasLogos = clients.some(c => typeof c === 'object' && c.logo);
+        if (hasLogos) {
+          clientsSection = `
+            <div class="about-col-label" style="margin-top:44px">Selected Clients</div>
+            <div class="about-logo-wall">
+              ${clients.map(c => `<img src="${x(c.logo)}" alt="${x(c.name||c)}" title="${x(c.name||c)}" onerror="this.style.display='none'">`).join('')}
+            </div>`;
+        } else {
+          clientsSection = `
+            <div class="about-col-label" style="margin-top:44px">Selected Clients</div>
+            <ul class="about-col-list">
+              ${clients.map(c => `<li>${x(typeof c === 'string' ? c : c.name)}</li>`).join('')}
+            </ul>`;
+        }
+      }
+
+      const aboutHead = a.pageHeading || a.navLabel || 'About';
+      container.innerHTML = `
+        <h2 class="about-eyebrow">${x(aboutHead)}</h2>
+        <div class="about-layout placement-${x(a.photoPlacement || 'above')}">
+          ${photoHtml}
+          <div class="about-content">
+            ${a.bio  ? `<div class="about-bio">${a.bio}</div>`   : ''}
+            ${a.bio2 ? `<div class="about-bio2">${a.bio2}</div>` : ''}
+            ${a.contactEmail ? `<div class="about-contact-line">Reach me at <a href="mailto:${x(a.contactEmail)}">${x(a.contactEmail)}</a></div>` : ''}
+            ${resumeLink}
+          </div>
+        </div>
+        ${clientsSection}
+        ${socialHtml ? `<div class="about-divider" style="margin-top:44px"></div><div class="about-social-links">${socialHtml}</div>` : ''}
+        <footer class="about-footer">
+          <p>&copy; ${new Date().getFullYear()} ${x(siteConfig.ownerName || '')}. All rights reserved.</p>
+        </footer>`;
+    }
+
+    /* ── CONTACT ── */
+    async function handleContact(e) {
+      e.preventDefault();
+      const endpoint = siteConfig.contact?.endpoint;
+      const btn = document.getElementById('contact-submit');
+      const res = document.getElementById('contact-result');
+      if (!endpoint) { res.textContent = 'Contact form is not configured.'; return; }
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+      try {
+        const r = await fetch(endpoint, {
+          method: 'POST',
+          body: new FormData(e.target),
+          headers: { Accept: 'application/json' }
+        });
+        res.textContent = r.ok ? 'Thanks! Your message has been sent.' : 'Something went wrong. Please try again.';
+        if (r.ok) e.target.reset();
+      } catch {
+        res.textContent = 'Network error. Please try again.';
+      }
+      btn.textContent = 'Send Message';
+      btn.disabled = false;
+    }
+
+    /* ── LIGHTBOX ── */
+    function openLb(catId, idx) {
+      lbShared = null;
+      lbCat = catId;
+      lbIdx = idx;
+      renderLb();
+      document.getElementById('lightbox').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function openLbDirect(p) {
+      lbShared = p;
+      lbCat    = null;
+      lbIdx    = 0;
+      renderLb();
+      document.getElementById('lightbox').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLb() {
+      lbShared = null;
+      document.getElementById('lightbox').classList.remove('open');
+      document.getElementById('lb-frame').innerHTML = '';
+      document.body.style.overflow = '';
+    }
+
+    function closeLbOverlay(e) {
+      if (e.target === document.getElementById('lightbox')) closeLb();
+    }
+
+    function lbNav(dir) {
+      if (lbShared) return; // single-project share — no navigation
+      const items = previewGetItems(lbCat);
+      lbIdx = Math.max(0, Math.min(items.length - 1, lbIdx + dir));
+      renderLb();
+    }
+
+    function renderLb() {
+      const isShare = !!lbShared;
+      const items   = isShare ? [lbShared] : previewGetItems(lbCat);
+      const p       = items[lbIdx];
+      if (!p) return;
+      const frame = document.getElementById('lb-frame');
+      frame.innerHTML = p.url
+        ? `<iframe src="${x(getEmbedUrl(p.url))}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="width:100%;height:100%"></iframe>`
+        : p.thumbnail
+          ? `<img src="${x(p.thumbnail)}" alt="" style="width:100%;height:100%;object-fit:cover">`
+          : `<div class="lb-ph"><div class="lb-ph-icon"></div></div>`;
+      document.getElementById('lb-client').textContent = p.client || '';
+      document.getElementById('lb-title').textContent  = p.title  || '';
+      const aw = document.getElementById('lb-award');
+      aw.textContent  = p.award || ''; aw.style.display = p.award ? 'block' : 'none';
+      const desc = document.getElementById('lb-desc');
+      desc.textContent = p.description || ''; desc.style.display = p.description ? 'block' : 'none';
+      // Hide nav controls when opened via share link (single project)
+      const controls = document.getElementById('lb-prev').closest('.lb-controls');
+      if (controls) controls.style.display = isShare ? 'none' : '';
+      document.getElementById('lb-current').textContent = lbIdx + 1;
+      document.getElementById('lb-total').textContent   = items.length;
+      document.getElementById('lb-prev').disabled = lbIdx === 0;
+      document.getElementById('lb-next').disabled = lbIdx === items.length - 1;
+    }
+
+    /* ── EMBED URL ── */
+    function getEmbedUrl(url) {
+      if (!url) return '';
+      const yt = url.match(/(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/);
+      if (yt) return `https://www.youtube.com/embed/${yt[1]}?autoplay=1&rel=0&modestbranding=1`;
+      const vi = url.match(/vimeo\.com\/(\d+)(?:\/([a-f0-9]+))?/);
+      if (vi) return `https://player.vimeo.com/video/${vi[1]}?autoplay=1&title=0&byline=0&portrait=0&background_color=000000${vi[2] ? '&h=' + vi[2] : ''}`;
+      const wi = url.match(/(?:wistia\.(?:com|net)\/(?:medias|embed\/iframe)\/)([a-zA-Z0-9]+)/);
+      if (wi) return `https://fast.wistia.net/embed/iframe/${wi[1]}?autoPlay=true&fitStrategy=fill&playerColor=131110`;
+      return url;
+    }
+
+    /* ── SPLASH ── */
+    function maybeShowSplash() {
+      const sp = siteConfig.splash;
+      if (!sp?.enabled) return;
+      if (sp.skipReturning && sessionStorage.getItem(SPLASH_SEEN_KEY)) return;
+      sessionStorage.setItem(SPLASH_SEEN_KEY, '1');
+      const el = document.getElementById('splash');
+      el.classList.remove('gone');
+      // Video bg
+      if (sp.video) {
+        const bg = document.getElementById('splash-video-bg');
+        const embed = getEmbedUrl(sp.video);
+        if (embed !== sp.video) {
+          // is youtube/vimeo — use iframe with muted background flags
+          const viFrame = sp.video.match(/vimeo/) ? `${embed}&background=1&muted=1&loop=1` : `${embed}&mute=1&loop=1&playlist=${embed.split('/').pop()?.split('?')[0]}`;
+          bg.innerHTML = `<iframe src="${x(viFrame)}" frameborder="0" allow="autoplay"></iframe>`;
+        } else {
+          bg.innerHTML = `<video src="${x(sp.video)}" autoplay muted loop playsinline></video>`;
+        }
+      }
+      const dur = ((sp.duration || 5) * 1000);
+      setTimeout(dismissSplash, dur);
+    }
+
+    function dismissSplash() {
+      const el = document.getElementById('splash');
+      el.classList.add('fading');
+      setTimeout(() => el.classList.add('gone'), 650);
+    }
+
+    /* ── NAV DRAWER ── */
+    function toggleDrawer() { document.getElementById('nav-drawer').classList.toggle('open'); }
+    function closeDrawer()  { document.getElementById('nav-drawer').classList.remove('open'); }
+
+    /* ── KEYBOARD ── */
+    document.addEventListener('keydown', e => {
+      if (!document.getElementById('lightbox').classList.contains('open')) return;
+      if (e.key === 'ArrowRight') lbNav(1);
+      if (e.key === 'ArrowLeft')  lbNav(-1);
+      if (e.key === 'Escape')     closeLb();
+    });
+
+    init();
+  </script>
+</body>
+</html>

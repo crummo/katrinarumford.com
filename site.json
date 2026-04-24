@@ -1,0 +1,77 @@
+{
+  "categories": [
+    {
+      "id": "studio",
+      "label": "Studio",
+      "published": false
+    },
+    {
+      "id": "motion",
+      "label": "Motion",
+      "published": true
+    },
+    {
+      "id": "kids",
+      "label": "Kids",
+      "published": false
+    },
+    {
+      "id": "lifestyle",
+      "label": "Lifestyle",
+      "published": false
+    }
+  ],
+  "about": {
+    "navLabel": "Info",
+    "pageHeading": "Info",
+    "show": true,
+    "photo": "",
+    "photoShape": "natural",
+    "photoPlacement": "above",
+    "photoX": 50,
+    "photoY": 50,
+    "photoZoom": 1,
+    "photoScale": 1,
+    "bio": "<strong>Katrina Rumford</strong> is a production designer based in Los Angeles.",
+    "bio2": "Bio copy will mirror the Squarespace Info page when you are ready to paste it in.",
+    "contactEmail": "",
+    "resume": "",
+    "social": {
+      "imdb": "",
+      "vimeo": "",
+      "instagram": "",
+      "linkedin": "",
+      "youtube": "",
+      "twitter": ""
+    },
+    "clients": []
+  },
+  "ownerName": "Katrina Rumford",
+  "ownerTitle": "Production Designer",
+  "favicon": "",
+  "ogImage": "",
+  "website": "https://www.katrinarumford.com/",
+  "notFound": {
+    "heading": "",
+    "sub": "",
+    "back": ""
+  },
+  "contact": {
+    "enabled": false,
+    "endpoint": ""
+  },
+  "splash": {
+    "enabled": false,
+    "video": "",
+    "duration": 10,
+    "skipReturning": false
+  },
+  "accentColor": "#c9a96e",
+  "analytics": {
+    "provider": "",
+    "id": ""
+  },
+  "allowThemeToggle": true,
+  "themeMode": "dark",
+  "filmGrain": 0.1
+}
