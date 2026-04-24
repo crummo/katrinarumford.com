@@ -872,15 +872,16 @@
       let clientsSection = '';
       if (clients.length) {
         const hasLogos = clients.some(c => typeof c === 'object' && c.logo);
+        const clientsLabel = a.clientsHeading || 'Selected Clients';
         if (hasLogos) {
           clientsSection = `
-            <div class="about-col-label" style="margin-top:44px">Selected Clients</div>
+            <div class="about-col-label" style="margin-top:44px">${x(clientsLabel)}</div>
             <div class="about-logo-wall">
               ${clients.map(c => `<img src="${x(c.logo)}" alt="${x(c.name||c)}" title="${x(c.name||c)}" onerror="this.style.display='none'">`).join('')}
             </div>`;
         } else {
           clientsSection = `
-            <div class="about-col-label" style="margin-top:44px">Selected Clients</div>
+            <div class="about-col-label" style="margin-top:44px">${x(clientsLabel)}</div>
             <ul class="about-col-list">
               ${clients.map(c => `<li>${x(typeof c === 'string' ? c : c.name)}</li>`).join('')}
             </ul>`;
@@ -895,7 +896,7 @@
           <div class="about-content">
             ${a.bio  ? `<div class="about-bio">${a.bio}</div>`   : ''}
             ${a.bio2 ? `<div class="about-bio2">${a.bio2}</div>` : ''}
-            ${a.contactEmail ? `<div class="about-contact-line">Reach me at <a href="mailto:${x(a.contactEmail)}">${x(a.contactEmail)}</a></div>` : ''}
+            ${a.contactEmail ? `<div class="about-contact-line">${a.contactLead ? `<em>${x(a.contactLead)}</em> ` : 'Reach me at '}<a href="mailto:${x(a.contactEmail)}">${x(a.contactEmail)}</a></div>` : ''}
             ${resumeLink}
           </div>
         </div>
