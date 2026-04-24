@@ -145,7 +145,7 @@
         applyData(null);
       }
     } else {
-      fetch('site.json')
+      fetch('site.json', { cache: 'no-store' })
         .then(r => r.ok ? r.json() : null)
         .then(applyData)
         .catch(() => {});

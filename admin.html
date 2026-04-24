@@ -922,6 +922,10 @@
             Drag to reorder. The <strong>Label</strong> is what visitors see in the nav.
             The <strong>ID</strong> (slug) identifies existing projects — don't change it if projects already use it.
           </p>
+          <p class="about-hint" style="margin-top:8px">
+            Categories come from <code style="color:var(--accent)">site.json</code> on your <strong>GitHub</strong> branch (same fetch as the public site), not from unsaved files on your machine.
+            After editing JSON locally, <strong>push</strong> to GitHub, then use <strong>↺ Revert</strong> or reload admin to refresh.
+          </p>
           <div class="toolbar" style="margin-bottom:12px">
             <span></span>
             <button class="btn btn-ghost btn-sm" onclick="openAddCategory()">+ Add Category</button>
@@ -1553,7 +1557,7 @@ function ghUrl(filename) {
 }
 
 async function fetchGhJson(filename) {
-  const res = await fetch(ghUrl(filename), { headers: ghHeaders() });
+  const res = await fetch(ghUrl(filename) + '&t=' + Date.now(), { headers: ghHeaders(), cache: 'no-store' });
   if (!res.ok) throw new Error(`GitHub ${res.status} fetching ${filename}`);
   const data = await res.json();
   // Properly decode UTF-8 from base64 (handles em-dashes, curly quotes, etc.)

@@ -462,7 +462,11 @@
             projects.forEach((p, gi) => { if (p.published === false) previewHidden.add(gi); });
           }
         } else {
-          const [sRes, pRes] = await Promise.all([fetch('site.json'), fetch('projects.json')]);
+          const jsonFetch = { cache: 'no-store' };
+          const [sRes, pRes] = await Promise.all([
+            fetch('site.json', jsonFetch),
+            fetch('projects.json', jsonFetch)
+          ]);
           if (sRes.ok) siteConfig = await sRes.json();
           if (pRes.ok) projects   = await pRes.json();
         }
