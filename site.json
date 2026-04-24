@@ -92,9 +92,9 @@
   "ogImage": "",
   "website": "https://www.katrinarumford.com/",
   "notFound": {
-    "heading": "",
-    "sub": "",
-    "back": ""
+    "heading": "This page isn’t here.",
+    "sub": "The address may be mistyped, the link might be outdated, or the page may have moved. Try again from the home page.",
+    "back": "Back home"
   },
   "contact": {
     "enabled": false,
