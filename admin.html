@@ -7,7 +7,9 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='46' dominant-baseline='central' text-anchor='middle' font-size='110'>⚙</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://use.typekit.net" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
+  <script src="https://use.typekit.net/ik/MtlAOH8yjfA5aacR3cfHZbgkHskSWQptKL4ZWF1qPEbfeG62fFHN4UJLFRbh52jhWD9kFDItjDJoZQsKwejDZQwhFhIDFAJUZy7ZMPG0-hBXSc80jPukiAucda4qO1FUiABkZWF3jAF8OcFzdPUnjWsk-AoyOW4udAZzScb0SaBujW48Sagyjh90jhNlOelyiY4TdcBkiAucda4qOcFzdPUCdhFydeyzSabCiaiaOclyiY4TdcIlS1mlZcNkZfoDSWmyScmDSeBRZPoRdhXCiaiaOclyiY4TdcBkiAucda4qOcFzdPJwSY4zpe8ljPu0daZyH6qJ73IbMg6gJMJ7fbKCMsMMeMC6MKG4f5J7IMMjMkMfH6qJtkGbMg6FJMJ7fbKzMsMMeMb6MKG4fOMgIMMj2KMfH6GJCwbgIMMjgPMfH6GJCSbgIMMj2kMfH6qJnbIbMg6eJMJ7fbK0MsMMegM6MKG4fJCgIMMjgkMfH6qJRMIbMg6sJMJ7fbKTMsMMeM66MKG4fHGgIMMjIKMfH6qJKbIbMg64JMJ7fbKHMsMMegw6MTMgR_aVkM9.js" async></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -22,8 +24,8 @@
       --accent:     #c9a96e;
       --danger:     #c96e6e;
       --success:    #6ec97a;
-      --font-serif: 'Playfair Display', Georgia, serif;
-      --font-sans:  'DM Sans', sans-serif;
+      --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+      --font-sans:  'proxima-nova', 'Proxima Nova', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       --ease:       cubic-bezier(0.25, 0.46, 0.45, 0.94);
       --card-unpublished: #100f0d;
     }
@@ -681,17 +683,18 @@
     <div class="field-row">
       <div class="field">
         <label>GitHub Owner</label>
-        <input type="text" id="setup-owner" value="crummo" />
+        <input type="text" id="setup-owner" value="" placeholder="e.g. your-github-username" autocomplete="username" />
       </div>
       <div class="field">
         <label>Branch</label>
-        <input type="text" id="setup-branch" value="main" />
+        <input type="text" id="setup-branch" value="main" placeholder="main" />
       </div>
     </div>
     <div class="field">
       <label>Repository</label>
-      <input type="text" id="setup-repo" value="template" />
+      <input type="text" id="setup-repo" value="" placeholder="e.g. katrinarumford.com" autocomplete="off" />
     </div>
+    <p class="about-hint" style="margin-top:-4px;margin-bottom:12px">Use the <strong>same</strong> owner/repo where <code style="color:var(--accent)">site.json</code> and <code style="color:var(--accent)">projects.json</code> live (your portfolio repo — not a template fork unless that is the site).</p>
     <div class="field">
       <label>GitHub Personal Access Token</label>
       <div class="pw-wrap">
@@ -1411,7 +1414,7 @@ function togglePw(id) {
 const DEFAULT_FAVICON = "data:image/svg+xml,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%23c9a96e' stroke-width='1.5' stroke-linejoin='round'%3E%3Cpolygon points='16,2 28,9 16,16 4,9'/%3E%3Cpolygon points='28,9 28,23 16,30 16,16'/%3E%3Cpolygon points='4,9 16,16 16,30 4,23'/%3E%3C/svg%3E";
 
 // ─── VERSION ─────────────────────────────────────────────────────────────────
-const ADMIN_VERSION = '0.5.1';
+const ADMIN_VERSION = '0.5.3';
 
 // ─── STORAGE KEYS ───────────────────────────────────────────────────────────
 const K_HASH   = 'cr_pw_hash';
@@ -1558,8 +1561,11 @@ function ghUrl(filename) {
 
 async function fetchGhJson(filename) {
   const res = await fetch(ghUrl(filename) + '&t=' + Date.now(), { headers: ghHeaders(), cache: 'no-store' });
-  if (!res.ok) throw new Error(`GitHub ${res.status} fetching ${filename}`);
-  const data = await res.json();
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = data.message || data.error || res.statusText || 'Unknown error';
+    throw new Error(`GitHub ${res.status} ${filename}: ${msg}`);
+  }
   // Properly decode UTF-8 from base64 (handles em-dashes, curly quotes, etc.)
   const decoded = decodeURIComponent(escape(atob(data.content.replace(/\s/g, ''))));
   return { sha: data.sha, content: JSON.parse(decoded) };
@@ -1581,7 +1587,8 @@ async function loadAll(restoreTab = false) {
     clearDirty();
   } catch(e) {
     setStatus('Load failed', 'error');
-    showToast('Failed to load — check your token and repo settings.', 'error');
+    const detail = (e && e.message) ? e.message : String(e);
+    showToast('Failed to load — ' + detail, 'error');
     console.error(e);
   }
 }
