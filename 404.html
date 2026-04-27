@@ -4,24 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>404</title>
-  <link rel="icon" href="favicon.png" />
+  <link rel="icon" id="nf-favicon" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preconnect" href="https://use.typekit.net" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
-  <script src="https://use.typekit.net/ik/MtlAOH8yjfA5aacR3cfHZbgkHskSWQptKL4ZWF1qPEbfeG62fFHN4UJLFRbh52jhWD9kFDItjDJoZQsKwejDZQwhFhIDFAJUZy7ZMPG0-hBXSc80jPukiAucda4qO1FUiABkZWF3jAF8OcFzdPUnjWsk-AoyOW4udAZzScb0SaBujW48Sagyjh90jhNlOelyiY4TdcBkiAucda4qOcFzdPUCdhFydeyzSabCiaiaOclyiY4TdcIlS1mlZcNkZfoDSWmyScmDSeBRZPoRdhXCiaiaOclyiY4TdcBkiAucda4qOcFzdPJwSY4zpe8ljPu0daZyH6qJ73IbMg6gJMJ7fbKCMsMMeMC6MKG4f5J7IMMjMkMfH6qJtkGbMg6FJMJ7fbKzMsMMeMb6MKG4fOMgIMMj2KMfH6GJCwbgIMMjgPMfH6GJCSbgIMMj2kMfH6qJnbIbMg6eJMJ7fbK0MsMMegM6MKG4fJCgIMMjgkMfH6qJRMIbMg6sJMJ7fbKTMsMMeM66MKG4fHGgIMMjIKMfH6qJKbIbMg64JMJ7fbKHMsMMegw6MTMgR_aVkM9.js" async></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:         #f0ece6;
-      --fg:         #1a1714;
-      --fg-mid:     #5a5248;
-      --fg-dim:     #8a8078;
-      --fg-dimmer:  #ccc7be;
+      --bg:         #131110;
+      --fg:         #ede8e0;
+      --fg-mid:     #a89e90;
+      --fg-dim:     #5a5248;
+      --fg-dimmer:  #2a2623;
       --accent:     #c9a96e;
-      --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
-      --font-sans:  'proxima-nova', 'Proxima Nova', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      --font-serif: 'Playfair Display', Georgia, serif;
+      --font-sans:  'DM Sans', sans-serif;
       --ease:       cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
@@ -117,9 +115,9 @@
 
   <div class="num">404</div>
   <div class="rule"></div>
-  <p class="heading" id="nf-heading">This page isn’t here.</p>
-  <p class="sub" id="nf-sub">The address may be mistyped, the link might be outdated, or the page may have moved. Try again from the home page.</p>
-  <a class="back" href="/" id="nf-back">Back home</a>
+  <p class="heading" id="nf-heading">This cut didn't make the final edit.</p>
+  <p class="sub" id="nf-sub">The page you're looking for has been moved, renamed, or was left on the cutting room floor.</p>
+  <a class="back" href="/" id="nf-back">Back to the reel</a>
 
   <script>
     const isPreview = new URLSearchParams(location.search).get('preview') === '1';
@@ -131,6 +129,7 @@
       if (n && n.sub)     document.getElementById('nf-sub').textContent     = n.sub;
       if (n && n.back)    document.getElementById('nf-back').textContent    = n.back;
       if (data.ownerName) document.title = '404 — ' + data.ownerName;
+      if (data.favicon)   document.getElementById('nf-favicon').href = data.favicon;
       if (isPreview) {
         const banner = document.createElement('div');
         banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:var(--accent);color:#1a1714;text-align:center;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:5px 12px;font-weight:600;z-index:999';
@@ -147,7 +146,7 @@
         applyData(null);
       }
     } else {
-      fetch('site.json', { cache: 'no-store' })
+      fetch('site.json')
         .then(r => r.ok ? r.json() : null)
         .then(applyData)
         .catch(() => {});
