@@ -578,10 +578,8 @@
 
     /* ── THUMB PREVIEW + FILE LIST ── */
     #thumb-preview {
-      position: absolute; inset: 0;
-      width: 100%; height: 100%;
-      object-fit: cover; border-radius: 2px;
-      display: none;
+      width: 100%; height: auto;
+      display: none; border-radius: 2px;
     }
     .thumb-file-list {
       display: none; margin-top: 6px;
@@ -634,7 +632,7 @@
       overflow: hidden; position: relative; cursor: pointer;
       transition: border-color 0.2s var(--ease), background 0.2s var(--ease);
     }
-    #thumb-drop-zone.has-image { border-style: solid; cursor: default; }
+    #thumb-drop-zone.has-image { border-style: solid; cursor: default; aspect-ratio: unset; display: block; }
     #thumb-drop-zone.drag-active { border-color: var(--accent); background: rgba(201,169,110,0.05); }
     .thumb-empty-state {
       display: flex; flex-direction: column; align-items: center; gap: 6px;
