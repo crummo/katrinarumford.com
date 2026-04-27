@@ -1031,9 +1031,9 @@
       if (!p) return;
       const frame = document.getElementById('lb-frame');
       frame.innerHTML = p.url
-        ? `<iframe src="${x(getEmbedUrl(p.url))}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="width:100%;height:100%"></iframe>`
+        ? `<iframe title="${x(p.title || '')}" src="${x(getEmbedUrl(p.url))}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="width:100%;height:100%"></iframe>`
         : p.thumbnail
-          ? `<img src="${x(p.thumbnail)}" alt="" style="width:100%;height:100%;object-fit:cover">`
+          ? `<img src="${x(p.thumbnail)}" alt="${x(p.title || '')}" style="width:100%;height:100%;object-fit:cover">`
           : `<div class="lb-ph"><div class="lb-ph-icon"></div></div>`;
       document.getElementById('lb-client').textContent = p.client || '';
       document.getElementById('lb-title').textContent  = p.title  || '';
