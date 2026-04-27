@@ -111,6 +111,7 @@
     "provider": "",
     "id": ""
   },
+  "navStyle": "left",
   "allowThemeToggle": false,
   "themeMode": "light",
   "filmGrain": 0.1,
