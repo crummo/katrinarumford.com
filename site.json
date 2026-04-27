@@ -3,7 +3,7 @@
     {
       "id": "studio",
       "label": "Studio",
-      "published": false
+      "published": true
     },
     {
       "id": "motion",
@@ -14,12 +14,12 @@
     {
       "id": "kids",
       "label": "Kids",
-      "published": false
+      "published": true
     },
     {
       "id": "lifestyle",
       "label": "Lifestyle",
-      "published": false
+      "published": true
     }
   ],
   "about": {
