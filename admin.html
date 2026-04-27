@@ -1453,6 +1453,11 @@
     <div style="margin-bottom:16px">
       <button class="add-link" id="appearance-toggle" data-closed="+ Appearance" data-open="− Appearance" onclick="toggleDisclosure('appearance')">+ Appearance</button>
       <div id="appearance-body" style="display:none;margin-top:8px">
+        <div class="field" style="margin-bottom:12px">
+          <label>Aspect Ratio <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">— auto-detected from thumbnail</span></label>
+          <input type="number" id="f-aspect" min="0.1" max="5" step="0.01" placeholder="1.78 (16:9 default)" style="width:160px" oninput="markDirty()" />
+          <div class="field-hint" style="margin-top:4px">Width ÷ height. e.g. 1.78 = 16:9, 1.33 = 4:3, 1.0 = square, 0.67 = 2:3 portrait. Auto-filled when thumbnail loads.</div>
+        </div>
         <div class="field" style="margin-bottom:0">
           <label>Vignette Opacity <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(0–100%) — darkens the background behind text</span></label>
           <input type="number" id="f-vignette" min="0" max="100" step="5" placeholder="30" />
@@ -1545,6 +1550,13 @@
       <label>ID / slug <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(used in projects.json — lowercase, no spaces)</span></label>
       <input type="text" id="cat-id" placeholder="e.g. social" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'')" />
       <div class="field-hint">Set once. Changing after adding projects will orphan them.</div>
+    </div>
+    <div class="field">
+      <label>Grid Layout</label>
+      <select id="cat-layout" style="width:100%">
+        <option value="masonry">Masonry — natural image proportions, columns flow independently</option>
+        <option value="grid">Grid — uniform 16:9 rows</option>
+      </select>
     </div>
     <div class="modal-actions" style="justify-content:space-between">
       <button class="btn btn-danger btn-sm" id="cat-delete-btn" onclick="deleteCategoryFromModal()" style="display:none">Delete section</button>
@@ -2167,7 +2179,7 @@ function updateMetaDescCounter() {
 }
 
 function clearModalForm() {
-  ['f-title','f-client','f-url','f-award','f-description','f-thumbnail','f-vignette','f-alt'].forEach(id => {
+  ['f-title','f-client','f-url','f-award','f-description','f-thumbnail','f-vignette','f-aspect','f-alt'].forEach(id => {
     document.getElementById(id).value = '';
   });
   ['award','description','appearance'].forEach(closeDisclosure);
@@ -2210,9 +2222,10 @@ function openEdit(globalIdx) {
   document.getElementById('f-thumbnail').value = thumbDisplay(p.thumbnail);
   document.getElementById('f-alt').value        = p.alt || '';
   document.getElementById('f-vignette').value  = p.vignette !== undefined ? Math.round(p.vignette * 100) : '';
+  document.getElementById('f-aspect').value    = p.aspect   !== undefined ? p.aspect : '';
   if (p.award)                   openDisclosure('award');
   if (p.description)             openDisclosure('description');
-  if (p.vignette !== undefined)  openDisclosure('appearance');
+  if (p.vignette !== undefined || p.aspect !== undefined) openDisclosure('appearance');
   document.getElementById('f-published').checked = p.published !== false;
   updateOverlayHint();
   updateThumbPreview();
@@ -2253,6 +2266,8 @@ async function saveProject() {
 
   if (overlay)            proj.overlay  = overlay;
   if (vignetteRaw !== '') proj.vignette = parseFloat(vignetteRaw) / 100;
+  const aspectRaw = document.getElementById('f-aspect').value;
+  if (aspectRaw !== '')   proj.aspect   = parseFloat(aspectRaw);
 
   if (editingIdx !== null) {
     // Preserve shareKey — it's not in the form, so copy it forward if present
@@ -2336,6 +2351,7 @@ function openAddCategory() {
   document.getElementById('modal-cat-title').textContent = 'Add Category';
   document.getElementById('cat-label').value = '';
   document.getElementById('cat-id').value = '';
+  document.getElementById('cat-layout').value = 'masonry';
   document.getElementById('cat-id-field').style.display = '';
   document.getElementById('cat-delete-btn').style.display = 'none';
   document.getElementById('modal-cat').classList.remove('hidden');
@@ -2355,6 +2371,7 @@ function openEditCategory(idx) {
   document.getElementById('modal-cat-title').textContent = 'Edit Category';
   document.getElementById('cat-label').value = cat.label;
   document.getElementById('cat-id').value = cat.id;
+  document.getElementById('cat-layout').value = cat.layout === 'grid' ? 'grid' : 'masonry';
   document.getElementById('cat-id-field').style.display = 'none'; // ID is set on create only
   document.getElementById('cat-delete-btn').style.display = '';
   document.getElementById('cat-label').oninput = null;
@@ -2392,14 +2409,16 @@ function saveCategoryModal() {
   if (!id)    { showToast('Section ID is required.', 'error'); return; }
   if (!/^[a-z0-9-]+$/.test(id)) { showToast('ID must contain only lowercase letters, numbers, and hyphens.', 'error'); return; }
 
+  const layout = document.getElementById('cat-layout').value;
   if (editingCatIdx !== null) {
-    siteConfig.categories[editingCatIdx].label = label;
-    siteConfig.categories[editingCatIdx].id    = id;
+    siteConfig.categories[editingCatIdx].label  = label;
+    siteConfig.categories[editingCatIdx].id     = id;
+    siteConfig.categories[editingCatIdx].layout = layout;
   } else {
     if (siteConfig.categories.some(c => c.id === id)) {
       showToast('A section with that ID already exists.', 'error'); return;
     }
-    siteConfig.categories.push({ id, label, published: false });
+    siteConfig.categories.push({ id, label, published: false, layout });
   }
 
   const targetTab = editingCatIdx !== null ? id : id; // always go to the affected category
@@ -3513,7 +3532,14 @@ function updateThumbPreview() {
   if (dropZone) dropZone.classList.add('has-image');
   preview.style.display = 'block';
   preview.onerror = () => { preview.style.opacity = '0.3'; };
-  preview.onload  = () => { preview.style.opacity = '1'; };
+  preview.onload  = () => {
+    preview.style.opacity = '1';
+    const aspectField = document.getElementById('f-aspect');
+    if (aspectField && !aspectField.value && preview.naturalWidth && preview.naturalHeight) {
+      aspectField.value = (preview.naturalWidth / preview.naturalHeight).toFixed(2);
+      markDirty();
+    }
+  };
   const newSrc = thumbStore(val);
   if (preview.getAttribute('src') === newSrc) preview.src = '';
   preview.src = newSrc;

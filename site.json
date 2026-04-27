@@ -8,7 +8,8 @@
     {
       "id": "motion",
       "label": "Motion",
-      "published": true
+      "published": true,
+      "layout": "masonry"
     },
     {
       "id": "kids",
