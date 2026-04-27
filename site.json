@@ -1,15 +1,15 @@
 {
   "categories": [
     {
-      "id": "studio",
-      "label": "Studio",
-      "published": true
-    },
-    {
       "id": "motion",
       "label": "Motion",
       "published": true,
       "layout": "masonry"
+    },
+    {
+      "id": "studio",
+      "label": "Studio",
+      "published": true
     },
     {
       "id": "kids",
