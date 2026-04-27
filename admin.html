@@ -2143,7 +2143,7 @@ function updateOverlayHint() {
     'editorial': 'Slightly heavier weight on the lower text',
     'centered':  'Single line, centered, no play icon',
     'reveal':    'Overlay hidden at rest, appears on hover',
-    'none':      'Overlay hidden',
+    'none':      'Overlay hidden — consider setting vignette to 0.',
   };
   const val = document.getElementById('f-overlay').value;
   document.getElementById('overlay-hint').textContent = hints[val] ?? '';
