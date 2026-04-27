@@ -22,21 +22,18 @@
     }
   ],
   "about": {
-    "navLabel": "Info",
-    "pageHeading": "Info",
     "show": true,
     "photo": "images/kr-info-headshot.jpg",
+    "photoAlt": "Katrina Rumford",
     "photoShape": "natural",
     "photoPlacement": "left",
+    "photoFullWidth": false,
     "photoX": 50,
     "photoY": 50,
     "photoZoom": 1,
-    "photoScale": 1,
     "bio": "<p><strong>Katrina Rumford</strong> is a wardrobe stylist based in Los Angeles, California. She has been working in the clothing industry for over 20 years. Getting her start in Seattle with an Apparel Design degree, Katrina successfully launched a colorful women's line in the early 2000s that opened her eyes to a love of styling, travel and working with talented people to make big ideas come to life. Since then she's worked on films, music videos, photo shoots and commercials in studio and on location in the states and internationally. She is dedicated to telling a beautiful visual story and loves the process of hunting for or custom creating just the right pieces.</p>",
     "bio2": "",
-    "contactLead": "For work inquiries or just to say hello:",
     "contactEmail": "kat@katrinarumford.com",
-    "clientsHeading": "Clients / Publications Include",
     "resume": "",
     "social": {
       "imdb": "",
@@ -88,16 +85,18 @@
   },
   "ownerName": "Katrina Rumford",
   "ownerTitle": "Wardrobe Stylist",
+  "metaDescription": "Katrina Rumford is a wardrobe stylist based in Los Angeles, California.",
   "favicon": "",
   "ogImage": "",
   "website": "https://www.katrinarumford.com/",
   "notFound": {
-    "heading": "This page isn’t here.",
+    "heading": "This page isn't here.",
     "sub": "The address may be mistyped, the link might be outdated, or the page may have moved. Try again from the home page.",
     "back": "Back home"
   },
   "contact": {
     "enabled": false,
+    "mode": "",
     "endpoint": ""
   },
   "splash": {
