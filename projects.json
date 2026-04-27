@@ -7,8 +7,9 @@
     "thumbnail": "thumbs/kr-motion-2001.png",
     "url": "https://www.youtube.com/watch?v=X5hMBxYqq5c",
     "award": "",
+    "description": "",
     "published": true,
-    "overlay": "editorial",
+    "overlay": "none",
     "vignette": 0.35
   },
   {
