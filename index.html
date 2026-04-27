@@ -140,16 +140,17 @@
     @keyframes pageIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
     /* ── GRID — DESKTOP ── */
-    .gallery-grid { columns: 3; column-gap: 3px; padding: 3px; }
+    /* masonry: JS positions items absolutely; layout-grid uses CSS grid */
+    .gallery-grid { position: relative; padding: 3px; }
     .gallery-grid.layout-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
-    .gallery-grid.layout-grid .grid-item { margin-bottom: 0; aspect-ratio: 16/9; }
+    .gallery-grid.layout-grid .grid-item { aspect-ratio: 16/9; }
     .gallery-grid.layout-grid .grid-thumb { height: 100%; object-fit: cover; }
 
     .grid-item {
-      position: relative; overflow: hidden; cursor: pointer; display: block;
-      break-inside: avoid; margin-bottom: 3px;
+      position: absolute; overflow: hidden; cursor: pointer;
       background: var(--bg2); animation: gridIn 0.45s var(--ease) both;
     }
+    .gallery-grid.layout-grid .grid-item { position: relative; }
     .grid-item:nth-child(1)   { animation-delay: 0.02s; }
     .grid-item:nth-child(2)   { animation-delay: 0.07s; }
     .grid-item:nth-child(3)   { animation-delay: 0.12s; }
@@ -159,7 +160,7 @@
     .grid-item:nth-child(n+7) { animation-delay: 0.32s; }
     @keyframes gridIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
 
-    .grid-thumb { width: 100%; height: auto; display: block; transition: transform 0.65s var(--ease), filter 0.65s var(--ease); filter: saturate(0.8) brightness(0.85); }
+    .grid-thumb { width: 100%; height: auto; display: block; transition: transform 0.65s var(--ease), filter 0.65s var(--ease); filter: var(--thumb-filter, none); }
     .grid-item:hover .grid-thumb { transform: scale(1.04); filter: saturate(0.55) brightness(0.28); }
 
     .grid-scrim { position: absolute; inset: 0; pointer-events: none; opacity: 1; transition: opacity 0.4s var(--ease); }
@@ -567,6 +568,12 @@
       if (cfg.filmGrain !== undefined) {
         document.documentElement.style.setProperty('--film-grain-opacity', cfg.filmGrain);
       }
+      if (cfg.thumbnailFilter) {
+        const t = cfg.thumbnailFilter / 100;
+        document.documentElement.style.setProperty('--thumb-filter', `saturate(${1 - 0.2 * t}) brightness(${1 - 0.15 * t})`);
+      } else {
+        document.documentElement.style.removeProperty('--thumb-filter');
+      }
 
       const mode = cfg.themeMode || 'auto';
       _currentThemeSetting = mode;
@@ -808,7 +815,41 @@
         grid.appendChild(el);
       });
       resolveVimeoThumbs(grid);
+
+      // Masonry layout (JS-positioned, left-to-right order)
+      const catDef = siteConfig.categories.find(c => c.id === cat);
+      if (catDef?.layout !== 'grid') {
+        layoutMasonry(grid);
+        grid.querySelectorAll('img.grid-thumb').forEach(img => {
+          if (!img.complete) img.addEventListener('load', () => layoutMasonry(grid), { once: true });
+        });
+      }
     }
+
+    function layoutMasonry(grid) {
+      const COLS = 3, GAP = 3, PAD = 3;
+      const items = Array.from(grid.querySelectorAll(':scope > .grid-item'));
+      if (!items.length) return;
+      const gridW = grid.clientWidth - PAD * 2;
+      const colW  = Math.floor((gridW - GAP * (COLS - 1)) / COLS);
+      const colH  = new Array(COLS).fill(0);
+      items.forEach(item => {
+        const col = colH.indexOf(Math.min(...colH));
+        item.style.width = colW + 'px';
+        item.style.left  = (PAD + col * (colW + GAP)) + 'px';
+        item.style.top   = (PAD + colH[col]) + 'px';
+        colH[col] += item.offsetHeight + GAP;
+      });
+      grid.style.height = (Math.max(...colH) + PAD) + 'px';
+    }
+
+    let _masonryRaf;
+    window.addEventListener('resize', () => {
+      cancelAnimationFrame(_masonryRaf);
+      _masonryRaf = requestAnimationFrame(() => {
+        document.querySelectorAll('.gallery-grid:not(.layout-grid)').forEach(layoutMasonry);
+      });
+    });
 
     function buildMobileList(cat, items) {
       const list = document.getElementById('mlist-' + cat);

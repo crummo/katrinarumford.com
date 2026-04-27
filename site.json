@@ -113,5 +113,6 @@
   },
   "allowThemeToggle": false,
   "themeMode": "light",
-  "filmGrain": 0.1
+  "filmGrain": 0.1,
+  "thumbnailFilter": 0
 }

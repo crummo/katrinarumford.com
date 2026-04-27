@@ -1033,6 +1033,13 @@
               oninput="document.getElementById('site-film-grain-pct').textContent='— '+this.value+'%';document.documentElement.style.setProperty('--film-grain-opacity', this.value/500);markDirty()" />
             <div class="field-hint" style="margin-top:4px">Subtle texture overlay on the public site. 0 = off.</div>
           </div>
+          <div class="field" style="margin-top:12px">
+            <label>Thumbnail Filter <span id="site-thumb-filter-pct" style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0;font-weight:400"></span></label>
+            <input type="range" id="site-thumb-filter" min="0" max="100" step="1" value="0"
+              style="width:100%;accent-color:var(--accent)"
+              oninput="updateThumbFilter(this.value);markDirty()" />
+            <div class="field-hint" style="margin-top:4px">Desaturates and dims thumbnails at rest. 0 = natural, 100 = cinematic.</div>
+          </div>
         </div>
 
         <div class="settings-section">
@@ -1552,8 +1559,8 @@
     <div class="field">
       <label>Grid Layout</label>
       <select id="cat-layout" style="width:100%">
-        <option value="masonry">Masonry — natural image proportions, columns flow independently</option>
-        <option value="grid">Grid — uniform 16:9 rows</option>
+        <option value="masonry">Masonry — natural proportions</option>
+        <option value="grid">Grid — uniform 16:9</option>
       </select>
     </div>
     <div class="modal-actions" style="justify-content:space-between">
@@ -3461,6 +3468,16 @@ async function saveContactFields() {
 // ─── ACCENT COLOR + ANALYTICS ────────────────────────────────────────────────
 const DEFAULT_ACCENT = '#c9a96e';
 
+function updateThumbFilter(val) {
+  document.getElementById('site-thumb-filter-pct').textContent = '— ' + val + '%';
+  const t = val / 100;
+  if (t > 0) {
+    document.documentElement.style.setProperty('--thumb-filter', `saturate(${1 - 0.2 * t}) brightness(${1 - 0.15 * t})`);
+  } else {
+    document.documentElement.style.removeProperty('--thumb-filter');
+  }
+}
+
 function previewAccentColor(color) {
   document.documentElement.style.setProperty('--accent', color);
   const hexEl = document.getElementById('site-accent-hex');
@@ -3711,6 +3728,7 @@ function flushSettingsForms() {
   siteConfig.themeMode      = document.getElementById('site-theme-mode')?.value || 'auto';
   siteConfig.allowThemeToggle = document.getElementById('site-allow-theme-toggle')?.checked || false;
   siteConfig.filmGrain      = parseFloat(document.getElementById('site-film-grain')?.value || 14) / 500;
+  siteConfig.thumbnailFilter = parseInt(document.getElementById('site-thumb-filter')?.value || 0);
 
   updateNavBrand();
 }
@@ -3982,6 +4000,9 @@ function populateGeneralSettings() {
   if (grainEl) { grainEl.value = grainPct; }
   if (grainLbl) grainLbl.textContent = '— ' + grainPct + '%';
   document.documentElement.style.setProperty('--film-grain-opacity', siteConfig.filmGrain ?? 0.028);
+  const thumbFilterPct = siteConfig.thumbnailFilter ?? 0;
+  const thumbFilterEl  = document.getElementById('site-thumb-filter');
+  if (thumbFilterEl) { thumbFilterEl.value = thumbFilterPct; updateThumbFilter(thumbFilterPct); }
   updateAnalyticsFields();
   updateFaviconPreview();
   updateOgPreview();
@@ -4006,6 +4027,7 @@ async function saveGeneralSettings() {
   siteConfig.themeMode = document.getElementById('site-theme-mode').value;
   siteConfig.allowThemeToggle = document.getElementById('site-allow-theme-toggle').checked;
   siteConfig.filmGrain = parseFloat(document.getElementById('site-film-grain')?.value || 14) / 500;
+  siteConfig.thumbnailFilter = parseInt(document.getElementById('site-thumb-filter')?.value || 0);
   updateNavBrand();
   await saveToGitHub();
   await patchIndexOgTags();
