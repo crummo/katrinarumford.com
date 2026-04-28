@@ -2218,6 +2218,8 @@ function renderCategory(cat) {
 
   const items = projects.filter(p => p.category === cat);
   const list  = document.getElementById('list-' + cat);
+  // Lightbox categories use a stacked list layout, not the photo grid
+  if (list) { list.classList.remove('gallery-admin-grid'); list.classList.add('project-list'); }
   const count = document.getElementById('count-' + cat);
 
   count.textContent = `${items.length} project${items.length !== 1 ? 's' : ''}`;
