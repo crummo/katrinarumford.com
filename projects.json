@@ -2490,5 +2490,14 @@
     "description": "",
     "published": false,
     "aspect": 2.75
+  },
+  {
+    "id": 1777407928773,
+    "category": "gallery-test",
+    "title": "",
+    "client": "",
+    "url": "gallery/gallery-test/Screenshot+2025-12-30+at+1.00.44 PM.webp",
+    "thumbnail": "gallery/gallery-test/Screenshot+2025-12-30+at+1.00.44 PM.webp",
+    "published": false
   }
 ]
