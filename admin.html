@@ -2155,6 +2155,10 @@ function buildAdminCategoryPanes() {
           <span class="toolbar-label" id="count-${cat.id}"></span>
           <div style="display:flex;align-items:center;gap:8px">
             <label class="bulk-toggle-label" style="margin-bottom:0">
+              <input type="checkbox" id="bulk-optimize-${cat.id}" checked />
+              Optimize
+            </label>
+            <label class="bulk-toggle-label" style="margin-bottom:0">
               <input type="checkbox" id="bulk-draft-${cat.id}" checked />
               Import as draft
             </label>
@@ -2563,6 +2567,29 @@ function setBulkUploadingState(catId, active) {
     if (zone) zone.querySelector('.bulk-drop-zone-label').textContent = 'Drop images here';
   }
 }
+function compressImage(file, maxDim = 2500, quality = 0.85) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        if (width >= height) { height = Math.round(height * maxDim / width); width = maxDim; }
+        else { width = Math.round(width * maxDim / height); height = maxDim; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL('image/webp', quality);
+      // Return both the base64 payload and the full data URL for previewing
+      resolve({ base64: dataUrl.split(',')[1], previewUrl: dataUrl });
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not load image for compression')); };
+    img.src = url;
+  });
+}
+
 async function processBulkFiles(files, catId) {
   if (_bulkUploading) { showToast('Upload in progress — please wait until it finishes.', 'error'); return; }
   const o = localStorage.getItem(K_OWNER);
@@ -2572,6 +2599,7 @@ async function processBulkFiles(files, catId) {
   setBulkUploadingState(catId, true);
 
   const publishedByDefault = !document.getElementById('bulk-draft-' + catId)?.checked;
+  const shouldOptimize     =  document.getElementById('bulk-optimize-' + catId)?.checked !== false;
   const folder = 'gallery/' + catId;
   const total  = files.length;
 
@@ -2592,13 +2620,28 @@ async function processBulkFiles(files, catId) {
   try {
   setProgress(0, `Preparing ${total} image${total !== 1 ? 's' : ''}…`);
 
-  // Step 1: read all files as base64
-  const fileData = await Promise.all(files.map(f => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload  = () => resolve({ file: f, base64: reader.result.split(',')[1] });
-    reader.onerror = reject;
-    reader.readAsDataURL(f);
-  })));
+  // Step 1: read (and optionally compress) all files
+  let originalBytes = 0, compressedBytes = 0;
+  const fileData = await Promise.all(files.map(async f => {
+    originalBytes += f.size;
+    let base64, previewUrl;
+    if (shouldOptimize) {
+      const result = await compressImage(f);
+      base64 = result.base64;
+      previewUrl = result.previewUrl; // data URL — no expiry, shows exact upload
+      compressedBytes += Math.round(base64.length * 3 / 4);
+    } else {
+      base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload  = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(f);
+      });
+      previewUrl = URL.createObjectURL(f);
+      compressedBytes += f.size;
+    }
+    return { file: f, base64, previewUrl };
+  }));
 
   // Step 2: create blobs in parallel (batched to avoid rate limits)
   setProgress(0, `Uploading 0 / ${total}…`);
@@ -2607,7 +2650,7 @@ async function processBulkFiles(files, catId) {
   let done = 0;
   for (let i = 0; i < fileData.length; i += BATCH) {
     const batch = fileData.slice(i, i + BATCH);
-    const results = await Promise.all(batch.map(async ({ file, base64 }) => {
+    const results = await Promise.all(batch.map(async ({ file, base64, previewUrl }) => {
       const res = await fetch(`https://api.github.com/repos/${o}/${r}/git/blobs`, {
         method: 'POST',
         headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
@@ -2617,21 +2660,22 @@ async function processBulkFiles(files, catId) {
       const { sha } = await res.json();
       done++;
       setProgress(done, `Uploading ${done} / ${total}…`);
-      return { path: `${folder}/${file.name}`, sha, file };
+      const fname = shouldOptimize ? file.name.replace(/\.[^.]+$/, '.webp') : file.name;
+      return { path: `${folder}/${fname}`, sha, file, previewUrl };
     }));
     blobs.push(...results);
   }
 
   // Step 3: build project entries (needed before commit so projects.json is correct)
-  const blobUrls = {};
-  blobs.forEach(({ path, file }) => { blobUrls[path] = URL.createObjectURL(file); });
-
+  // Use previewUrl from compression/reading — data URLs are permanent and represent
+  // exactly what was uploaded. Never create a new createObjectURL here (original File
+  // objects aren't the compressed WebP, and blob URLs expire/behave unpredictably).
   const catItems = projects.filter(p => p.category === catId);
   const insertAfter = catItems.length > 0
     ? projects.lastIndexOf(catItems[catItems.length - 1])
     : projects.length - 1;
 
-  blobs.forEach(({ path, file }, i) => {
+  blobs.forEach(({ path, previewUrl }, i) => {
     projects.splice(insertAfter + 1 + i, 0, {
       id:        Date.now() + i,
       category:  catId,
@@ -2640,7 +2684,7 @@ async function processBulkFiles(files, catId) {
       url:       path,
       thumbnail: path,
       published: publishedByDefault,
-      _blobUrl:  blobUrls[path]
+      _blobUrl:  previewUrl
     });
   });
 
@@ -2708,10 +2752,18 @@ async function processBulkFiles(files, catId) {
 
   setBulkUploadingState(catId, false);
   pollDeployStatus();
-  showToast(`${total} image${total !== 1 ? 's' : ''} committed to GitHub${publishedByDefault ? '' : ' as drafts'} — live site updates in ~1 min.`, 'success');
+  const fmtBytes = bytes => bytes > 1048576 ? (bytes/1048576).toFixed(1) + ' MB' : Math.round(bytes/1024) + ' KB';
+  const sizeNote = shouldOptimize && compressedBytes < originalBytes * 0.99
+    ? ` · ${fmtBytes(originalBytes)} → ${fmtBytes(compressedBytes)}`
+    : '';
+  showToast(`${total} image${total !== 1 ? 's' : ''} committed${publishedByDefault ? '' : ' as drafts'}${sizeNote} — live site updates in ~1 min.`, 'success');
 
-  // Keep blob URLs alive long enough for GitHub Pages to deploy (~5 min)
-  setTimeout(() => { Object.values(blobUrls).forEach(u => URL.revokeObjectURL(u)); }, 5 * 60 * 1000);
+  // When not optimizing, previewUrls are blob URLs — revoke after deploy window.
+  // When optimizing, previewUrls are data URLs — no revocation needed.
+  if (!shouldOptimize) {
+    const blobPreviewUrls = blobs.map(bl => bl.previewUrl);
+    setTimeout(() => { blobPreviewUrls.forEach(u => URL.revokeObjectURL(u)); }, 5 * 60 * 1000);
+  }
 
   } catch(err) {
     setBulkUploadingState(catId, false);
