@@ -1,17 +1,17 @@
 {
   "categories": [
     {
-      "id": "motion",
-      "label": "Motion",
-      "published": true,
-      "type": "lightbox",
-      "layout": "masonry"
-    },
-    {
       "id": "studio",
       "label": "Studio",
       "published": true,
       "type": "gallery",
+      "layout": "masonry"
+    },
+    {
+      "id": "motion",
+      "label": "Motion",
+      "published": true,
+      "type": "lightbox",
       "layout": "masonry"
     },
     {
