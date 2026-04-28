@@ -676,10 +676,10 @@
       color: var(--fg); margin-bottom: 28px;
     }
     .modal-actions {
-      position: sticky; bottom: -36px;
+      position: sticky; bottom: 0;
       display: flex; justify-content: flex-end;
       gap: 10px; margin-top: 28px;
-      padding: 20px 0 0;
+      padding: 20px 0 36px;
       border-top: 1px solid var(--fg-dimmer);
       background: var(--bg2);
     }
@@ -1382,7 +1382,7 @@
           </div>
 
           <!-- Clients & Collaborators -->
-          <div class="about-subsection-title" style="margin-top:40px;border-top:1px solid var(--fg-dimmer);padding-top:16px">Clients &amp; Collaborators</div>
+          <div class="about-subsection-title" style="margin-top:40px">Clients &amp; Collaborators</div>
 
           <!-- Text names -->
           <div style="margin-bottom:8px">
@@ -2755,14 +2755,24 @@ function bulkDragOver(e, catId) {
 function bulkDragLeave(e, catId) {
   document.getElementById('bulk-zone-' + catId)?.classList.remove('drag-active');
 }
+const BULK_MAX_MB = 20;
+function bulkFilterFiles(raw) {
+  const imgs = [...raw].filter(f => f.type.startsWith('image/'));
+  const tooBig = imgs.filter(f => f.size > BULK_MAX_MB * 1024 * 1024);
+  if (tooBig.length) {
+    const names = tooBig.map(f => `${f.name} (${(f.size/1024/1024).toFixed(1)} MB)`).join(', ');
+    showToast(`Skipped ${tooBig.length} file${tooBig.length > 1 ? 's' : ''} over ${BULK_MAX_MB} MB: ${names}`, 'error');
+  }
+  return imgs.filter(f => f.size <= BULK_MAX_MB * 1024 * 1024);
+}
 function bulkDrop(e, catId) {
   e.preventDefault(); e.stopPropagation();
   document.getElementById('bulk-zone-' + catId)?.classList.remove('drag-active');
-  const files = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
+  const files = bulkFilterFiles(e.dataTransfer.files);
   if (files.length) processBulkFiles(files, catId);
 }
 function handleBulkFilePicker(input, catId) {
-  const files = [...input.files].filter(f => f.type.startsWith('image/'));
+  const files = bulkFilterFiles(input.files);
   input.value = '';
   if (files.length) processBulkFiles(files, catId);
 }
@@ -3383,11 +3393,18 @@ function saveCategoryModal() {
 
 function previewCategory(catId) {
   flushSettingsForms();
-  try {
-    sessionStorage.setItem('cr_preview', JSON.stringify({ siteConfig, projects, hideUnpublished: true }));
+  const payload = JSON.stringify({ siteConfig, projects, hideUnpublished: true });
+  let stored = false;
+  try { sessionStorage.setItem('cr_preview', payload); stored = true; } catch(e) {}
+  if (!stored) {
+    try { localStorage.setItem('cr_preview', payload); stored = true; } catch(e) {}
+  }
+  if (stored) {
     window.open('index.html?preview=1#' + catId, '_blank');
-  } catch(e) {
-    showToast('Preview failed — sessionStorage unavailable.', 'error');
+  } else {
+    // Storage unavailable — open live site without unsaved-changes preview
+    showToast('Storage unavailable — opening live site instead.', '');
+    window.open('index.html#' + catId, '_blank');
   }
 }
 

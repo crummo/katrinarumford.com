@@ -28,7 +28,7 @@
         document.documentElement.setAttribute('data-theme', resolved);
       }
       try {
-        var s = JSON.parse(sessionStorage.getItem('cr_preview') || '{}');
+        var s = JSON.parse(sessionStorage.getItem('cr_preview') || localStorage.getItem('cr_preview') || '{}');
         var cfg = s.siteConfig || s;
         var cached = localStorage.getItem('kr_theme');
         _applyTheme(cfg.themeMode || cached || 'light');
@@ -622,7 +622,7 @@
     async function init() {
       try {
         if (isPreview) {
-          const raw  = JSON.parse(sessionStorage.getItem('cr_preview') || '{}');
+          const raw  = JSON.parse(sessionStorage.getItem('cr_preview') || localStorage.getItem('cr_preview') || '{}');
           siteConfig = raw.siteConfig || raw || {};
           projects   = raw.projects   || [];
           projects.forEach((p, gi) => { if (p.published === false) previewHidden.add(gi); });
