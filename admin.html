@@ -2660,8 +2660,7 @@ async function processBulkFiles(files, catId) {
       const { sha } = await res.json();
       done++;
       setProgress(done, `Uploading ${done} / ${total}…`);
-      const sanitize = n => n.replace(/ /g, '+');
-      const fname = shouldOptimize ? sanitize(file.name.replace(/\.[^.]+$/, '.webp')) : sanitize(file.name);
+      const fname = shouldOptimize ? sanitizeName(file.name.replace(/\.[^.]+$/, '.webp')) : sanitizeName(file.name);
       return { path: `${folder}/${fname}`, sha, file, previewUrl };
     }));
     blobs.push(...results);
@@ -4127,16 +4126,17 @@ async function uploadClientLogo(input) {
   const file = input.files[0];
   input.value = '';
   if (!file) return;
-  const filePath = 'images/' + file.name;
+  const safeName = sanitizeName(file.name);
+  const filePath = 'images/' + safeName;
   const blobUrl  = URL.createObjectURL(file);
   const ok = await uploadToGitHub(file, filePath);
   URL.revokeObjectURL(blobUrl);
   if (!ok) return;
   // Prompt for name
-  const name = (prompt('Label for this logo (used as alt text / tooltip):', file.name.replace(/\.[^.]+$/, '')) || '').trim();
+  const name = (prompt('Label for this logo (used as alt text / tooltip):', safeName.replace(/\.[^.]+$/, '')) || '').trim();
   if (!siteConfig.about) siteConfig.about = {};
   if (!siteConfig.about.clients) siteConfig.about.clients = [];
-  siteConfig.about.clients.push({ name: name || file.name, logo: filePath });
+  siteConfig.about.clients.push({ name: name || safeName, logo: filePath });
   renderClientList();
   markDirty();
   showToast('"' + file.name + '" added!', 'success');
@@ -5003,6 +5003,9 @@ function initThumbDropZone() {
   });
 }
 
+// Sanitize a filename for use in URLs — replace spaces with +
+function sanitizeName(name) { return name.replace(/ /g, '+'); }
+
 // Shared GitHub file upload — returns true on success
 async function uploadToGitHub(file, filePath) {
   const o = localStorage.getItem(K_OWNER);
@@ -5051,12 +5054,13 @@ async function uploadToGitHub(file, filePath) {
 }
 
 async function uploadThumbFile(file) {
+  const safeName = sanitizeName(file.name);
   const blobUrl = URL.createObjectURL(file);
-  const ok = await uploadToGitHub(file, 'thumbs/' + file.name);
+  const ok = await uploadToGitHub(file, 'thumbs/' + safeName);
   if (!ok) { URL.revokeObjectURL(blobUrl); return; }
-  const newPath = 'thumbs/' + file.name;
+  const newPath = 'thumbs/' + safeName;
   if (!thumbFiles.includes(newPath)) thumbFiles.unshift(newPath);
-  document.getElementById('f-thumbnail').value = file.name;
+  document.getElementById('f-thumbnail').value = safeName;
   // Use blob URL for instant preview — bypasses CDN propagation delay
   const preview   = document.getElementById('thumb-preview');
   const empty     = document.getElementById('thumb-empty-state');
@@ -5075,10 +5079,11 @@ async function uploadThumbFile(file) {
 }
 
 async function uploadFaviconFile(file) {
+  const safeName = sanitizeName(file.name);
   const blobUrl = URL.createObjectURL(file);
-  const ok = await uploadToGitHub(file, file.name);
+  const ok = await uploadToGitHub(file, safeName);
   if (!ok) { URL.revokeObjectURL(blobUrl); return; }
-  document.getElementById('site-favicon-input').value = file.name;
+  document.getElementById('site-favicon-input').value = safeName;
   // Show blob URL on both tab preview images immediately — bypasses CDN delay
   const prev = document.getElementById('favicon-preview');
   const dark = document.getElementById('favicon-preview-dark');
@@ -5099,8 +5104,9 @@ async function uploadFaviconFile(file) {
 }
 
 async function uploadImageFile(file, folder, inputId, previewFn) {
+  const safeName = sanitizeName(file.name);
   const blobUrl  = URL.createObjectURL(file);
-  const filePath = folder ? `${folder}/${file.name}` : file.name;
+  const filePath = folder ? `${folder}/${safeName}` : safeName;
   const ok = await uploadToGitHub(file, filePath);
   if (!ok) { URL.revokeObjectURL(blobUrl); return; }
   if (inputId) document.getElementById(inputId).value = filePath;
