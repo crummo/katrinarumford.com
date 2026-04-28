@@ -282,7 +282,7 @@
       --lb-fg: #ede8e0; --lb-fg-dim: #8a7f76; --lb-fg-dimmer: #2a2623; --lb-fg-mid: #b0a89e; }
     .lightbox.open { display: flex; animation: lbIn 0.28s var(--ease); }
     @keyframes lbIn { from { opacity: 0; } to { opacity: 1; } }
-    .lb-inner { width: 100%; max-width: 1020px; padding: 0 24px; display: flex; flex-direction: column; align-items: center; }
+    .lb-inner { width: 100%; max-width: 1020px; padding: 0 48px; display: flex; flex-direction: column; align-items: center; }
     .lb-image-wrap { width: 100%; aspect-ratio: 16/9; background: #111; display: flex; align-items: center; justify-content: center; overflow: hidden; }
     .lb-image-wrap img { width: 100%; height: 100%; object-fit: cover; }
     .lb-ph { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
@@ -302,13 +302,13 @@
     .lb-close:hover { color: var(--lb-fg); }
 
     /* ── GALLERY VIEWER ── */
-    .gv { display: none; position: fixed; z-index: 100; background: var(--bg); align-items: center; justify-content: center; overflow: hidden; }
+    .gv { display: none; position: fixed; z-index: 100; background: var(--bg); align-items: center; justify-content: center; overflow: hidden; flex-direction: column; }
     body.nav-left .gv { top: 0; left: var(--nav-w); right: 0; bottom: 0; }
     body:not(.nav-left) .gv { top: var(--nav-h); left: 0; right: 0; bottom: 0; }
     body.is-preview.nav-left .gv { top: 28px; }
     .gv.open { display: flex; animation: pageIn 0.3s var(--ease); }
 
-    .gv-media { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+    .gv-media { position: relative; width: 100%; flex: 1 1 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
     .gv-img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; user-select: none; -webkit-user-drag: none; }
     .gv-iframe { width: 100%; height: 56.25vw; max-height: 100%; border: none; }
 
@@ -326,6 +326,13 @@
     .gv-arrow-prev::before { transform: rotate(-135deg); margin-left: 28px; }
     .gv-arrow-next::before { transform: rotate(45deg); margin-right: 28px; }
 
+    /* Prev / Next controls bar */
+    .gv-controls { display: flex; align-items: center; gap: 20px; padding: 14px 24px; flex-shrink: 0; }
+    .gv-ctrl-btn { background: none; border: none; cursor: pointer; font-family: var(--font-sans); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--fg-dim); padding: 6px 0; transition: color 0.2s; }
+    .gv-ctrl-btn:hover { color: var(--fg); }
+    .gv-ctrl-btn:disabled { opacity: 0.2; cursor: default; }
+    .gv-ctrl-counter { font-size: 10px; letter-spacing: 0.1em; color: var(--fg-dimmer); min-width: 52px; text-align: center; }
+
     /* Nav info shown when gallery viewer is open */
     .gv-nav-info { display: none; }
     body.nav-left.gv-open .gv-nav-info { display: block; position: absolute; bottom: 32px; left: 28px; right: 28px; }
@@ -336,8 +343,9 @@
     .gv-nav-back:hover { color: var(--fg); }
 
     /* Lightbox image mode — natural aspect ratio instead of forced 16:9 */
-    .lb-image-wrap.lb-image-mode { aspect-ratio: auto; height: auto; max-height: 72vh; }
-    .lb-image-wrap.lb-image-mode img { width: auto; height: auto; max-width: 100%; max-height: 72vh; object-fit: contain; display: block; }
+    .lb-image-wrap.lb-image-mode { aspect-ratio: auto; width: 100%; height: 68vh; }
+    .lb-image-wrap.lb-image-mode img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .lb-lowres { margin-top: 8px; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--lb-fg-dimmer); display: none; }
 
     /* ── ABOUT ── */
     .about-wrap { max-width: 680px; margin: 0 auto; padding: 72px 44px 100px; }
@@ -550,6 +558,11 @@
       <button class="gv-arrow gv-arrow-prev" id="gv-prev" onclick="galleryNav(-1)" aria-label="Previous" disabled></button>
       <button class="gv-arrow gv-arrow-next" id="gv-next" onclick="galleryNav(1)"  aria-label="Next"></button>
     </div>
+    <div class="gv-controls">
+      <button class="gv-ctrl-btn" id="gv-ctrl-prev" onclick="galleryNav(-1)" disabled>← Prev</button>
+      <div class="gv-ctrl-counter" id="gv-ctrl-counter"></div>
+      <button class="gv-ctrl-btn" id="gv-ctrl-next" onclick="galleryNav(1)">Next →</button>
+    </div>
   </div>
 
   <!-- Lightbox -->
@@ -563,6 +576,7 @@
           <h2 class="lb-title" id="lb-title"></h2>
           <div class="lb-award" id="lb-award"></div>
           <div class="lb-desc" id="lb-desc"></div>
+          <div class="lb-lowres" id="lb-lowres">Low resolution image</div>
         </div>
         <div class="lb-controls">
           <button class="lb-btn" id="lb-prev" onclick="lbNav(-1)">Prev</button>
@@ -1201,11 +1215,22 @@
       const frame = document.getElementById('lb-frame');
       const useImageMode = isImageUrl(p.url) || (!p.url && p.thumbnail);
       frame.classList.toggle('lb-image-mode', useImageMode);
+      const lowresEl = document.getElementById('lb-lowres');
+      lowresEl.style.display = 'none';
       frame.innerHTML = isVideoUrl(p.url)
         ? `<iframe title="${x(p.title || '')}" src="${x(getEmbedUrl(p.url))}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="width:100%;height:100%"></iframe>`
         : (p.url || p.thumbnail)
           ? `<img src="${x(p.url || p.thumbnail)}" alt="${x(p.title || '')}">`
           : `<div class="lb-ph"><div class="lb-ph-icon"></div></div>`;
+      if (useImageMode) {
+        const img = frame.querySelector('img');
+        if (img) img.addEventListener('load', () => {
+          const displayW = frame.offsetWidth;
+          const displayH = frame.offsetHeight;
+          const scale = Math.max(displayW / img.naturalWidth, displayH / img.naturalHeight);
+          lowresEl.style.display = scale > 1.5 ? 'block' : 'none';
+        }, { once: true });
+      }
       document.getElementById('lb-client').textContent = p.client || '';
       document.getElementById('lb-title').textContent  = p.title  || '';
       const aw = document.getElementById('lb-award');
@@ -1279,9 +1304,14 @@
       // Nav sidebar info
       document.getElementById('gv-nav-client').textContent  = p.client || '';
       document.getElementById('gv-nav-title').textContent   = p.title  || '';
-      document.getElementById('gv-nav-counter').textContent = `${gvIdx + 1} / ${gvItems.length}`;
-      document.getElementById('gv-prev').disabled = gvIdx === 0;
-      document.getElementById('gv-next').disabled = gvIdx === gvItems.length - 1;
+      document.getElementById('gv-nav-counter').textContent  = `${gvIdx + 1} / ${gvItems.length}`;
+      document.getElementById('gv-ctrl-counter').textContent = `${gvIdx + 1} / ${gvItems.length}`;
+      const atStart = gvIdx === 0;
+      const atEnd   = gvIdx === gvItems.length - 1;
+      document.getElementById('gv-prev').disabled      = atStart;
+      document.getElementById('gv-next').disabled      = atEnd;
+      document.getElementById('gv-ctrl-prev').disabled = atStart;
+      document.getElementById('gv-ctrl-next').disabled = atEnd;
     }
 
     /* ── EMBED URL ── */
