@@ -1382,7 +1382,7 @@
           </div>
 
           <!-- Clients & Collaborators -->
-          <div class="about-subsection-title" style="margin-top:32px">Clients &amp; Collaborators</div>
+          <div class="about-subsection-title" style="margin-top:40px;border-top:1px solid var(--fg-dimmer);padding-top:16px">Clients &amp; Collaborators</div>
 
           <!-- Text names -->
           <div style="margin-bottom:8px">
@@ -5586,6 +5586,10 @@ async function uploadImageFile(file, folder, inputId, previewFn) {
   if (inputId && _previewBlobUrls[inputId]) URL.revokeObjectURL(_previewBlobUrls[inputId]);
   if (inputId) _previewBlobUrls[inputId] = blobUrl;
   const previewIds = { 'about-photo-input': 'about-photo-preview', 'site-og-input': 'og-preview', 'site-favicon-input': 'favicon-preview' };
+  // Call previewFn first so it handles zone state, drag transform, etc.
+  // Then immediately override src with the blob URL — GitHub Pages hasn't
+  // deployed yet so the path-based src would show "offline".
+  if (previewFn) previewFn();
   const previewEl = inputId ? document.getElementById(previewIds[inputId]) : null;
   if (previewEl) {
     previewEl.style.opacity = '1';
@@ -5595,7 +5599,6 @@ async function uploadImageFile(file, folder, inputId, previewFn) {
   } else {
     URL.revokeObjectURL(blobUrl);
   }
-  if (previewFn) previewFn();
   markDirty();
   showToast('"' + file.name + '" uploaded!', 'success');
 }
