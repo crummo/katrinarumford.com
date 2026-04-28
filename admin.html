@@ -563,6 +563,16 @@
     .gai-item.drag-over { outline-color: var(--accent); }
     .gai-item.dragging { opacity: 0.25; outline-style: dashed; }
     .gai-item img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+    .gai-play {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.28); pointer-events: none; z-index: 1;
+    }
+    .gai-play::after {
+      content: ''; width: 0; height: 0;
+      border-style: solid; border-width: 10px 0 10px 18px;
+      border-color: transparent transparent transparent rgba(255,255,255,0.9);
+      margin-left: 3px;
+    }
     .gai-item.selected { outline-color: var(--accent); }
     .gai-check {
       position: absolute; top: 6px; left: 6px;
@@ -1617,6 +1627,14 @@
 <div class="modal-backdrop hidden" id="modal-gallery-edit">
   <div class="modal" style="max-width:400px">
     <div class="modal-title" id="ge-modal-title">Edit Image</div>
+    <div class="field" id="ge-video-field" style="display:none">
+      <label>Video URL</label>
+      <div class="field-clearable">
+        <input type="url" id="ge-video-url" placeholder="https://youtu.be/… or https://vimeo.com/…" />
+        <button class="field-clear-btn" type="button" onclick="clearField('ge-video-url')" title="Clear">×</button>
+      </div>
+      <div class="field-hint" style="margin-top:4px">YouTube or Vimeo URL</div>
+    </div>
     <div class="field">
       <label>Title <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(optional)</span></label>
       <input type="text" id="ge-title" placeholder="e.g. Editorial shoot, Spring 2024" />
@@ -1630,7 +1648,7 @@
         <input type="checkbox" id="ge-published" />
         Published
       </label>
-      <div class="field-hint" style="margin-top:6px">Uncheck to hide this image without deleting it.</div>
+      <div class="field-hint" style="margin-top:6px" id="ge-published-hint">Uncheck to hide this image without deleting it.</div>
     </div>
     <div class="modal-actions" style="border-top:1px solid var(--fg-dimmer);margin-top:16px;padding-top:12px;justify-content:space-between">
       <button class="btn btn-danger btn-sm" onclick="deleteGalleryImage()">Delete…</button>
@@ -1638,6 +1656,30 @@
         <button class="btn btn-ghost" onclick="closeGalleryEdit()">Cancel</button>
         <button class="btn btn-primary" onclick="saveGalleryEdit()">Save</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ GALLERY ADD VIDEO MODAL ═══════════════ -->
+<div class="modal-backdrop hidden" id="modal-gv-add-video">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title">Add Video to Gallery</div>
+    <div class="field">
+      <label>Video URL</label>
+      <input type="url" id="gv-av-url" placeholder="https://youtu.be/… or https://vimeo.com/…" />
+      <div class="field-hint" style="margin-top:4px">YouTube or Vimeo URL</div>
+    </div>
+    <div class="field">
+      <label>Title <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(optional)</span></label>
+      <input type="text" id="gv-av-title" placeholder="e.g. Brand film" />
+    </div>
+    <div class="field">
+      <label>Client <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(optional)</span></label>
+      <input type="text" id="gv-av-client" placeholder="e.g. Nike" />
+    </div>
+    <div class="modal-actions" style="border-top:1px solid var(--fg-dimmer);margin-top:16px;padding-top:12px">
+      <button class="btn btn-ghost" onclick="closeGvAddVideo()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveGvAddVideo()">Add Video</button>
     </div>
   </div>
 </div>
@@ -2153,32 +2195,31 @@ function buildAdminCategoryPanes() {
       pane.innerHTML = `
         <div class="toolbar">
           <span class="toolbar-label" id="count-${cat.id}"></span>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="display:flex;flex-direction:column;gap:2px;align-items:flex-start">
-              <label class="bulk-toggle-label" style="margin-bottom:0">
-                <input type="checkbox" id="bulk-optimize-${cat.id}" checked />
-                <span>Optimize uploads</span>
-              </label>
-              <span class="field-hint" style="margin-left:20px">Resize to 2500px, convert to WebP — ~70% smaller</span>
-            </div>
-            <label class="bulk-toggle-label" style="margin-bottom:0">
-              <input type="checkbox" id="bulk-draft-${cat.id}" checked />
-              Import as draft
-            </label>
+          <div style="display:flex;gap:8px">
             <label class="btn btn-ghost btn-sm bulk-select-btn" id="bulk-select-btn-${cat.id}" style="cursor:pointer;margin-bottom:0">
-              + Select images
+              + Upload images
               <input type="file" accept="image/*" multiple onchange="handleBulkFilePicker(this,'${cat.id}')" class="file-input-hidden" />
             </label>
+            <button class="btn btn-ghost btn-sm" onclick="openGvAddVideo('${cat.id}')">+ Add Video</button>
             <button class="btn btn-ghost btn-sm" onclick="previewCategory('${cat.id}')">Preview ↗</button>
           </div>
         </div>
         <div class="bulk-drop-zone" id="bulk-zone-${cat.id}"
-          onclick="document.querySelector('#bulk-zone-${cat.id} input').click()"
           ondragover="bulkDragOver(event,'${cat.id}')"
           ondragleave="bulkDragLeave(event,'${cat.id}')"
           ondrop="bulkDrop(event,'${cat.id}')">
-          <div class="bulk-drop-zone-label">Drop images here</div>
+          <div class="bulk-drop-zone-label">Drop images here to upload</div>
           <div class="bulk-drop-zone-hint">JPEG, PNG, WebP · multiple files OK</div>
+          <div style="display:flex;gap:20px;justify-content:center;margin-top:10px" onclick="event.stopPropagation()">
+            <label class="bulk-toggle-label" style="margin-bottom:0;font-size:11px">
+              <input type="checkbox" id="bulk-optimize-${cat.id}" checked />
+              <span>Optimize <span style="color:var(--fg-dim)">(resize to max 2500px, convert to WebP)</span></span>
+            </label>
+            <label class="bulk-toggle-label" style="margin-bottom:0;font-size:11px">
+              <input type="checkbox" id="bulk-draft-${cat.id}" checked />
+              <span>Import as draft</span>
+            </label>
+          </div>
           <input type="file" accept="image/*" multiple onchange="handleBulkFilePicker(this,'${cat.id}')" style="display:none" />
         </div>
         <div class="bulk-progress" id="bulk-progress-${cat.id}">
@@ -2317,7 +2358,8 @@ function renderGalleryCategory(cat) {
   list.innerHTML = '';
   items.forEach(p => {
     const globalIdx = projects.indexOf(p);
-    const imgSrc = p.url || p.thumbnail || '';
+    const isVid  = isVideoUrl(p.url);
+    const imgSrc = isVid ? '' : (p.url || p.thumbnail || '');
     const label  = [p.client, p.title].filter(Boolean).join(' · ');
     const item   = document.createElement('div');
     const isSelected = selectedGaiItems.has(p.id);
@@ -2326,12 +2368,27 @@ function renderGalleryCategory(cat) {
     item.dataset.idx = globalIdx;
     item.dataset.pid = p.id;
     const displaySrc = p._blobUrl || imgSrc;
+
+    // For video items, derive poster from YouTube/Vimeo
+    let posterSrc = displaySrc;
+    if (isVid) {
+      const poster = getAdminPoster(p);
+      if (poster?.url) posterSrc = poster.url;
+    }
+
     item.innerHTML = `
-      ${displaySrc ? `<img src="${esc(displaySrc)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}
+      ${posterSrc ? `<img src="${esc(posterSrc)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}
+      ${isVid ? '<div class="gai-play"></div>' : ''}
       <div class="gai-check" title="Select"></div>
       <div class="gai-dot" title="${p.published === false ? 'Unpublished' : 'Published'}"></div>
       ${label ? `<div class="gai-label">${esc(label)}</div>` : ''}
     `;
+
+    // Async load Vimeo poster if not already cached
+    if (isVid && p.url?.includes('vimeo') && !posterSrc) {
+      const imgEl = item.querySelector('img');
+      if (imgEl) fetchVimeoAdminPoster(p.url, imgEl, null);
+    }
     item.querySelector('.gai-check').addEventListener('click', e => { e.stopPropagation(); toggleGaiSelect(p.id, cat); });
     item.addEventListener('click', () => openGalleryEdit(globalIdx));
     item.addEventListener('dragstart', onGaiDragStart);
@@ -2479,10 +2536,16 @@ let editingGalleryIdx = null;
 function openGalleryEdit(globalIdx) {
   editingGalleryIdx = globalIdx;
   const p = projects[globalIdx];
-  document.getElementById('ge-modal-title').textContent = p.url ? p.url.split('/').pop() : 'Edit Image';
-  document.getElementById('ge-title').value     = p.title  || '';
-  document.getElementById('ge-client').value    = p.client || '';
+  const isVid = isVideoUrl(p.url);
+  document.getElementById('ge-modal-title').textContent = isVid ? 'Edit Video' : (p.url ? p.url.split('/').pop() : 'Edit Image');
+  document.getElementById('ge-video-field').style.display = isVid ? '' : 'none';
+  document.getElementById('ge-video-url').value  = isVid ? (p.url || '') : '';
+  document.getElementById('ge-title').value      = p.title  || '';
+  document.getElementById('ge-client').value     = p.client || '';
   document.getElementById('ge-published').checked = p.published !== false;
+  document.getElementById('ge-published-hint').textContent = isVid
+    ? 'Uncheck to hide this video without deleting it.'
+    : 'Uncheck to hide this image without deleting it.';
   document.getElementById('modal-gallery-edit').classList.remove('hidden');
 }
 
@@ -2494,6 +2557,10 @@ function closeGalleryEdit() {
 async function saveGalleryEdit() {
   if (editingGalleryIdx === null) return;
   const p = projects[editingGalleryIdx];
+  if (isVideoUrl(p.url) || document.getElementById('ge-video-field').style.display !== 'none') {
+    const newUrl = document.getElementById('ge-video-url').value.trim();
+    if (newUrl) p.url = newUrl;
+  }
   p.title     = document.getElementById('ge-title').value.trim();
   p.client    = document.getElementById('ge-client').value.trim();
   p.published = document.getElementById('ge-published').checked;
@@ -2506,12 +2573,15 @@ async function saveGalleryEdit() {
 async function deleteGalleryImage() {
   if (editingGalleryIdx === null) return;
   const p = projects[editingGalleryIdx];
-  const filePath = p.url || p.thumbnail || '';
+  const isVid = isVideoUrl(p.url);
+  const filePath = !isVid ? (p.url || p.thumbnail || '') : '';
   const isGalleryFile = filePath.startsWith('gallery/');
-  const label = p.title || filePath.split('/').pop() || 'this image';
-  const msg = isGalleryFile
-    ? `Remove "${label}" and delete the image file from the repo?`
-    : `Remove "${label}" from the list?\n\nThe file won't be deleted (not a gallery upload).`;
+  const label = p.title || (isVid ? 'this video' : (filePath.split('/').pop() || 'this image'));
+  const msg = isVid
+    ? `Remove "${label}" from the gallery?\n\nThe video on YouTube/Vimeo won't be affected.`
+    : isGalleryFile
+      ? `Remove "${label}" and delete the image file from the repo?`
+      : `Remove "${label}" from the list?\n\nThe file won't be deleted (not a gallery upload).`;
   if (!confirm(msg)) return;
 
   projects.splice(editingGalleryIdx, 1);
@@ -4676,6 +4746,54 @@ function esc(s) {
   return String(s || '')
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── VIDEO URL HELPERS ───────────────────────────────────────────────────────
+function isVideoUrl(url) {
+  if (!url) return false;
+  return /youtube\.com|youtu\.be|vimeo\.com|wistia/i.test(url);
+}
+
+// ─── GALLERY ADD VIDEO ────────────────────────────────────────────────────────
+let gvAddVideoCatId = null;
+
+function openGvAddVideo(catId) {
+  gvAddVideoCatId = catId;
+  document.getElementById('gv-av-url').value    = '';
+  document.getElementById('gv-av-title').value  = '';
+  document.getElementById('gv-av-client').value = '';
+  document.getElementById('modal-gv-add-video').classList.remove('hidden');
+  setTimeout(() => document.getElementById('gv-av-url').focus(), 50);
+}
+
+function closeGvAddVideo() {
+  document.getElementById('modal-gv-add-video').classList.add('hidden');
+  gvAddVideoCatId = null;
+}
+
+function saveGvAddVideo() {
+  const url = document.getElementById('gv-av-url').value.trim();
+  if (!url || !isVideoUrl(url)) {
+    showToast('Please enter a valid YouTube or Vimeo URL.', 'error');
+    return;
+  }
+  const title  = document.getElementById('gv-av-title').value.trim();
+  const client = document.getElementById('gv-av-client').value.trim();
+  const newProject = {
+    id:        Date.now(),
+    category:  gvAddVideoCatId,
+    url:       url,
+    title:     title  || '',
+    client:    client || '',
+    published: false,
+    overlay:   'none',
+    vignette:  0
+  };
+  projects.push(newProject);
+  markDirty();
+  renderGalleryCategory(gvAddVideoCatId);
+  closeGvAddVideo();
+  showToast('Video added as draft — save to publish.', 'success');
 }
 
 // ─── AUTO POSTER (admin list) ─────────────────────────────────────────────────
