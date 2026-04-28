@@ -2484,10 +2484,11 @@
     "category": "test",
     "title": "stuff",
     "client": "",
-    "thumbnail": "thumbs/Screenshot+2026-04-27+at+3.58.49 PM.png",
+    "thumbnail": "thumbs/Screenshot+2025-12-30+at+12.59.56 PM.png",
     "url": "",
     "award": "",
     "description": "",
-    "published": true
+    "published": true,
+    "aspect": 2.75
   }
 ]
