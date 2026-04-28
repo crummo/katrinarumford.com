@@ -1943,6 +1943,7 @@ let siteConfig     = { categories: [], about: {} };
 let thumbFiles     = [];
 let currentTab     = '';
 let editingIdx     = null;   // null = new, number = edit existing
+let _thumbBlobUrl  = null;   // blob URL for the last uploaded thumbnail preview — revoked on modal close
 let deletingIdx    = null;
 let editingCatIdx  = null;   // null = new category
 let isDirty        = false;
@@ -3161,6 +3162,7 @@ function toggleProjectPublished(idx) {
 
 function closeModal() {
   document.getElementById('modal-edit').classList.add('hidden');
+  if (_thumbBlobUrl) { URL.revokeObjectURL(_thumbBlobUrl); _thumbBlobUrl = null; }
 }
 
 async function saveProject() {
@@ -5525,7 +5527,10 @@ async function uploadThumbFile(file) {
   const newPath = 'thumbs/' + safeName;
   if (!thumbFiles.includes(newPath)) thumbFiles.unshift(newPath);
   document.getElementById('f-thumbnail').value = safeName;
-  // Use blob URL for instant preview — bypasses CDN propagation delay
+  // Keep the blob URL alive until the modal closes — Safari re-fetches on repaint
+  // if revoked too early, showing a broken "offline" indicator.
+  if (_thumbBlobUrl) URL.revokeObjectURL(_thumbBlobUrl);
+  _thumbBlobUrl = blobUrl;
   const preview   = document.getElementById('thumb-preview');
   const empty     = document.getElementById('thumb-empty-state');
   const dropZone  = document.getElementById('thumb-drop-zone');
@@ -5534,8 +5539,8 @@ async function uploadThumbFile(file) {
   if (preview) {
     preview.style.display = 'block';
     preview.style.opacity = '1';
-    preview.onload  = () => { preview.style.opacity = '1'; URL.revokeObjectURL(blobUrl); };
-    preview.onerror = () => { preview.style.opacity = '0.3'; URL.revokeObjectURL(blobUrl); };
+    preview.onload  = () => { preview.style.opacity = '1'; };
+    preview.onerror = () => { preview.style.opacity = '0.3'; };
     preview.src = blobUrl;
   }
   markDirty();
