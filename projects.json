@@ -2670,5 +2670,14 @@
     "url": "gallery/gallery-test/IMG_5054.jpeg",
     "thumbnail": "gallery/gallery-test/IMG_5054.jpeg",
     "published": true
+  },
+  {
+    "id": 1777408604584,
+    "category": "test-gallery",
+    "title": "",
+    "client": "",
+    "url": "gallery/test-gallery/IMG_5422.webp",
+    "thumbnail": "gallery/test-gallery/IMG_5422.webp",
+    "published": false
   }
 ]
