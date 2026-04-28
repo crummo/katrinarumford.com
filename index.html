@@ -290,6 +290,44 @@
     .lb-close { position: fixed; top: 22px; right: 30px; background: none; border: none; cursor: pointer; color: var(--lb-fg-dim); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; font-family: var(--font-sans); transition: color 0.2s; }
     .lb-close:hover { color: var(--lb-fg); }
 
+    /* ── GALLERY VIEWER ── */
+    .gv { display: none; position: fixed; z-index: 100; background: var(--bg); align-items: center; justify-content: center; overflow: hidden; }
+    body.nav-left .gv { top: 0; left: var(--nav-w); right: 0; bottom: 0; }
+    body:not(.nav-left) .gv { top: var(--nav-h); left: 0; right: 0; bottom: 0; }
+    body.is-preview.nav-left .gv { top: 28px; }
+    .gv.open { display: flex; animation: pageIn 0.3s var(--ease); }
+
+    .gv-media { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+    .gv-img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; user-select: none; -webkit-user-drag: none; }
+    .gv-iframe { width: 100%; height: 56.25vw; max-height: 100%; border: none; }
+
+    .gv-arrow { position: absolute; top: 0; bottom: 0; width: 80px; background: none; border: none; cursor: pointer; z-index: 10;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.35s var(--ease); }
+    .gv-media:hover .gv-arrow { opacity: 1; }
+    .gv-arrow:disabled { opacity: 0 !important; cursor: default; }
+    .gv-arrow::before { content: ''; display: block; width: 13px; height: 13px;
+      border-top: 1.5px solid var(--fg); border-right: 1.5px solid var(--fg);
+      opacity: 0.22; transition: opacity 0.25s; }
+    .gv-arrow:not(:disabled):hover::before { opacity: 0.75; }
+    .gv-arrow-prev { left: 0; }
+    .gv-arrow-next { right: 0; }
+    .gv-arrow-prev::before { transform: rotate(-135deg); margin-left: 28px; }
+    .gv-arrow-next::before { transform: rotate(45deg); margin-right: 28px; }
+
+    /* Nav info shown when gallery viewer is open */
+    .gv-nav-info { display: none; }
+    body.nav-left.gv-open .gv-nav-info { display: block; position: absolute; bottom: 32px; left: 28px; right: 28px; }
+    .gv-nav-client { font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); margin-bottom: 5px; }
+    .gv-nav-title { font-family: var(--font-serif); font-size: 15px; font-style: italic; color: var(--fg); line-height: 1.3; margin-bottom: 10px; }
+    .gv-nav-counter { font-size: 9px; letter-spacing: 0.1em; color: var(--fg-dim); margin-bottom: 18px; }
+    .gv-nav-back { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg-dim); background: none; border: none; cursor: pointer; font-family: var(--font-sans); padding: 0; transition: color 0.2s; }
+    .gv-nav-back:hover { color: var(--fg); }
+
+    /* Lightbox image mode — natural aspect ratio instead of forced 16:9 */
+    .lb-image-wrap.lb-image-mode { aspect-ratio: auto; height: auto; max-height: 72vh; }
+    .lb-image-wrap.lb-image-mode img { width: auto; height: auto; max-width: 100%; max-height: 72vh; object-fit: contain; display: block; }
+
     /* ── ABOUT ── */
     .about-wrap { max-width: 680px; margin: 0 auto; padding: 72px 44px 100px; }
     .about-eyebrow { font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--fg-dim); margin-bottom: 36px; }
@@ -421,6 +459,29 @@
       .lb-btn { font-size: 9px; padding: 10px 18px; }
       .lb-close { top: 16px; right: 18px; font-size: 10px; }
       .lb-desc { font-size: 11px; max-height: calc(1.7em * 3); }
+
+      /* Left nav collapses to top nav on mobile */
+      body.nav-left nav {
+        top: 0; left: 0; right: 0; bottom: auto;
+        width: 100%; height: var(--nav-h);
+        flex-direction: row; align-items: center; justify-content: space-between;
+        padding: 0 20px;
+        border-bottom: 1px solid var(--fg-dimmer);
+      }
+      body.nav-left .nav-brand { flex-direction: row; align-items: baseline; gap: 14px; margin-bottom: 0; }
+      body.nav-left .nav-brand-name { font-size: 17px; }
+      body.nav-left .nav-brand-rule { display: none; }
+      body.nav-left .nav-brand-title { display: none; }
+      body.nav-left .nav-right { flex-direction: row; align-items: center; flex: none; width: auto; }
+      body.nav-left .nav-links { display: none; }
+      body.nav-left .nav-hamburger { display: flex !important; }
+      body.nav-left .nav-drawer { display: block !important; max-height: 0; }
+      body.nav-left .theme-toggle { margin-top: 0; }
+      body.nav-left main { padding-left: 0; padding-top: var(--nav-h); }
+      body.nav-left .gv { left: 0; top: var(--nav-h); }
+      body.nav-left .gv-nav-info { display: none !important; }
+      body.is-preview.nav-left nav { top: 28px; height: var(--nav-h); right: 0; width: 100%; bottom: auto; }
+      body.is-preview.nav-left main { padding-top: var(--nav-h); }
     }
 
     @media (max-width: 400px) {
@@ -453,6 +514,12 @@
     </a>
     <div class="nav-right">
       <ul class="nav-links" id="nav-links"></ul>
+      <div class="gv-nav-info" id="gv-nav-info">
+        <div class="gv-nav-client" id="gv-nav-client"></div>
+        <div class="gv-nav-title" id="gv-nav-title"></div>
+        <div class="gv-nav-counter" id="gv-nav-counter"></div>
+        <button class="gv-nav-back" onclick="closeGallery()">← Back</button>
+      </div>
       <button class="theme-toggle hidden" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">◐</button>
       <button class="nav-hamburger" onclick="toggleDrawer()"><span></span><span></span></button>
     </div>
@@ -461,6 +528,16 @@
   <div class="nav-drawer" id="nav-drawer"></div>
 
   <main id="main-content"></main>
+
+  <!-- Gallery Viewer -->
+  <div id="gallery-viewer" class="gv">
+    <div class="gv-media" id="gv-media">
+      <img id="gv-img" class="gv-img" src="" alt="">
+      <iframe id="gv-iframe" class="gv-iframe" src="" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="display:none"></iframe>
+      <button class="gv-arrow gv-arrow-prev" id="gv-prev" onclick="galleryNav(-1)" aria-label="Previous" disabled></button>
+      <button class="gv-arrow gv-arrow-next" id="gv-next" onclick="galleryNav(1)"  aria-label="Next"></button>
+    </div>
+  </div>
 
   <!-- Lightbox -->
   <div id="lightbox" class="lightbox" onclick="closeLbOverlay(event)">
@@ -498,6 +575,9 @@
     let lbCat    = '';
     let lbIdx    = 0;
     let lbShared = null; // project object when opened via share link
+    let gvCat    = '';
+    let gvIdx    = 0;
+    let gvItems  = [];
     let _currentThemeSetting = 'auto';
     let _aboutRendered = false;
 
@@ -727,6 +807,7 @@
 
     /* ── SHOW PAGE ── */
     function showPage(id) {
+      closeGallery();
       document.querySelectorAll('.page').forEach(p => p.classList.remove('visible'));
       const pg = document.getElementById('page-' + id);
       if (!pg) return;
@@ -828,7 +909,8 @@
               : `<div class="grid-placeholder"><div class="grid-placeholder-icon"></div></div>`;
         const el = document.createElement('div');
         el.className = 'grid-item' + (overlayClass === 'none' ? ' overlay-none' : '');
-        el.onclick = () => openLb(cat, i);
+        const catDef2 = siteConfig.categories.find(c => c.id === cat);
+        el.onclick = catDef2?.type === 'gallery' ? () => openGallery(cat, i) : () => openLb(cat, i);
         el.innerHTML = `
           ${hideBtn}${draftBadge}
           ${thumbHtml}
@@ -894,7 +976,8 @@
               : `<div class="mobile-placeholder-icon"></div>`;
         const el = document.createElement('div');
         el.className = 'mobile-item';
-        el.onclick = () => openLb(cat, i);
+        const mCatDef = siteConfig.categories.find(c => c.id === cat);
+        el.onclick = mCatDef?.type === 'gallery' ? () => openGallery(cat, i) : () => openLb(cat, i);
         el.innerHTML = `
           <div class="mobile-thumb-wrap">
             ${mobileThumbHtml}
@@ -1102,10 +1185,12 @@
       const p       = items[lbIdx];
       if (!p) return;
       const frame = document.getElementById('lb-frame');
-      frame.innerHTML = p.url
+      const useImageMode = isImageUrl(p.url) || (!p.url && p.thumbnail);
+      frame.classList.toggle('lb-image-mode', useImageMode);
+      frame.innerHTML = isVideoUrl(p.url)
         ? `<iframe title="${x(p.title || '')}" src="${x(getEmbedUrl(p.url))}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="width:100%;height:100%"></iframe>`
-        : p.thumbnail
-          ? `<img src="${x(p.thumbnail)}" alt="${x(p.title || '')}" style="width:100%;height:100%;object-fit:cover">`
+        : (p.url || p.thumbnail)
+          ? `<img src="${x(p.url || p.thumbnail)}" alt="${x(p.title || '')}">`
           : `<div class="lb-ph"><div class="lb-ph-icon"></div></div>`;
       document.getElementById('lb-client').textContent = p.client || '';
       document.getElementById('lb-title').textContent  = p.title  || '';
@@ -1120,6 +1205,69 @@
       document.getElementById('lb-total').textContent   = items.length;
       document.getElementById('lb-prev').disabled = lbIdx === 0;
       document.getElementById('lb-next').disabled = lbIdx === items.length - 1;
+    }
+
+    /* ── MEDIA TYPE DETECTION ── */
+    function isVideoUrl(url) {
+      if (!url) return false;
+      return /youtube\.com|youtu\.be|vimeo\.com|wistia/i.test(url);
+    }
+    function isImageUrl(url) {
+      if (!url) return false;
+      return /\.(jpg|jpeg|png|gif|webp|avif|svg)(\?|#|$)/i.test(url);
+    }
+
+    /* ── GALLERY VIEWER ── */
+    function openGallery(catId, idx) {
+      gvCat  = catId;
+      gvIdx  = idx;
+      gvItems = previewGetItems(catId);
+      renderGallery();
+      document.getElementById('gallery-viewer').classList.add('open');
+      document.body.classList.add('gv-open');
+    }
+
+    function closeGallery() {
+      if (!document.getElementById('gallery-viewer').classList.contains('open')) return;
+      document.getElementById('gallery-viewer').classList.remove('open');
+      document.body.classList.remove('gv-open');
+      // Stop video if playing
+      const iframe = document.getElementById('gv-iframe');
+      iframe.src = '';
+      iframe.style.display = 'none';
+      document.getElementById('gv-img').src = '';
+      gvItems = [];
+    }
+
+    function galleryNav(dir) {
+      gvIdx = Math.max(0, Math.min(gvItems.length - 1, gvIdx + dir));
+      renderGallery();
+    }
+
+    function renderGallery() {
+      const p = gvItems[gvIdx];
+      if (!p) return;
+      const img    = document.getElementById('gv-img');
+      const iframe = document.getElementById('gv-iframe');
+
+      if (isVideoUrl(p.url)) {
+        img.style.display    = 'none';
+        iframe.style.display = 'block';
+        iframe.src = getEmbedUrl(p.url);
+      } else {
+        iframe.style.display = 'none';
+        iframe.src = '';
+        img.style.display = 'block';
+        img.src = p.url || p.thumbnail || '';
+        img.alt = x(p.title || '');
+      }
+
+      // Nav sidebar info
+      document.getElementById('gv-nav-client').textContent  = p.client || '';
+      document.getElementById('gv-nav-title').textContent   = p.title  || '';
+      document.getElementById('gv-nav-counter').textContent = `${gvIdx + 1} / ${gvItems.length}`;
+      document.getElementById('gv-prev').disabled = gvIdx === 0;
+      document.getElementById('gv-next').disabled = gvIdx === gvItems.length - 1;
     }
 
     /* ── EMBED URL ── */
@@ -1176,6 +1324,12 @@
 
     /* ── KEYBOARD ── */
     document.addEventListener('keydown', e => {
+      if (document.getElementById('gallery-viewer').classList.contains('open')) {
+        if (e.key === 'ArrowRight') galleryNav(1);
+        if (e.key === 'ArrowLeft')  galleryNav(-1);
+        if (e.key === 'Escape')     closeGallery();
+        return;
+      }
       if (!document.getElementById('lightbox').classList.contains('open')) return;
       if (e.key === 'ArrowRight') lbNav(1);
       if (e.key === 'ArrowLeft')  lbNav(-1);

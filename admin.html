@@ -1564,6 +1564,13 @@
       <div class="field-hint">Set once. Changing after adding projects will orphan them.</div>
     </div>
     <div class="field">
+      <label>Viewer Type</label>
+      <select id="cat-type" style="width:100%">
+        <option value="lightbox">Lightbox — overlay viewer (video or single image)</option>
+        <option value="gallery">Gallery — full-screen inline viewer with prev/next</option>
+      </select>
+    </div>
+    <div class="field">
       <label>Grid Layout</label>
       <select id="cat-layout" style="width:100%">
         <option value="masonry">Masonry — natural proportions</option>
@@ -2363,6 +2370,7 @@ function openAddCategory() {
   document.getElementById('modal-cat-title').textContent = 'Add Category';
   document.getElementById('cat-label').value = '';
   document.getElementById('cat-id').value = '';
+  document.getElementById('cat-type').value   = 'lightbox';
   document.getElementById('cat-layout').value = 'masonry';
   document.getElementById('cat-id-field').style.display = '';
   document.getElementById('cat-delete-btn').style.display = 'none';
@@ -2383,6 +2391,7 @@ function openEditCategory(idx) {
   document.getElementById('modal-cat-title').textContent = 'Edit Category';
   document.getElementById('cat-label').value = cat.label;
   document.getElementById('cat-id').value = cat.id;
+  document.getElementById('cat-type').value   = cat.type === 'gallery' ? 'gallery' : 'lightbox';
   document.getElementById('cat-layout').value = cat.layout === 'grid' ? 'grid' : 'masonry';
   document.getElementById('cat-id-field').style.display = 'none'; // ID is set on create only
   document.getElementById('cat-delete-btn').style.display = '';
@@ -2422,15 +2431,17 @@ function saveCategoryModal() {
   if (!/^[a-z0-9-]+$/.test(id)) { showToast('ID must contain only lowercase letters, numbers, and hyphens.', 'error'); return; }
 
   const layout = document.getElementById('cat-layout').value;
+  const type   = document.getElementById('cat-type').value;
   if (editingCatIdx !== null) {
     siteConfig.categories[editingCatIdx].label  = label;
     siteConfig.categories[editingCatIdx].id     = id;
     siteConfig.categories[editingCatIdx].layout = layout;
+    siteConfig.categories[editingCatIdx].type   = type;
   } else {
     if (siteConfig.categories.some(c => c.id === id)) {
       showToast('A section with that ID already exists.', 'error'); return;
     }
-    siteConfig.categories.push({ id, label, published: false, layout });
+    siteConfig.categories.push({ id, label, published: false, layout, type });
   }
 
   const targetTab = editingCatIdx !== null ? id : id; // always go to the affected category

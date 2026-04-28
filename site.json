@@ -3,23 +3,30 @@
     {
       "id": "studio",
       "label": "Studio",
-      "published": true
+      "published": true,
+      "type": "gallery",
+      "layout": "masonry"
     },
     {
       "id": "motion",
       "label": "Motion",
       "published": true,
+      "type": "lightbox",
       "layout": "masonry"
     },
     {
       "id": "kids",
       "label": "Kids",
-      "published": true
+      "published": true,
+      "type": "gallery",
+      "layout": "masonry"
     },
     {
       "id": "lifestyle",
       "label": "Lifestyle",
-      "published": true
+      "published": true,
+      "type": "gallery",
+      "layout": "masonry"
     }
   ],
   "about": {
