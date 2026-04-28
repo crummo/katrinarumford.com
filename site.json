@@ -1,6 +1,7 @@
 {
   "categories": [
     {
+<<<<<<< HEAD
       "id": "studio",
       "label": "Studio",
       "published": true,
@@ -8,11 +9,18 @@
       "layout": "masonry"
     },
     {
+=======
+>>>>>>> 3c4f3ca754ce21ac9636935aac5c308c748aef2d
       "id": "motion",
       "label": "Motion",
       "published": true,
       "type": "lightbox",
       "layout": "masonry"
+    },
+    {
+      "id": "studio",
+      "label": "Studio",
+      "published": true
     },
     {
       "id": "kids",
