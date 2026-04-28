@@ -38,10 +38,10 @@
   ],
   "about": {
     "show": true,
-    "photo": "images/Screenshot+2025-12-30+at+1.00.44 PM.png",
+    "photo": "",
     "photoAlt": "Katrina Rumford",
     "photoShape": "natural",
-    "photoPlacement": "left",
+    "photoPlacement": "above",
     "photoX": 50,
     "photoY": 50,
     "photoZoom": 1,
