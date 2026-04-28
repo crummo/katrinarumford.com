@@ -1100,13 +1100,16 @@
               <input type="text" id="site-og-input" placeholder="filename.jpg or https://…" oninput="updateOgPreview();markDirty()" />
               <button class="field-clear-btn" type="button" onclick="clearField('site-og-input');updateOgPreview()" title="Clear">×</button>
             </div>
-            <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
-              <label class="btn btn-ghost btn-sm" style="cursor:pointer">Browse local files…<input type="file" id="og-file-input" accept="image/*" class="file-input-hidden" onchange="handleFileInput(this,'og')" /></label>
-              <button class="btn btn-ghost btn-sm" type="button" onclick="toggleOgList()">Browse uploaded ↓</button>
+            <div id="og-drop-zone" class="thumb-drop-zone" style="margin-top:6px">
+              <div class="thumb-drop-hint">↓ Drop image here · re-encodes to JPEG automatically</div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px">
+                <label class="btn btn-ghost btn-sm" style="cursor:pointer">Browse local files…<input type="file" id="og-file-input" accept="image/*" class="file-input-hidden" onchange="handleFileInput(this,'og')" /></label>
+                <button class="btn btn-ghost btn-sm" type="button" onclick="toggleOgList()">Browse uploaded ↓</button>
+              </div>
             </div>
             <div class="thumb-file-list" id="og-file-list"></div>
             <img id="og-preview" alt="social preview" style="margin-top:8px;display:none;max-width:100%;height:auto;border-radius:2px;border:1px solid var(--fg-dimmer)" />
-            <div class="field-hint">Recommended: 1200×630px JPEG · saved to <code style="color:var(--accent)">/images/</code> · set your site URL below for correct preview links</div>
+            <div class="field-hint">Recommended: 1200×630px · saved to <code style="color:var(--accent)">/images/</code> · set your site URL below for correct preview links</div>
           </div>
           <div class="field">
             <label>Site URL <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(optional — used for social preview links)</span></label>
@@ -1382,7 +1385,7 @@
           </div>
 
           <!-- Clients & Collaborators -->
-          <div class="about-subsection-title" style="margin-top:40px">Clients &amp; Collaborators</div>
+          <div class="about-subsection-title" style="margin-top:40px;border-bottom:none;padding-bottom:0">Clients &amp; Collaborators</div>
 
           <!-- Text names -->
           <div style="margin-bottom:8px">
@@ -5507,6 +5510,12 @@ function initThumbDropZone() {
     const ok = file.type.startsWith('image/') || /\.(ico|svg|png)$/i.test(file.name);
     if (!ok) { showToast('Please drop an image, .ico, or .svg file.', 'error'); return; }
     uploadFaviconFile(file);
+  });
+  initDropZone('og-drop-zone', file => {
+    if (!file.type.startsWith('image/')) {
+      showToast('Please drop an image file (JPG, PNG, WebP, etc.)', 'error'); return;
+    }
+    reencodeOgImage(file);
   });
 }
 
