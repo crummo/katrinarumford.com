@@ -27,6 +27,13 @@
       "published": true,
       "type": "gallery",
       "layout": "masonry"
+    },
+    {
+      "id": "test",
+      "label": "Test",
+      "published": false,
+      "layout": "masonry",
+      "type": "lightbox"
     }
   ],
   "about": {
