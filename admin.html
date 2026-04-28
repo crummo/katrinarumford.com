@@ -4896,7 +4896,8 @@ async function saveToGitHub() {
 
   try {
     // Save sequentially to avoid any timing conflicts
-    const projResult = await putGhFile('projects.json', projects);
+    const cleanProjects = projects.map(p => { const q = {...p}; delete q._blobUrl; return q; });
+    const projResult = await putGhFile('projects.json', cleanProjects);
     projectsSha = projResult.fileSha;
     const siteResult = await putGhFile('site.json', siteConfig);
     siteSha = siteResult.fileSha;
