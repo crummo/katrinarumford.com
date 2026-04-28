@@ -547,23 +547,23 @@
     /* ── GALLERY ADMIN GRID ── */
     .gallery-admin-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 8px; padding: 8px 0 32px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3px; padding: 4px 0 32px;
     }
     .gai-item {
-      position: relative; aspect-ratio: 1;
-      border-radius: 3px; overflow: hidden;
+      position: relative; aspect-ratio: 4/3;
+      overflow: hidden;
       background: var(--bg3); cursor: pointer;
-      border: 2px solid transparent;
-      transition: border-color 0.15s, opacity 0.2s;
+      outline: 2px solid transparent; outline-offset: -2px;
+      transition: outline-color 0.15s, opacity 0.2s;
       user-select: none;
     }
-    .gai-item:hover { border-color: var(--fg-dim); }
+    .gai-item:hover { outline-color: var(--fg-dim); }
     .gai-item.unpublished { opacity: 0.45; }
-    .gai-item.drag-over { border-color: var(--accent); }
-    .gai-item.dragging { opacity: 0.25; border-style: dashed; }
+    .gai-item.drag-over { outline-color: var(--accent); }
+    .gai-item.dragging { opacity: 0.25; outline-style: dashed; }
     .gai-item img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
-    .gai-item.selected { border-color: var(--accent); }
+    .gai-item.selected { outline-color: var(--accent); }
     .gai-check {
       position: absolute; top: 6px; left: 6px;
       width: 16px; height: 16px; border-radius: 3px;
