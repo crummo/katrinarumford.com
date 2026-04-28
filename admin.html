@@ -1811,8 +1811,9 @@
       <span class="fm-count" id="fm-count"></span>
       <div style="display:flex;align-items:center;gap:10px">
         <button id="fm-delete-selected" class="btn btn-danger btn-sm" onclick="fmDeleteSelected()" style="display:none;font-size:9px;padding:4px 10px">Delete Selected</button>
+        <button id="fm-select-all" class="btn btn-ghost btn-sm" onclick="fmSelectAll()" style="font-size:9px;padding:4px 10px">Select All</button>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:10px;color:var(--fg-dim);letter-spacing:0.1em;text-transform:uppercase">
-          <input type="checkbox" id="fm-unused-only" onchange="renderFMGrid()" />
+          <input type="checkbox" id="fm-unused-only" onchange="fmFilterChange()" />
           Unused only
         </label>
       </div>
@@ -3970,6 +3971,24 @@ function updateFMTabs() {
   });
   const subtabs = document.getElementById('fm-gallery-subtabs');
   if (subtabs) subtabs.style.display = fmCurrentTab === 'gallery' ? 'flex' : 'none';
+}
+
+function fmGetFiltered() {
+  const files = fmFiles[fmCurrentTab] || [];
+  const unusedOnly = document.getElementById('fm-unused-only')?.checked;
+  return unusedOnly ? files.filter(f => !f.inUse) : files;
+}
+
+function fmFilterChange() {
+  fmSelected.clear();
+  updateFMDeleteBtn();
+  renderFMGrid();
+}
+
+function fmSelectAll() {
+  fmGetFiltered().forEach(f => fmSelected.add(f.path));
+  updateFMDeleteBtn();
+  renderFMGrid();
 }
 
 function renderFMGrid() {
