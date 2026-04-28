@@ -2660,7 +2660,8 @@ async function processBulkFiles(files, catId) {
       const { sha } = await res.json();
       done++;
       setProgress(done, `Uploading ${done} / ${total}…`);
-      const fname = shouldOptimize ? file.name.replace(/\.[^.]+$/, '.webp') : file.name;
+      const sanitize = n => n.replace(/ /g, '+');
+      const fname = shouldOptimize ? sanitize(file.name.replace(/\.[^.]+$/, '.webp')) : sanitize(file.name);
       return { path: `${folder}/${fname}`, sha, file, previewUrl };
     }));
     blobs.push(...results);
