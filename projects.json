@@ -344,5 +344,15 @@
     "thumbnail": "gallery/lifestyle/10VOGUE_BAMBINI_1103.jpg",
     "published": false,
     "_blobUrl": "blob:https://crummo.github.io/b2ad8ee2-9eda-443e-a627-2a3b0a1b773c"
+  },
+  {
+    "id": 1777358222305,
+    "category": "studio",
+    "title": "",
+    "client": "",
+    "url": "gallery/studio/12.jpg",
+    "thumbnail": "gallery/studio/12.jpg",
+    "published": false,
+    "_blobUrl": "blob:https://crummo.github.io/85747f4b-f7ef-476d-b244-dda3322760f4"
   }
 ]
