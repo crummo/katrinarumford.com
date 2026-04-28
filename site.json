@@ -34,6 +34,13 @@
       "published": false,
       "layout": "masonry",
       "type": "lightbox"
+    },
+    {
+      "id": "test-gallery",
+      "label": "test gallery",
+      "published": false,
+      "layout": "masonry",
+      "type": "gallery"
     }
   ],
   "about": {
@@ -41,7 +48,7 @@
     "photo": "images/kr-info-headshot.jpg",
     "photoAlt": "Katrina Rumford",
     "photoShape": "natural",
-    "photoPlacement": "left",
+    "photoPlacement": "above",
     "photoX": 50,
     "photoY": 50,
     "photoZoom": 1,
@@ -100,8 +107,7 @@
   },
   "ownerName": "Katrina Rumford",
   "ownerTitle": "Styling / Custom Made",
-  "metaDescription": "Katrina Rumford is a wardrobe stylist based in Los Angeles, California.",
-  "favicon": "images/favicon.svg",
+  "favicon": "08_hanger.svg",
   "ogImage": "",
   "website": "https://www.katrinarumford.com/",
   "notFound": {
