@@ -1232,6 +1232,20 @@
               <img id="about-photo-preview" alt="Photo preview" />
               <div class="thumb-drop-hint" style="font-size:9px;text-align:center;padding:12px;line-height:1.6;color:var(--fg-dim)">↓ Drop photo<br>or browse below</div>
             </div>
+            <div id="about-photo-drag-hint" style="display:none;font-size:9px;text-align:center;color:var(--fg-dim);margin-top:6px;margin-bottom:4px">Drag to reposition</div>
+            <div id="about-photo-zoom-controls" style="display:none;justify-content:center;margin-top:0">
+              <div style="display:grid;grid-template-columns:28px 38px 28px 40px;align-items:center;gap:4px 6px">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="adjustPhotoZoom(-0.1)" style="width:28px;padding:0;text-align:center">−</button>
+                <span id="about-photo-zoom-display" style="font-size:11px;color:var(--fg-mid);text-align:center">1.0×</span>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="adjustPhotoZoom(0.1)" style="width:28px;padding:0;text-align:center">+</button>
+                <span style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--fg-dim)">Zoom</span>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="adjustPhotoScale(-0.1)" style="width:28px;padding:0;text-align:center" id="about-photo-scale-minus">−</button>
+                <span id="about-photo-scale-display" style="font-size:11px;color:var(--fg-mid);text-align:center">1.0×</span>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="adjustPhotoScale(0.1)" style="width:28px;padding:0;text-align:center" id="about-photo-scale-plus">+</button>
+                <span style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--fg-dim)">Scale</span>
+              </div>
+            </div>
+            <div id="about-photo-scale-controls" style="display:none"></div>
             <div id="about-photo-style-field" style="display:none;margin-top:10px">
               <button class="add-link" id="fine-tune-toggle" data-closed="+ Fine-tune" data-open="− Fine-tune" onclick="toggleDisclosure('fine-tune')">+ Fine-tune</button>
               <div id="fine-tune-body" style="display:none;margin-top:8px">
@@ -1253,19 +1267,6 @@
                     <input type="checkbox" id="about-photo-fullwidth" onchange="markDirty()" />
                     Full width
                   </label>
-                </div>
-                <div id="about-photo-drag-hint" style="display:none;font-size:9px;text-align:center;color:var(--fg-dim);margin-bottom:4px">Drag to reposition</div>
-                <div id="about-photo-zoom-controls" style="display:none;align-items:center;justify-content:center;gap:8px;margin-top:4px">
-                  <button type="button" class="btn btn-ghost btn-sm" onclick="adjustPhotoZoom(-0.1)" style="width:28px;padding:0;text-align:center">−</button>
-                  <span id="about-photo-zoom-display" style="font-size:11px;color:var(--fg-mid);min-width:34px;text-align:center">1.0×</span>
-                  <button type="button" class="btn btn-ghost btn-sm" onclick="adjustPhotoZoom(0.1)" style="width:28px;padding:0;text-align:center">+</button>
-                  <span style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--fg-dim)">Zoom</span>
-                </div>
-                <div id="about-photo-scale-controls" style="display:none;align-items:center;justify-content:center;gap:8px;margin-top:4px">
-                  <button type="button" class="btn btn-ghost btn-sm" onclick="adjustPhotoScale(-0.1)" style="width:28px;padding:0;text-align:center">−</button>
-                  <span id="about-photo-scale-display" style="font-size:11px;color:var(--fg-mid);min-width:34px;text-align:center">1.0×</span>
-                  <button type="button" class="btn btn-ghost btn-sm" onclick="adjustPhotoScale(0.1)" style="width:28px;padding:0;text-align:center">+</button>
-                  <span style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--fg-dim)">Scale</span>
                 </div>
               </div>
             </div>
@@ -1944,6 +1945,7 @@ let thumbFiles     = [];
 let currentTab     = '';
 let editingIdx     = null;   // null = new, number = edit existing
 let _thumbBlobUrl  = null;   // blob URL for the last uploaded thumbnail preview — revoked on modal close
+const _previewBlobUrls = {};  // blob URLs for persistent previews (about photo, etc.) — revoked on next upload for same field
 let deletingIdx    = null;
 let editingCatIdx  = null;   // null = new category
 let isDirty        = false;
@@ -5579,13 +5581,16 @@ async function uploadImageFile(file, folder, inputId, previewFn) {
   const ok = await uploadToGitHub(file, filePath);
   if (!ok) { URL.revokeObjectURL(blobUrl); return; }
   if (inputId) document.getElementById(inputId).value = filePath;
-  // Find the preview img for this field and show blob URL instantly
+  // Revoke the previous blob for this field, then store the new one.
+  // Don't revoke on onload — Safari re-fetches revoked blobs on repaint → "offline" indicator.
+  if (inputId && _previewBlobUrls[inputId]) URL.revokeObjectURL(_previewBlobUrls[inputId]);
+  if (inputId) _previewBlobUrls[inputId] = blobUrl;
   const previewIds = { 'about-photo-input': 'about-photo-preview', 'site-og-input': 'og-preview', 'site-favicon-input': 'favicon-preview' };
   const previewEl = inputId ? document.getElementById(previewIds[inputId]) : null;
   if (previewEl) {
     previewEl.style.opacity = '1';
-    previewEl.onload  = () => { previewEl.style.opacity = '1'; URL.revokeObjectURL(blobUrl); };
-    previewEl.onerror = () => { previewEl.style.opacity = '0.3'; URL.revokeObjectURL(blobUrl); };
+    previewEl.onload  = () => { previewEl.style.opacity = '1'; };
+    previewEl.onerror = () => { previewEl.style.opacity = '0.3'; };
     previewEl.src = blobUrl;
   } else {
     URL.revokeObjectURL(blobUrl);
