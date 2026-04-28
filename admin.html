@@ -948,9 +948,9 @@
       <span class="nav-status" id="nav-status"></span>
       <button class="btn btn-ghost btn-sm" id="revert-btn" onclick="reloadFromGitHub()" style="display:none">↺ Revert</button>
       <button class="btn btn-primary btn-sm" id="save-btn" onclick="saveToGitHub()" style="display:none">Save</button>
-      <button class="btn btn-ghost btn-sm" onclick="window.open(siteConfig.website||'#','_blank')">Live Site ↗</button>
+      <button class="btn btn-ghost btn-sm" onclick="window.open('https://crummo.github.io/katrinarumford.com/index.html','_blank')">Live Site ↗</button>
       <button class="btn btn-ghost btn-sm" onclick="openPreview()">Preview Site ↗</button>
-      <button class="btn btn-ghost btn-sm" onclick="window.open('https://github.com/crummo/template/actions','_blank')" title="GitHub Actions">Actions ↗</button>
+      <button class="btn btn-ghost btn-sm" onclick="window.open('https://github.com/crummo/katrinarumford.com/actions','_blank')" title="GitHub Actions">Actions ↗</button>
       <button class="btn btn-ghost btn-sm" onclick="lock()">Lock</button>
     </div>
   </nav>
@@ -2385,11 +2385,14 @@ function handleBulkFilePicker(input, catId) {
   if (files.length) processBulkFiles(files, catId);
 }
 
+let _bulkUploading = false;
 async function processBulkFiles(files, catId) {
+  if (_bulkUploading) { showToast('Upload already in progress — please wait.', 'error'); return; }
   const o = localStorage.getItem(K_OWNER);
   const r = localStorage.getItem(K_REPO);
   const b = localStorage.getItem(K_BRANCH);
   if (!o || !r || !b) { showToast('GitHub config missing.', 'error'); return; }
+  _bulkUploading = true;
 
   const publishedByDefault = !document.getElementById('bulk-draft-' + catId)?.checked;
   const folder = 'gallery/' + catId;
@@ -2515,13 +2518,15 @@ async function processBulkFiles(files, catId) {
   if (progressEl) progressEl.classList.remove('visible');
   if (barEl)    barEl.style.width = '0%';
 
-  showToast(`${total} image${total !== 1 ? 's' : ''} imported${publishedByDefault ? '' : ' as drafts'}.`, 'success');
   await saveToGitHub();
+  _bulkUploading = false;
+  showToast(`${total} image${total !== 1 ? 's' : ''} committed to GitHub${publishedByDefault ? '' : ' as drafts'} — live site updates in ~1 min.`, 'success');
 
-  // Revoke blob URLs after a delay
-  setTimeout(() => { Object.values(blobUrls).forEach(u => URL.revokeObjectURL(u)); }, 30000);
+  // Keep blob URLs alive long enough for GitHub Pages to deploy (~5 min)
+  setTimeout(() => { Object.values(blobUrls).forEach(u => URL.revokeObjectURL(u)); }, 5 * 60 * 1000);
 
   } catch(err) {
+    _bulkUploading = false;
     resetProgress();
     showToast('Import failed: ' + err.message, 'error');
     console.error('Bulk import error:', err);
