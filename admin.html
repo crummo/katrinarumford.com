@@ -2484,54 +2484,9 @@ async function processBulkFiles(files, catId) {
     blobs.push(...results);
   }
 
-  // Step 3: get current HEAD commit + tree
-  setProgress(total, 'Committing…');
-  const refRes = await fetch(`https://api.github.com/repos/${o}/${r}/git/ref/heads/${b}`, { headers: ghHeaders() });
-  if (!refRes.ok) throw new Error('Could not get branch ref');
-  const { object: { sha: headSha } } = await refRes.json();
-
-  const commitRes = await fetch(`https://api.github.com/repos/${o}/${r}/git/commits/${headSha}`, { headers: ghHeaders() });
-  if (!commitRes.ok) throw new Error('Could not get commit');
-  const { tree: { sha: treeSha } } = await commitRes.json();
-
-  // Step 4: create new tree with all blobs
-  const treeRes = await fetch(`https://api.github.com/repos/${o}/${r}/git/trees`, {
-    method: 'POST',
-    headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      base_tree: treeSha,
-      tree: blobs.map(({ path, sha }) => ({ path, mode: '100644', type: 'blob', sha }))
-    })
-  });
-  if (!treeRes.ok) throw new Error('Could not create tree');
-  const { sha: newTreeSha } = await treeRes.json();
-
-  // Step 5: create commit
-  const newCommitRes = await fetch(`https://api.github.com/repos/${o}/${r}/git/commits`, {
-    method: 'POST',
-    headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      message: `Bulk import ${total} image${total !== 1 ? 's' : ''} to ${folder}`,
-      tree: newTreeSha,
-      parents: [headSha]
-    })
-  });
-  if (!newCommitRes.ok) throw new Error('Could not create commit');
-  const { sha: newCommitSha } = await newCommitRes.json();
-
-  // Step 6: update branch ref
-  const updateRes = await fetch(`https://api.github.com/repos/${o}/${r}/git/refs/heads/${b}`, {
-    method: 'PATCH',
-    headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sha: newCommitSha })
-  });
-  if (!updateRes.ok) throw new Error('Could not update branch ref');
-
-  // Step 7: generate projects.json entries and save
+  // Step 3: build project entries (needed before commit so projects.json is correct)
   const blobUrls = {};
-  blobs.forEach(({ path, file }) => {
-    blobUrls[path] = URL.createObjectURL(file);
-  });
+  blobs.forEach(({ path, file }) => { blobUrls[path] = URL.createObjectURL(file); });
 
   const catItems = projects.filter(p => p.category === catId);
   const insertAfter = catItems.length > 0
@@ -2551,14 +2506,65 @@ async function processBulkFiles(files, catId) {
     });
   });
 
-  markDirty();
+  // Step 4: get current HEAD commit + tree
+  setProgress(total, 'Committing…');
+  const refRes = await fetch(`https://api.github.com/repos/${o}/${r}/git/ref/heads/${b}`, { headers: ghHeaders() });
+  if (!refRes.ok) throw new Error('Could not get branch ref');
+  const { object: { sha: headSha } } = await refRes.json();
+
+  const commitRes = await fetch(`https://api.github.com/repos/${o}/${r}/git/commits/${headSha}`, { headers: ghHeaders() });
+  if (!commitRes.ok) throw new Error('Could not get commit');
+  const { tree: { sha: treeSha } } = await commitRes.json();
+
+  // Step 5: create new tree — images + updated projects.json in one shot
+  const projectsContent = JSON.stringify(projects.map(p => { const q = {...p}; delete q._blobUrl; return q; }), null, 2);
+  const treeRes = await fetch(`https://api.github.com/repos/${o}/${r}/git/trees`, {
+    method: 'POST',
+    headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      base_tree: treeSha,
+      tree: [
+        ...blobs.map(({ path, sha }) => ({ path, mode: '100644', type: 'blob', sha })),
+        { path: 'projects.json', mode: '100644', type: 'blob', content: projectsContent }
+      ]
+    })
+  });
+  if (!treeRes.ok) throw new Error('Could not create tree');
+  const { sha: newTreeSha } = await treeRes.json();
+
+  // Step 6: create commit
+  const newCommitRes = await fetch(`https://api.github.com/repos/${o}/${r}/git/commits`, {
+    method: 'POST',
+    headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message: `Bulk import ${total} image${total !== 1 ? 's' : ''} to ${folder}`,
+      tree: newTreeSha,
+      parents: [headSha]
+    })
+  });
+  if (!newCommitRes.ok) throw new Error('Could not create commit');
+  const { sha: newCommitSha } = await newCommitRes.json();
+
+  // Step 7: update branch ref — single update, no follow-up saves needed
+  const updateRes = await fetch(`https://api.github.com/repos/${o}/${r}/git/refs/heads/${b}`, {
+    method: 'PATCH',
+    headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sha: newCommitSha })
+  });
+  if (!updateRes.ok) throw new Error('Could not update branch ref');
+
+  // Refresh projectsSha so any subsequent manual save doesn't conflict
+  const projMeta = await fetch(`https://api.github.com/repos/${o}/${r}/contents/projects.json?ref=${b}&t=${Date.now()}`, { headers: ghHeaders() });
+  if (projMeta.ok) projectsSha = (await projMeta.json()).sha;
+
+  clearDirty();
   renderAll();
 
   if (progressEl) progressEl.classList.remove('visible');
   if (barEl)    barEl.style.width = '0%';
 
-  await saveToGitHub();
   setBulkUploadingState(catId, false);
+  pollDeployStatus();
   showToast(`${total} image${total !== 1 ? 's' : ''} committed to GitHub${publishedByDefault ? '' : ' as drafts'} — live site updates in ~1 min.`, 'success');
 
   // Keep blob URLs alive long enough for GitHub Pages to deploy (~5 min)
