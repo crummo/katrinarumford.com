@@ -2499,5 +2499,23 @@
     "url": "gallery/gallery-test/Screenshot+2025-12-30+at+1.00.44 PM.webp",
     "thumbnail": "gallery/gallery-test/Screenshot+2025-12-30+at+1.00.44 PM.webp",
     "published": false
+  },
+  {
+    "id": 1777407944383,
+    "category": "gallery-test",
+    "title": "",
+    "client": "",
+    "url": "gallery/gallery-test/Screenshot+2025-12-30+at+12.59.56 PM.webp",
+    "thumbnail": "gallery/gallery-test/Screenshot+2025-12-30+at+12.59.56 PM.webp",
+    "published": false
+  },
+  {
+    "id": 1777407944384,
+    "category": "gallery-test",
+    "title": "",
+    "client": "",
+    "url": "gallery/gallery-test/Screenshot+2026-04-23+at+2.49.39 PM.webp",
+    "thumbnail": "gallery/gallery-test/Screenshot+2026-04-23+at+2.49.39 PM.webp",
+    "published": false
   }
 ]
