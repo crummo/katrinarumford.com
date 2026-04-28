@@ -589,9 +589,11 @@
     }
     .bulk-drop-zone:hover,
     .bulk-drop-zone.drag-active { border-color: var(--accent); background: rgba(201,169,110,0.04); }
+    .bulk-drop-zone.uploading { pointer-events: none; opacity: 0.5; cursor: not-allowed; }
     .bulk-drop-zone-label { font-size: 12px; color: var(--fg-mid); margin-bottom: 8px; }
     .bulk-drop-zone-hint { font-size: 10px; color: var(--fg-dim); margin-top: 6px; }
     .bulk-drop-zone input[type="file"] { display: none; }
+    .bulk-select-btn.uploading { pointer-events: none; opacity: 0.5; }
 
     .bulk-import-controls {
       display: flex; align-items: center; justify-content: space-between;
@@ -2134,7 +2136,7 @@ function buildAdminCategoryPanes() {
             <input type="checkbox" id="bulk-draft-${cat.id}" checked />
             Import as draft (unpublished)
           </label>
-          <label class="btn btn-ghost btn-sm" style="cursor:pointer;margin-bottom:0">
+          <label class="btn btn-ghost btn-sm bulk-select-btn" id="bulk-select-btn-${cat.id}" style="cursor:pointer;margin-bottom:0">
             + Select images
             <input type="file" accept="image/*" multiple onchange="handleBulkFilePicker(this,'${cat.id}')" class="file-input-hidden" />
           </label>
@@ -2357,12 +2359,37 @@ async function saveGalleryEdit() {
 async function deleteGalleryImage() {
   if (editingGalleryIdx === null) return;
   const p = projects[editingGalleryIdx];
-  if (!confirm(`Remove "${p.title || p.url?.split('/').pop() || 'this image'}" from the list?\n\nThis won't delete the image file — just removes it from the site.`)) return;
+  const filePath = p.url || p.thumbnail || '';
+  const isGalleryFile = filePath.startsWith('gallery/');
+  const label = p.title || filePath.split('/').pop() || 'this image';
+  const msg = isGalleryFile
+    ? `Remove "${label}" and delete the image file from the repo?`
+    : `Remove "${label}" from the list?\n\nThe file won't be deleted (not a gallery upload).`;
+  if (!confirm(msg)) return;
+
   projects.splice(editingGalleryIdx, 1);
   markDirty();
   renderAll();
   closeGalleryEdit();
   await saveToGitHub();
+
+  if (isGalleryFile) {
+    try {
+      const o = localStorage.getItem(K_OWNER);
+      const r = localStorage.getItem(K_REPO);
+      const b = localStorage.getItem(K_BRANCH);
+      const metaRes = await fetch(`https://api.github.com/repos/${o}/${r}/contents/${filePath}?ref=${b}`, { headers: ghHeaders() });
+      if (metaRes.ok) {
+        const { sha } = await metaRes.json();
+        await fetch(`https://api.github.com/repos/${o}/${r}/contents/${filePath}`, {
+          method: 'DELETE', headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: `Delete gallery image ${filePath}`, sha, branch: b })
+        });
+      }
+    } catch(e) {
+      showToast('Entry removed, but file delete failed: ' + e.message, 'error');
+    }
+  }
 }
 
 // ─── BULK IMPORT ─────────────────────────────────────────────────────────────
@@ -2386,13 +2413,25 @@ function handleBulkFilePicker(input, catId) {
 }
 
 let _bulkUploading = false;
+function setBulkUploadingState(catId, active) {
+  _bulkUploading = active;
+  const zone = document.getElementById('bulk-zone-' + catId);
+  const btn  = document.getElementById('bulk-select-btn-' + catId);
+  if (zone) zone.classList.toggle('uploading', active);
+  if (btn)  btn.classList.toggle('uploading', active);
+  if (active) {
+    if (zone) zone.querySelector('.bulk-drop-zone-label').textContent = 'Uploading…';
+  } else {
+    if (zone) zone.querySelector('.bulk-drop-zone-label').textContent = 'Drop images here';
+  }
+}
 async function processBulkFiles(files, catId) {
-  if (_bulkUploading) { showToast('Upload already in progress — please wait.', 'error'); return; }
+  if (_bulkUploading) { showToast('Upload in progress — please wait until it finishes.', 'error'); return; }
   const o = localStorage.getItem(K_OWNER);
   const r = localStorage.getItem(K_REPO);
   const b = localStorage.getItem(K_BRANCH);
   if (!o || !r || !b) { showToast('GitHub config missing.', 'error'); return; }
-  _bulkUploading = true;
+  setBulkUploadingState(catId, true);
 
   const publishedByDefault = !document.getElementById('bulk-draft-' + catId)?.checked;
   const folder = 'gallery/' + catId;
@@ -2519,14 +2558,14 @@ async function processBulkFiles(files, catId) {
   if (barEl)    barEl.style.width = '0%';
 
   await saveToGitHub();
-  _bulkUploading = false;
+  setBulkUploadingState(catId, false);
   showToast(`${total} image${total !== 1 ? 's' : ''} committed to GitHub${publishedByDefault ? '' : ' as drafts'} — live site updates in ~1 min.`, 'success');
 
   // Keep blob URLs alive long enough for GitHub Pages to deploy (~5 min)
   setTimeout(() => { Object.values(blobUrls).forEach(u => URL.revokeObjectURL(u)); }, 5 * 60 * 1000);
 
   } catch(err) {
-    _bulkUploading = false;
+    setBulkUploadingState(catId, false);
     resetProgress();
     showToast('Import failed: ' + err.message, 'error');
     console.error('Bulk import error:', err);
