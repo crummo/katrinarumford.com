@@ -720,7 +720,14 @@
 
       document.body.classList.toggle('nav-left', cfg.navStyle === 'left');
 
-      if (cfg.favicon) document.getElementById('site-favicon').href = cfg.favicon;
+      if (cfg.favicon) {
+        const prev = document.getElementById('site-favicon');
+        const lnk  = document.createElement('link');
+        lnk.rel  = 'icon';
+        lnk.id   = 'site-favicon';
+        lnk.href = cfg.favicon + '?v=' + Date.now();
+        if (prev) prev.replaceWith(lnk); else document.head.appendChild(lnk);
+      }
       if (cfg.ogImage) {
         document.querySelector('meta[property="og:image"]')?.setAttribute('content', cfg.ogImage);
         document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', cfg.ogImage);
