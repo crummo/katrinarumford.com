@@ -1690,6 +1690,18 @@
     "vignette": 0
   },
   {
+    "id": 1777398000004,
+    "category": "studio",
+    "title": "LYFT",
+    "client": "LYFT",
+    "photographer": "Photography: Sing-Sing",
+    "url": "gallery/studio/Screen+Shot+2018-05-22+at+12.53.26+PM.webp",
+    "thumbnail": "gallery/studio/Screen+Shot+2018-05-22+at+12.53.26+PM.webp",
+    "published": true,
+    "overlay": "none",
+    "vignette": 0
+  },
+  {
     "id": 1777398000002,
     "category": "studio",
     "title": "LYFT",
@@ -1709,18 +1721,6 @@
     "photographer": "Photography: Sing-Sing",
     "url": "gallery/studio/Lyft_180107__LyftLine_Front_02_rgb-1800x1200.webp",
     "thumbnail": "gallery/studio/Lyft_180107__LyftLine_Front_02_rgb-1800x1200.webp",
-    "published": true,
-    "overlay": "none",
-    "vignette": 0
-  },
-  {
-    "id": 1777398000004,
-    "category": "studio",
-    "title": "LYFT",
-    "client": "LYFT",
-    "photographer": "Photography: Sing-Sing",
-    "url": "gallery/studio/Screen+Shot+2018-05-22+at+12.53.26+PM.webp",
-    "thumbnail": "gallery/studio/Screen+Shot+2018-05-22+at+12.53.26+PM.webp",
     "published": true,
     "overlay": "none",
     "vignette": 0
