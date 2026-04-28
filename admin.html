@@ -833,6 +833,14 @@
     }
     .fm-tab-btn:hover { color: var(--fg-mid); }
     .fm-tab-btn.active { color: var(--fg); border-bottom-color: var(--accent); }
+    .fm-subtab-btn {
+      background: none; border: 1px solid var(--fg-dimmer); border-radius: 3px;
+      color: var(--fg-dim); cursor: pointer; font-family: var(--font-sans);
+      font-size: 9px; font-weight: 400; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 4px 12px; transition: color 0.15s, border-color 0.15s;
+    }
+    .fm-subtab-btn:hover { color: var(--fg); border-color: var(--fg-dim); }
+    .fm-subtab-btn.active { color: var(--fg); border-color: var(--fg); }
     .fm-toolbar {
       display: flex; align-items: center; justify-content: space-between;
       margin-bottom: 10px;
@@ -1531,12 +1539,48 @@
         <button class="field-clear-btn" type="button" onclick="clearField('f-client')" title="Clear">×</button>
       </div>
     </div>
+    <!-- Media type toggle -->
     <div class="field">
-      <label>Video URL <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(optional — YouTube, Vimeo, etc.)</span></label>
+      <label>Media</label>
+      <div style="display:flex;gap:0;border:1px solid var(--fg-dimmer);border-radius:3px;overflow:hidden;width:fit-content">
+        <button type="button" id="f-type-video" onclick="setProjectMediaType('video')"
+          style="background:none;border:none;cursor:pointer;font-family:var(--font-sans);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:6px 16px;transition:background 0.15s,color 0.15s;color:var(--fg-dim)">
+          ▶ Video
+        </button>
+        <button type="button" id="f-type-still" onclick="setProjectMediaType('still')"
+          style="background:none;border:none;border-left:1px solid var(--fg-dimmer);cursor:pointer;font-family:var(--font-sans);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:6px 16px;transition:background 0.15s,color 0.15s;color:var(--fg-dim)">
+          ▣ Still
+        </button>
+        <button type="button" id="f-type-none" onclick="setProjectMediaType('none')"
+          style="background:none;border:none;border-left:1px solid var(--fg-dimmer);cursor:pointer;font-family:var(--font-sans);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:6px 16px;transition:background 0.15s,color 0.15s;color:var(--fg-dim)">
+          None
+        </button>
+      </div>
+    </div>
+    <!-- Video URL — shown when type = video -->
+    <div class="field" id="f-video-field">
+      <label>Video URL <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(YouTube, Vimeo, etc.)</span></label>
       <div class="field-clearable">
         <input type="url" id="f-url" placeholder="https://youtu.be/…" />
         <button class="field-clear-btn" type="button" onclick="clearField('f-url')" title="Clear">×</button>
       </div>
+    </div>
+    <!-- Still image — shown when type = still -->
+    <div class="field" id="f-still-field" style="display:none">
+      <label>Image <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(shown full-size in lightbox)</span></label>
+      <div class="field-clearable">
+        <input type="text" id="f-still-url" placeholder="gallery/motion/filename.webp" oninput="syncStillUrl()" />
+        <button class="field-clear-btn" type="button" onclick="clearField('f-still-url');syncStillUrl()" title="Clear">×</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <label class="btn btn-ghost btn-sm" style="cursor:pointer;flex:1;justify-content:center">Upload image…
+          <input type="file" id="f-still-file" accept="image/*" class="file-input-hidden" onchange="handleStillFileInput(this)" />
+        </label>
+      </div>
+      <div id="f-still-preview-wrap" style="margin-top:8px;display:none">
+        <img id="f-still-preview" alt="" style="width:100%;max-height:160px;object-fit:contain;border-radius:2px;border:1px solid var(--fg-dimmer)" />
+      </div>
+      <div class="field-hint" style="margin-top:4px">Uploads to gallery/{category}/ · use Thumbnail below for a separate grid preview</div>
     </div>
     <div style="margin-bottom:16px">
       <button class="add-link" id="award-toggle" data-closed="+ Add award" data-open="− Award" onclick="toggleDisclosure('award')">+ Add award</button>
@@ -1625,8 +1669,10 @@
 
 <!-- ═══════════════ GALLERY IMAGE EDIT MODAL ═══════════════ -->
 <div class="modal-backdrop hidden" id="modal-gallery-edit">
-  <div class="modal" style="max-width:400px">
+  <div class="modal" style="max-width:420px">
     <div class="modal-title" id="ge-modal-title">Edit Image</div>
+
+    <!-- Video URL — shown for video items only -->
     <div class="field" id="ge-video-field" style="display:none">
       <label>Video URL</label>
       <div class="field-clearable">
@@ -1635,6 +1681,7 @@
       </div>
       <div class="field-hint" style="margin-top:4px">YouTube or Vimeo URL</div>
     </div>
+
     <div class="field">
       <label>Title <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(optional)</span></label>
       <input type="text" id="ge-title" placeholder="e.g. Editorial shoot, Spring 2024" />
@@ -1643,6 +1690,49 @@
       <label>Client <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(optional)</span></label>
       <input type="text" id="ge-client" placeholder="e.g. Nordstrom" />
     </div>
+
+    <!-- Thumbnail — shown for video items only -->
+    <div class="field" id="ge-thumb-field" style="display:none">
+      <label>Thumbnail <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(shown on grid)</span></label>
+      <div class="field-clearable">
+        <input type="text" id="ge-thumbnail" placeholder="filename.jpg" oninput="updateGeThumbPreview()" />
+        <button class="field-clear-btn" type="button" onclick="clearField('ge-thumbnail');updateGeThumbPreview()" title="Clear">×</button>
+      </div>
+      <div id="ge-thumb-drop-zone" style="border:1px dashed var(--fg-dimmer);border-radius:3px;margin-top:6px;min-height:72px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;cursor:pointer;transition:border-color 0.2s">
+        <img id="ge-thumb-preview" alt="" style="display:none;width:100%;height:100%;object-fit:cover" />
+        <span id="ge-thumb-empty" style="font-size:11px;color:var(--fg-dim);padding:16px">Drop image or browse</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <label class="btn btn-ghost btn-sm" style="cursor:pointer;flex:1;justify-content:center">Browse…<input type="file" id="ge-thumb-input" accept="image/*" class="file-input-hidden" onchange="handleGeThumbInput(this)" /></label>
+      </div>
+      <div class="field-hint" style="margin-top:4px">Auto-fetched from YouTube/Vimeo if left empty · saved to /thumbs/</div>
+    </div>
+
+    <!-- Award -->
+    <div style="margin-bottom:16px">
+      <button class="add-link" id="ge-award-toggle" data-closed="+ Add award" data-open="− Award" onclick="toggleDisclosure('ge-award')">+ Add award</button>
+      <div id="ge-award-body" style="display:none;margin-top:8px">
+        <div class="field" style="margin-bottom:0">
+          <label>Award</label>
+          <div class="field-clearable">
+            <input type="text" id="ge-award" placeholder="e.g. Telly Award 2023" />
+            <button class="field-clear-btn" type="button" onclick="clearField('ge-award')" title="Clear">×</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div style="margin-bottom:16px">
+      <button class="add-link" id="ge-description-toggle" data-closed="+ Add description" data-open="− Description" onclick="toggleDisclosure('ge-description')">+ Add description</button>
+      <div id="ge-description-body" style="display:none;margin-top:8px">
+        <div class="field" style="margin-bottom:0">
+          <label>Description</label>
+          <textarea id="ge-description" rows="3" maxlength="500" placeholder="Brief description, credits, or context…"></textarea>
+        </div>
+      </div>
+    </div>
+
     <div class="field" style="margin-top:4px">
       <label style="display:flex;align-items:center;gap:10px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:13px;font-weight:300;margin-bottom:0">
         <input type="checkbox" id="ge-published" />
@@ -1695,7 +1785,9 @@
       <button class="fm-tab-btn active" onclick="switchFMTab('logos')">Logos</button>
       <button class="fm-tab-btn" onclick="switchFMTab('thumbs')">Thumbs</button>
       <button class="fm-tab-btn" onclick="switchFMTab('images')">Images</button>
+      <button class="fm-tab-btn" onclick="switchFMTab('gallery')">Gallery</button>
     </div>
+    <div id="fm-gallery-subtabs" style="display:none;gap:4px;padding:0 0 10px;border-bottom:1px solid var(--fg-dimmer);margin-bottom:10px;flex-wrap:wrap"></div>
     <div class="fm-toolbar">
       <span class="fm-count" id="fm-count"></span>
       <div style="display:flex;align-items:center;gap:10px">
@@ -2288,8 +2380,10 @@ function renderCategory(cat) {
       <div class="project-thumb-wrap">
         ${p.thumbnail
           ? `<img class="project-thumb" src="${esc(p.thumbnail)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=\\'project-thumb-placeholder\\'>no image</div>'">`
-          : `<img class="project-thumb" data-auto-poster data-idx="${globalIdx}" style="display:none" alt="" loading="lazy">
-             <div class="project-thumb-placeholder" data-placeholder data-idx="${globalIdx}">no image</div>`
+          : isImageUrl(p.url)
+            ? `<img class="project-thumb" src="${esc(p.url)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=\\'project-thumb-placeholder\\'>no image</div>'">`
+            : `<img class="project-thumb" data-auto-poster data-idx="${globalIdx}" style="display:none" alt="" loading="lazy">
+               <div class="project-thumb-placeholder" data-placeholder data-idx="${globalIdx}">no image</div>`
         }
         <div class="project-thumb-source" style="display:none" data-source data-idx="${globalIdx}"></div>
       </div>
@@ -2297,7 +2391,7 @@ function renderCategory(cat) {
         ${p.client ? `<div class="project-client">${esc(p.client)}</div>` : ''}
         <div class="project-title">${esc(p.title || '(untitled)')}</div>
         <div class="project-meta">
-          ${p.url ? '▶ video' : '▣ image only'}
+          ${isVideoUrl(p.url) ? '▶ video' : isImageUrl(p.url) ? '▣ still' : '▣ no media'}
           ${p.award ? ' · ✦ ' + esc(p.award) : ''}
           ${p.published === false ? ' · <span style="color:var(--danger);font-size:9px;letter-spacing:0.1em;text-transform:uppercase">unpublished</span>' : ''}
         </div>
@@ -2537,8 +2631,10 @@ function openGalleryEdit(globalIdx) {
   editingGalleryIdx = globalIdx;
   const p = projects[globalIdx];
   const isVid = isVideoUrl(p.url);
+
   document.getElementById('ge-modal-title').textContent = isVid ? 'Edit Video' : (p.url ? p.url.split('/').pop() : 'Edit Image');
   document.getElementById('ge-video-field').style.display = isVid ? '' : 'none';
+  document.getElementById('ge-thumb-field').style.display = isVid ? '' : 'none';
   document.getElementById('ge-video-url').value  = isVid ? (p.url || '') : '';
   document.getElementById('ge-title').value      = p.title  || '';
   document.getElementById('ge-client').value     = p.client || '';
@@ -2546,6 +2642,21 @@ function openGalleryEdit(globalIdx) {
   document.getElementById('ge-published-hint').textContent = isVid
     ? 'Uncheck to hide this video without deleting it.'
     : 'Uncheck to hide this image without deleting it.';
+
+  // Thumbnail
+  document.getElementById('ge-thumbnail').value = p.thumbnail || '';
+  updateGeThumbPreview();
+
+  // Award
+  const award = p.award || '';
+  document.getElementById('ge-award').value = award;
+  if (award) openDisclosure('ge-award'); else closeDisclosure('ge-award');
+
+  // Description
+  const desc = p.description || '';
+  document.getElementById('ge-description').value = desc;
+  if (desc) openDisclosure('ge-description'); else closeDisclosure('ge-description');
+
   document.getElementById('modal-gallery-edit').classList.remove('hidden');
 }
 
@@ -2561,9 +2672,15 @@ async function saveGalleryEdit() {
     const newUrl = document.getElementById('ge-video-url').value.trim();
     if (newUrl) p.url = newUrl;
   }
-  p.title     = document.getElementById('ge-title').value.trim();
-  p.client    = document.getElementById('ge-client').value.trim();
-  p.published = document.getElementById('ge-published').checked;
+  p.title       = document.getElementById('ge-title').value.trim();
+  p.client      = document.getElementById('ge-client').value.trim();
+  p.published   = document.getElementById('ge-published').checked;
+  const thumb   = document.getElementById('ge-thumbnail').value.trim();
+  if (thumb) p.thumbnail = thumb; else delete p.thumbnail;
+  const award   = document.getElementById('ge-award').value.trim();
+  if (award) p.award = award; else delete p.award;
+  const desc    = document.getElementById('ge-description').value.trim();
+  if (desc) p.description = desc; else delete p.description;
   markDirty();
   renderAll();
   closeGalleryEdit();
@@ -2954,7 +3071,7 @@ function updateMetaDescCounter() {
 }
 
 function clearModalForm() {
-  ['f-title','f-client','f-url','f-award','f-description','f-thumbnail','f-vignette','f-aspect','f-alt'].forEach(id => {
+  ['f-title','f-client','f-url','f-still-url','f-award','f-description','f-thumbnail','f-vignette','f-aspect','f-alt'].forEach(id => {
     document.getElementById(id).value = '';
   });
   ['award','description','appearance'].forEach(closeDisclosure);
@@ -2968,6 +3085,8 @@ function clearModalForm() {
   const list = document.getElementById('thumb-file-list');
   list.classList.remove('open');
   list.innerHTML = '';
+  const stillWrap = document.getElementById('f-still-preview-wrap');
+  if (stillWrap) stillWrap.style.display = 'none';
 }
 
 function openAdd(cat) {
@@ -2975,6 +3094,7 @@ function openAdd(cat) {
   document.getElementById('modal-title').textContent = 'Add Project';
   document.getElementById('edit-delete-zone').style.display = 'none';
   clearModalForm();
+  setProjectMediaType('video');
   populateCategoryDropdown(cat);
   document.getElementById('modal-edit').classList.remove('hidden');
   document.getElementById('f-title').focus();
@@ -3004,6 +3124,15 @@ function openEdit(globalIdx) {
   document.getElementById('f-published').checked = p.published !== false;
   updateOverlayHint();
   updateThumbPreview();
+  // Detect media type and set toggle
+  const mediaType = isVideoUrl(p.url) ? 'video' : isImageUrl(p.url) ? 'still' : 'none';
+  setProjectMediaType(mediaType);
+  if (mediaType === 'still') {
+    document.getElementById('f-still-url').value = p.url || '';
+    const wrap = document.getElementById('f-still-preview-wrap');
+    const img  = document.getElementById('f-still-preview');
+    if (wrap && img && p.url) { img.src = p.url; wrap.style.display = ''; }
+  }
   document.getElementById('edit-delete-zone').style.display = '';
   document.getElementById('modal-edit').classList.remove('hidden');
   document.getElementById('f-title').focus();
@@ -3665,8 +3794,9 @@ function closeCleanup() {
 
 // ─── FILE MANAGER ────────────────────────────────────────────────────────────
 let fmCurrentTab = 'logos';
-let fmFiles = { logos: [], thumbs: [], images: [] };
-let fmLoaded = { logos: false, thumbs: false, images: false };
+let fmGalleryCat = null;
+let fmFiles = { logos: [], thumbs: [], images: [], gallery: [] };
+let fmLoaded = { logos: false, thumbs: false, images: false, gallery: false };
 let fmSelected = new Set();
 
 function fmGetUsedPaths() {
@@ -3683,13 +3813,15 @@ async function openFileManager() {
   const o = localStorage.getItem(K_OWNER);
   const r = localStorage.getItem(K_REPO);
   if (!o || !r) { showToast('GitHub config missing.', 'error'); return; }
-  fmFiles    = { logos: [], thumbs: [], images: [] };
-  fmLoaded   = { logos: false, thumbs: false, images: false };
+  fmFiles    = { logos: [], thumbs: [], images: [], gallery: [] };
+  fmLoaded   = { logos: false, thumbs: false, images: false, gallery: false };
   fmSelected = new Set();
   fmCurrentTab = 'logos';
+  fmGalleryCat = (siteConfig.categories.find(c => c.type === 'gallery') || {}).id || null;
   updateFMDeleteBtn();
   document.getElementById('fm-unused-only').checked = false;
   document.getElementById('modal-files').classList.remove('hidden');
+  buildFMGallerySubtabs();
   updateFMTabs();
   await loadFMTab('logos');
 }
@@ -3707,11 +3839,16 @@ async function loadFMTab(tab) {
   document.getElementById('fm-loading').style.display = '';
   document.getElementById('fm-grid').style.display = 'none';
   document.getElementById('fm-count').textContent = '';
-  const folderMap = { logos: 'images/logos', thumbs: 'thumbs', images: 'images' };
+  const folderMap = {
+    logos: 'images/logos', thumbs: 'thumbs', images: 'images',
+    gallery: fmGalleryCat ? 'gallery/' + fmGalleryCat : null
+  };
+  const folder = folderMap[tab];
+  if (!folder) { fmFiles[tab] = []; fmLoaded[tab] = true; renderFMGrid(); return; }
   const usedPaths = fmGetUsedPaths();
   try {
     const res = await fetch(
-      `https://api.github.com/repos/${o}/${r}/contents/${folderMap[tab]}?ref=${b}&t=${Date.now()}`,
+      `https://api.github.com/repos/${o}/${r}/contents/${folder}?ref=${b}&t=${Date.now()}`,
       { headers: ghHeaders() }
     );
     let files = res.ok ? await res.json() : [];
@@ -3735,11 +3872,43 @@ function switchFMTab(tab) {
   if (!fmLoaded[tab]) { loadFMTab(tab); } else { renderFMGrid(); }
 }
 
+function switchFMGalleryCat(catId) {
+  fmGalleryCat = catId;
+  fmLoaded.gallery = false; // force reload for new category
+  fmFiles.gallery  = [];
+  fmSelected.clear();
+  updateFMDeleteBtn();
+  updateFMGallerySubtabs();
+  loadFMTab('gallery');
+}
+
+function buildFMGallerySubtabs() {
+  const row = document.getElementById('fm-gallery-subtabs');
+  if (!row) return;
+  row.innerHTML = '';
+  const galCats = siteConfig.categories.filter(c => c.type === 'gallery');
+  galCats.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'fm-subtab-btn' + (c.id === fmGalleryCat ? ' active' : '');
+    btn.textContent = c.label;
+    btn.onclick = () => switchFMGalleryCat(c.id);
+    row.appendChild(btn);
+  });
+}
+
+function updateFMGallerySubtabs() {
+  document.querySelectorAll('.fm-subtab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent === (siteConfig.categories.find(c => c.id === fmGalleryCat) || {}).label);
+  });
+}
+
 function updateFMTabs() {
   document.querySelectorAll('.fm-tab-btn').forEach(btn => {
     const match = btn.getAttribute('onclick').match(/'(\w+)'/);
     btn.classList.toggle('active', match && match[1] === fmCurrentTab);
   });
+  const subtabs = document.getElementById('fm-gallery-subtabs');
+  if (subtabs) subtabs.style.display = fmCurrentTab === 'gallery' ? 'flex' : 'none';
 }
 
 function renderFMGrid() {
@@ -3751,7 +3920,7 @@ function renderFMGrid() {
   document.getElementById('fm-loading').style.display = 'none';
   const grid = document.getElementById('fm-grid');
   grid.style.display = '';
-  grid.className = 'fm-grid' + (fmCurrentTab === 'thumbs' ? ' tab-thumbs' : '');
+  grid.className = 'fm-grid' + ((fmCurrentTab === 'thumbs' || fmCurrentTab === 'gallery') ? ' tab-thumbs' : '');
   grid.innerHTML = '';
   if (filtered.length === 0) {
     grid.innerHTML = `<div class="fm-empty">${unusedOnly ? 'No unused files.' : 'No files found.'}</div>`;
@@ -3767,7 +3936,8 @@ function renderFMGrid() {
     const ext = f.name.split('.').pop().toLowerCase();
     const rawUrl = `https://raw.githubusercontent.com/${o}/${r}/${b}/${f.path}`;
     let previewInner = '';
-    const isThumb = fmCurrentTab === 'thumbs';
+    const isThumb   = fmCurrentTab === 'thumbs';
+    const isGallery = fmCurrentTab === 'gallery';
     if (['svg','png','jpg','jpeg','gif','webp'].includes(ext)) {
       const logoType = fmCurrentTab === 'logos'
         ? ((siteConfig.about?.clients || []).find(c => c.logo && c.logo.split('/').pop() === f.name)?.type || '')
@@ -3775,7 +3945,7 @@ function renderFMGrid() {
       const invert = logoType === 'dark' ? ';filter:invert(1)' : '';
       const imgStyle = fmCurrentTab === 'logos'
         ? `max-width:90%;max-height:46px;object-fit:contain${invert}`
-        : isThumb
+        : (isThumb || isGallery)
           ? 'width:100%;height:90px;object-fit:cover;display:block;flex-shrink:0'
           : 'max-width:100%;max-height:46px;object-fit:cover;border-radius:1px';
       previewInner = `<img src="${rawUrl}" alt="" style="${imgStyle}" onerror="this.style.display='none'" />`;
@@ -3784,7 +3954,7 @@ function renderFMGrid() {
     }
     const badge = f.inUse ? '<span class="fm-badge">in use</span>' : '';
     const safePath = f.path.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    const previewStyle = isThumb ? ' style="height:90px;padding:0;overflow:hidden;display:block"' : '';
+    const previewStyle = (isThumb || isGallery) ? ' style="height:90px;padding:0;overflow:hidden;display:block"' : '';
     const isSelected = fmSelected.has(f.path);
     if (isSelected) tile.classList.add('selected');
     tile.innerHTML = `
@@ -3940,7 +4110,10 @@ function fmUpdateRefs(oldPath, newPath) {
 async function confirmFMDelete(path) {
   const f = fmFiles[fmCurrentTab].find(x => x.path === path);
   if (!f) return;
-  const msg = f.inUse ? `"${f.name}" is currently in use. Delete anyway?` : `Delete "${f.name}"?`;
+  const isGalleryFile = fmCurrentTab === 'gallery';
+  const referencedProject = isGalleryFile ? projects.find(p => p.url === path) : null;
+  let msg = f.inUse ? `"${f.name}" is currently in use. Delete anyway?` : `Delete "${f.name}"?`;
+  if (referencedProject) msg += `\n\nThis will also remove "${referencedProject.title || f.name}" from the gallery list.`;
   if (!confirm(msg)) return;
   const o = localStorage.getItem(K_OWNER);
   const r = localStorage.getItem(K_REPO);
@@ -3954,6 +4127,12 @@ async function confirmFMDelete(path) {
     fmFiles[fmCurrentTab] = fmFiles[fmCurrentTab].filter(x => x.path !== path);
     const ti = thumbFiles.indexOf(path);
     if (ti !== -1) thumbFiles.splice(ti, 1);
+    // Also remove matching project entry
+    if (referencedProject) {
+      const pi = projects.indexOf(referencedProject);
+      if (pi !== -1) projects.splice(pi, 1);
+      markDirty(); renderAll();
+    }
     renderFMGrid();
     showToast(`Deleted ${f.name}`, 'success');
   } catch(e) {
@@ -4746,6 +4925,113 @@ function esc(s) {
   return String(s || '')
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── PROJECT MEDIA TYPE TOGGLE ───────────────────────────────────────────────
+let _currentProjectMediaType = 'video';
+
+function setProjectMediaType(type) {
+  _currentProjectMediaType = type;
+  // Toggle button styles
+  ['video','still','none'].forEach(t => {
+    const btn = document.getElementById('f-type-' + t);
+    if (!btn) return;
+    btn.style.background = t === type ? 'var(--fg-dimmer)' : 'none';
+    btn.style.color      = t === type ? 'var(--fg)' : 'var(--fg-dim)';
+  });
+  // Show/hide fields
+  const vf = document.getElementById('f-video-field');
+  const sf = document.getElementById('f-still-field');
+  if (vf) vf.style.display = type === 'video' ? '' : 'none';
+  if (sf) sf.style.display = type === 'still' ? '' : 'none';
+  // When switching away from still, clear the still URL
+  if (type !== 'still') {
+    const su = document.getElementById('f-still-url');
+    if (su && !isImageUrl(su.value)) { /* keep if it's already an image url in f-url */ }
+  }
+}
+
+function syncStillUrl() {
+  // Mirror the still URL into the hidden f-url field so saveProject reads it
+  const val = document.getElementById('f-still-url')?.value || '';
+  document.getElementById('f-url').value = val;
+  // Show inline preview
+  const wrap = document.getElementById('f-still-preview-wrap');
+  const img  = document.getElementById('f-still-preview');
+  if (wrap && img) {
+    if (val) { img.src = val; wrap.style.display = ''; }
+    else { wrap.style.display = 'none'; }
+  }
+}
+
+async function handleStillFileInput(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  const catId  = document.getElementById('f-category')?.value || 'motion';
+  const safeName = sanitizeName(file.name);
+  const filePath = 'gallery/' + catId + '/' + safeName;
+  const blobUrl  = URL.createObjectURL(file);
+  const ok = await uploadToGitHub(file, filePath);
+  if (!ok) { URL.revokeObjectURL(blobUrl); return; }
+  // Set still URL and mirror to f-url
+  document.getElementById('f-still-url').value = filePath;
+  document.getElementById('f-url').value        = filePath;
+  // Preview
+  const wrap = document.getElementById('f-still-preview-wrap');
+  const img  = document.getElementById('f-still-preview');
+  if (wrap && img) {
+    img.onload  = () => URL.revokeObjectURL(blobUrl);
+    img.onerror = () => URL.revokeObjectURL(blobUrl);
+    img.src = blobUrl;
+    wrap.style.display = '';
+  }
+  markDirty();
+  showToast('"' + file.name + '" uploaded.', 'success');
+}
+
+function isImageUrl(url) {
+  if (!url) return false;
+  return /\.(jpg|jpeg|png|gif|webp|avif|svg)(\?|#|$)/i.test(url);
+}
+
+// ─── GALLERY EDIT — THUMBNAIL ────────────────────────────────────────────────
+function updateGeThumbPreview() {
+  const val     = document.getElementById('ge-thumbnail').value.trim();
+  const preview = document.getElementById('ge-thumb-preview');
+  const empty   = document.getElementById('ge-thumb-empty');
+  if (val) {
+    preview.src = 'thumbs/' + val;
+    preview.style.display = 'block';
+    if (empty) empty.style.display = 'none';
+  } else {
+    preview.style.display = 'none';
+    if (empty) empty.style.display = '';
+  }
+}
+
+async function handleGeThumbInput(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  if (file.size > 1 * 1024 * 1024) { showToast('File too large — max 1 MB for thumbnails.', 'error'); return; }
+  const safeName = sanitizeName(file.name);
+  const blobUrl  = URL.createObjectURL(file);
+  const ok = await uploadToGitHub(file, 'thumbs/' + safeName);
+  if (!ok) { URL.revokeObjectURL(blobUrl); return; }
+  if (!thumbFiles.includes('thumbs/' + safeName)) thumbFiles.unshift('thumbs/' + safeName);
+  document.getElementById('ge-thumbnail').value = safeName;
+  const preview = document.getElementById('ge-thumb-preview');
+  const empty   = document.getElementById('ge-thumb-empty');
+  if (empty) empty.style.display = 'none';
+  if (preview) {
+    preview.onload  = () => URL.revokeObjectURL(blobUrl);
+    preview.onerror = () => URL.revokeObjectURL(blobUrl);
+    preview.src = blobUrl;
+    preview.style.display = 'block';
+  }
+  markDirty();
+  showToast('"' + file.name + '" uploaded.', 'success');
 }
 
 // ─── VIDEO URL HELPERS ───────────────────────────────────────────────────────
