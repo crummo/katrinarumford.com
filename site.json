@@ -34,11 +34,18 @@
       "published": false,
       "layout": "masonry",
       "type": "lightbox"
+    },
+    {
+      "id": "test-gallery",
+      "label": "test gallery",
+      "published": false,
+      "layout": "masonry",
+      "type": "gallery"
     }
   ],
   "about": {
     "show": true,
-    "photo": "",
+    "photo": "images/kr-info-headshot.jpg",
     "photoAlt": "Katrina Rumford",
     "photoShape": "natural",
     "photoPlacement": "above",
