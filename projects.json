@@ -342,7 +342,15 @@
     "client": "",
     "url": "gallery/lifestyle/10VOGUE_BAMBINI_1103.jpg",
     "thumbnail": "gallery/lifestyle/10VOGUE_BAMBINI_1103.jpg",
-    "published": false,
-    "_blobUrl": "blob:https://crummo.github.io/b2ad8ee2-9eda-443e-a627-2a3b0a1b773c"
+    "published": false
+  },
+  {
+    "id": 1777359797684,
+    "category": "studio",
+    "title": "",
+    "client": "",
+    "url": "gallery/studio/20140504-ef-washington-0779.jpg",
+    "thumbnail": "gallery/studio/20140504-ef-washington-0779.jpg",
+    "published": false
   }
 ]
