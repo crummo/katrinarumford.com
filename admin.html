@@ -1870,17 +1870,19 @@
     </div>
     <div class="field">
       <label>Viewer Type</label>
-      <select id="cat-type" style="width:100%">
-        <option value="lightbox">Lightbox — overlay viewer (video or single image)</option>
-        <option value="gallery">Gallery — full-screen inline viewer with prev/next</option>
+      <select id="cat-type" style="width:100%" onchange="updateCatHints()">
+        <option value="lightbox">Lightbox</option>
+        <option value="gallery">Gallery</option>
       </select>
+      <div class="field-hint" id="cat-type-hint" style="margin-top:4px">Overlay viewer — best for video projects or single images</div>
     </div>
     <div class="field">
       <label>Grid Layout</label>
-      <select id="cat-layout" style="width:100%">
-        <option value="masonry">Masonry — natural proportions</option>
-        <option value="grid">Grid — uniform 16:9</option>
+      <select id="cat-layout" style="width:100%" onchange="updateCatHints()">
+        <option value="masonry">Masonry</option>
+        <option value="grid">Grid</option>
       </select>
+      <div class="field-hint" id="cat-layout-hint" style="margin-top:4px">Natural proportions — each image displays at its own aspect ratio</div>
     </div>
     <div class="modal-actions" style="justify-content:space-between">
       <button class="btn btn-danger btn-sm" id="cat-delete-btn" onclick="deleteCategoryFromModal()" style="display:none">Delete section</button>
@@ -2343,6 +2345,7 @@ function buildAdminCategoryPanes() {
             <button class="btn btn-danger btn-sm" onclick="bulkDeleteSelected('${cat.id}')">Delete selected</button>
           </div>
         </div>
+        <div class="field-hint" style="margin-bottom:8px;text-align:center">Admin shows a uniform grid — actual aspect ratios display correctly on the live site.</div>
         <div class="gallery-admin-grid" id="list-${cat.id}"></div>
       `;
     } else {
@@ -3277,6 +3280,7 @@ function openAddCategory() {
   document.getElementById('cat-type').value   = 'lightbox';
   document.getElementById('cat-layout').value = 'masonry';
   document.getElementById('cat-id-field').style.display = '';
+  updateCatHints();
   document.getElementById('cat-delete-btn').style.display = 'none';
   document.getElementById('modal-cat').classList.remove('hidden');
   document.getElementById('cat-label').focus();
@@ -3300,8 +3304,26 @@ function openEditCategory(idx) {
   document.getElementById('cat-id-field').style.display = 'none'; // ID is set on create only
   document.getElementById('cat-delete-btn').style.display = '';
   document.getElementById('cat-label').oninput = null;
+  updateCatHints();
   document.getElementById('modal-cat').classList.remove('hidden');
   document.getElementById('cat-label').focus();
+}
+
+function updateCatHints() {
+  const type   = document.getElementById('cat-type')?.value;
+  const layout = document.getElementById('cat-layout')?.value;
+  const typeHints = {
+    lightbox: 'Overlay viewer — best for video projects or single images',
+    gallery:  'Full-screen inline viewer with prev/next — best for photo series'
+  };
+  const layoutHints = {
+    masonry: 'Natural proportions — each image displays at its own aspect ratio',
+    grid:    'Uniform 16:9 grid — consistent crops, good for mixed content'
+  };
+  const th = document.getElementById('cat-type-hint');
+  const lh = document.getElementById('cat-layout-hint');
+  if (th) th.textContent = typeHints[type]   || '';
+  if (lh) lh.textContent = layoutHints[layout] || '';
 }
 
 function deleteCategoryFromModal() {
