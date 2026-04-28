@@ -426,6 +426,12 @@
     }
     .client-logo-remove:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 
+    .client-text-list { display: flex; flex-wrap: wrap; gap: 6px; min-height: 28px; }
+    .client-text-chip { display: inline-flex; align-items: center; gap: 4px; background: var(--bg3); border: 1px solid var(--fg-dimmer); border-radius: 3px; padding: 3px 8px; font-size: 11px; color: var(--fg-mid); cursor: grab; user-select: none; }
+    .client-text-chip:active { cursor: grabbing; opacity: 0.6; }
+    .client-text-chip-remove { background: none; border: none; color: var(--fg-dim); cursor: pointer; padding: 0 0 0 2px; font-size: 14px; line-height: 1; }
+    .client-text-chip-remove:hover { color: var(--accent); }
+
     .about-subsection-title {
       font-size: 9px; font-weight: 600; letter-spacing: 0.12em;
       text-transform: uppercase; color: var(--fg-dim);
@@ -625,7 +631,7 @@
       border: 1px solid var(--fg-dimmer);
       border-radius: 4px;
       padding: 36px;
-      width: 100%; max-width: 580px;
+      width: 100%; max-width: 720px;
       max-height: 90vh; overflow-y: auto;
     }
     .modal-title {
@@ -1238,22 +1244,6 @@
             </div>
           </div>
 
-          <div class="about-subsection-title">Clients &amp; Collaborators</div>
-          <p style="font-size:10px;color:var(--fg-dim);margin-bottom:10px;line-height:1.5">For best results across light and dark modes, use logos designed for dark backgrounds (white or light-colored). Click any logo to cycle its type: <strong style="color:var(--fg-mid)">White</strong> → <strong style="color:var(--accent)">Dark</strong> → <strong style="color:var(--success)">Color</strong>.</p>
-          <div id="client-logo-list" class="client-logo-list"></div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px">
-            <label class="btn btn-ghost btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-              + Upload logo
-              <input type="file" accept="image/*,.svg" class="file-input-hidden" onchange="uploadClientLogo(this)" />
-            </label>
-            <span style="font-size:10px;color:var(--fg-dim)">or</span>
-            <div style="display:flex;gap:6px;align-items:center;flex:1;min-width:200px">
-              <input type="text" id="client-logo-url" placeholder="https://example.com/logo.svg" style="flex:1;font-size:11px" />
-              <button class="btn btn-ghost btn-sm" onclick="addClientByUrl()">+ Add URL</button>
-            </div>
-          </div>
-          <div class="field-hint" style="margin-top:6px">Upload a PNG/SVG, or paste any direct image URL.</div>
-
           <!-- Contact & Social -->
           <div class="about-subsection-title" style="margin-top:32px">Contact &amp; Social</div>
           <div class="field">
@@ -1325,6 +1315,33 @@
               <button class="add-link" id="social-twitter-toggle"   onclick="toggleSocial('twitter')">+ X / Twitter</button>
             </div>
           </div>
+
+          <!-- Clients & Collaborators -->
+          <div class="about-subsection-title" style="margin-top:32px">Clients &amp; Collaborators</div>
+
+          <!-- Text names -->
+          <p style="font-size:10px;color:var(--fg-dim);margin-bottom:8px;line-height:1.5">Add client names as plain text — shown as a list on the About page.</p>
+          <div id="client-text-list" class="client-text-list"></div>
+          <div style="display:flex;gap:6px;margin-top:6px;margin-bottom:20px">
+            <input type="text" id="client-text-input" placeholder="e.g. Nordstrom" style="flex:1;font-size:12px" onkeydown="if(event.key==='Enter'){addTextClient();event.preventDefault()}" />
+            <button class="btn btn-ghost btn-sm" onclick="addTextClient()">+ Add</button>
+          </div>
+
+          <!-- Logo wall -->
+          <p style="font-size:10px;color:var(--fg-dim);margin-bottom:10px;line-height:1.5">Or add logos — shown as an image wall when any logos are present. Click any logo to cycle its type: <strong style="color:var(--fg-mid)">White</strong> → <strong style="color:var(--accent)">Dark</strong> → <strong style="color:var(--success)">Color</strong>.</p>
+          <div id="client-logo-list" class="client-logo-list"></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px">
+            <label class="btn btn-ghost btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+              + Upload logo
+              <input type="file" accept="image/*,.svg" class="file-input-hidden" onchange="uploadClientLogo(this)" />
+            </label>
+            <span style="font-size:10px;color:var(--fg-dim)">or</span>
+            <div style="display:flex;gap:6px;align-items:center;flex:1;min-width:200px">
+              <input type="text" id="client-logo-url" placeholder="https://example.com/logo.svg" style="flex:1;font-size:11px" />
+              <button class="btn btn-ghost btn-sm" onclick="addClientByUrl()">+ Add URL</button>
+            </div>
+          </div>
+          <div class="field-hint" style="margin-top:6px">Upload a PNG/SVG, or paste any direct image URL.</div>
         </div>
       </div>
 
@@ -2947,6 +2964,7 @@ function populateAboutEditor() {
     closeDisclosure('fine-tune');
   }
   renderClientList();
+  renderTextClientList();
   updateAboutPhotoPreview(true); // silent — populating, not user-initiated
   updateAboutPhotoUI();
 }
@@ -3731,13 +3749,15 @@ async function revokeShareLink(idx) {
   renderCategory(p.category);
 }
 
-// ─── CLIENT LOGOS ─────────────────────────────────────────────────────────────
+// ─── CLIENT LOGOS & TEXT ──────────────────────────────────────────────────────
 function renderClientList() {
   const clients = (siteConfig.about && siteConfig.about.clients) || [];
   const list = document.getElementById('client-logo-list');
   if (!list) return;
   const typeLabels = { white: 'White', dark: 'Dark', color: 'Color' };
+  // Only render logo clients (objects with a logo field)
   list.innerHTML = clients.map((c, i) => {
+    if (typeof c === 'string' || !c.logo) return '';
     const type = c.type || 'white';
     return `
     <div class="client-logo-item type-${type}" data-idx="${i}" draggable="true">
@@ -3749,6 +3769,33 @@ function renderClientList() {
     </div>`;
   }).join('');
   setupClientLogoDrag();
+}
+
+function renderTextClientList() {
+  const clients = (siteConfig.about && siteConfig.about.clients) || [];
+  const list = document.getElementById('client-text-list');
+  if (!list) return;
+  list.innerHTML = clients.map((c, i) => {
+    if (typeof c !== 'string') return '';
+    return `<span class="client-text-chip" draggable="true" data-idx="${i}">${esc(c)}<button class="client-text-chip-remove" onclick="removeClient(${i})" title="Remove">×</button></span>`;
+  }).join('');
+}
+
+function addTextClient() {
+  const input = document.getElementById('client-text-input');
+  const name = (input?.value || '').trim();
+  if (!name) return;
+  if (!siteConfig.about) siteConfig.about = {};
+  if (!siteConfig.about.clients) siteConfig.about.clients = [];
+  siteConfig.about.clients.push(name);
+  input.value = '';
+  renderTextClientList();
+  markDirty();
+}
+
+function renderAllClients() {
+  renderClientList();
+  renderTextClientList();
 }
 
 let _dragClientIdx = null;
@@ -3791,6 +3838,7 @@ function removeClient(idx) {
   if (!siteConfig.about) return;
   siteConfig.about.clients = (siteConfig.about.clients || []).filter((_, i) => i !== idx);
   renderClientList();
+  renderTextClientList();
   markDirty();
 }
 
