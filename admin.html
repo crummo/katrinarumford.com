@@ -2136,7 +2136,7 @@ function buildAdminCategoryPanes() {
           </label>
           <label class="btn btn-ghost btn-sm" style="cursor:pointer;margin-bottom:0">
             + Select images
-            <input type="file" accept="image/*" multiple onchange="handleBulkFilePicker(this,'${cat.id}')" />
+            <input type="file" accept="image/*" multiple onchange="handleBulkFilePicker(this,'${cat.id}')" class="file-input-hidden" />
           </label>
         </div>
         <div class="bulk-drop-zone" id="bulk-zone-${cat.id}"
