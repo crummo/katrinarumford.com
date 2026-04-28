@@ -2153,17 +2153,17 @@ function buildAdminCategoryPanes() {
       pane.innerHTML = `
         <div class="toolbar">
           <span class="toolbar-label" id="count-${cat.id}"></span>
-          <button class="btn btn-ghost btn-sm" onclick="previewCategory('${cat.id}')">Preview ↗</button>
-        </div>
-        <div class="bulk-import-controls">
-          <label class="bulk-toggle-label">
-            <input type="checkbox" id="bulk-draft-${cat.id}" checked />
-            Import as draft (unpublished)
-          </label>
-          <label class="btn btn-ghost btn-sm bulk-select-btn" id="bulk-select-btn-${cat.id}" style="cursor:pointer;margin-bottom:0">
-            + Select images
-            <input type="file" accept="image/*" multiple onchange="handleBulkFilePicker(this,'${cat.id}')" class="file-input-hidden" />
-          </label>
+          <div style="display:flex;align-items:center;gap:8px">
+            <label class="bulk-toggle-label" style="margin-bottom:0">
+              <input type="checkbox" id="bulk-draft-${cat.id}" checked />
+              Import as draft
+            </label>
+            <label class="btn btn-ghost btn-sm bulk-select-btn" id="bulk-select-btn-${cat.id}" style="cursor:pointer;margin-bottom:0">
+              + Select images
+              <input type="file" accept="image/*" multiple onchange="handleBulkFilePicker(this,'${cat.id}')" class="file-input-hidden" />
+            </label>
+            <button class="btn btn-ghost btn-sm" onclick="previewCategory('${cat.id}')">Preview ↗</button>
+          </div>
         </div>
         <div class="bulk-drop-zone" id="bulk-zone-${cat.id}"
           onclick="document.querySelector('#bulk-zone-${cat.id} input').click()"
