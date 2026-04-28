@@ -334,5 +334,15 @@
     "published": true,
     "overlay": "none",
     "vignette": 0
+  },
+  {
+    "id": 1777355753983,
+    "category": "lifestyle",
+    "title": "",
+    "client": "",
+    "url": "gallery/lifestyle/10VOGUE_BAMBINI_1103.jpg",
+    "thumbnail": "gallery/lifestyle/10VOGUE_BAMBINI_1103.jpg",
+    "published": false,
+    "_blobUrl": "blob:https://crummo.github.io/b2ad8ee2-9eda-443e-a627-2a3b0a1b773c"
   }
 ]
