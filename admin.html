@@ -693,11 +693,19 @@
     }
     .thumb-file-list {
       display: none; margin-top: 6px;
-      max-height: 180px; overflow-y: auto;
+      max-height: 220px; overflow-y: auto;
       background: var(--bg); border: 1px solid var(--fg-dimmer);
       border-radius: 3px;
     }
     .thumb-file-list.open { display: block; }
+    .thumb-file-filter {
+      position: sticky; top: 0; z-index: 1;
+      width: 100%; box-sizing: border-box;
+      background: var(--bg2); border: none; border-bottom: 1px solid var(--fg-dimmer);
+      color: var(--fg); font-family: var(--font-sans); font-size: 11px;
+      padding: 7px 10px; outline: none;
+    }
+    .thumb-file-filter::placeholder { color: var(--fg-dim); }
     .thumb-file-item {
       padding: 6px 10px; font-size: 11px; color: var(--fg-mid);
       cursor: pointer; border-bottom: 1px solid var(--fg-dimmer);
@@ -710,6 +718,13 @@
     .thumb-file-item-name {
       flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
+    .thumb-file-delete {
+      flex-shrink: 0; background: none; border: none; cursor: pointer;
+      color: var(--fg-dim); font-size: 13px; line-height: 1; padding: 0 2px;
+      transition: color 0.15s; opacity: 0;
+    }
+    .thumb-file-item:hover .thumb-file-delete { opacity: 1; }
+    .thumb-file-delete:hover { color: var(--danger) !important; }
 
     /* ── ABOUT PHOTO ZONE ── */
     #about-photo-drop-zone {
@@ -4554,62 +4569,121 @@ function updateThumbPreview() {
   });
 }
 
-function buildThumbListItem(path, listEl, currentVal) {
-  // path is like 'thumbs/foo.jpg' or 'images/bar.jpg'
-  const storedVal = path; // thumbStore preserves both prefixes
+// ─── SHARED FILE LIST BUILDER ────────────────────────────────────────────────
+function buildFileListItem(path, listEl, currentVal, onSelect) {
   const item = document.createElement('div');
-  item.className = 'thumb-file-item' + (storedVal === currentVal ? ' selected' : '');
-  item.dataset.filename = storedVal;
+  item.className = 'thumb-file-item' + (path === currentVal ? ' selected' : '');
+  item.dataset.filename = path;
+  item.dataset.searchName = path.replace(/^(thumbs|images)\//, '').toLowerCase();
 
   const name = document.createElement('span');
   name.className = 'thumb-file-item-name';
   name.textContent = path.replace(/^(thumbs|images)\//, '');
   item.appendChild(name);
 
-  // Folder badge
-  const folder = path.startsWith('images/') ? 'images' : 'thumbs';
-  const badge = document.createElement('span');
-  badge.style.cssText = 'font-size:8px;letter-spacing:0.08em;color:var(--fg-dim);flex-shrink:0;padding-left:6px';
-  badge.textContent = folder;
-  item.appendChild(badge);
+  const folder = path.startsWith('images/') ? 'images' : path.startsWith('thumbs/') ? 'thumbs' : '';
+  if (folder) {
+    const badge = document.createElement('span');
+    badge.style.cssText = 'font-size:8px;letter-spacing:0.08em;color:var(--fg-dim);flex-shrink:0;padding-left:6px';
+    badge.textContent = folder;
+    item.appendChild(badge);
+  }
 
-  item.addEventListener('click', () => {
-    document.getElementById('f-thumbnail').value = storedVal;
-    updateThumbPreview();
-    markDirty();
-    listEl.classList.remove('open');
+  const del = document.createElement('button');
+  del.className = 'thumb-file-delete';
+  del.title = 'Delete file';
+  del.textContent = '×';
+  del.addEventListener('click', async e => {
+    e.stopPropagation();
+    await deleteUploadedFile(path, listEl, onSelect);
   });
+  item.appendChild(del);
 
+  item.addEventListener('click', () => { onSelect(path); listEl.classList.remove('open'); });
   listEl.appendChild(item);
 }
 
-function toggleThumbList() {
-  const list = document.getElementById('thumb-file-list');
-  const isOpen = list.classList.toggle('open');
-  if (!isOpen) return;
-  list.innerHTML = '';
-  if (thumbFiles.length === 0) {
-    list.innerHTML = '<div class="thumb-file-item" style="cursor:default;color:var(--fg-dim)">No uploaded files found</div>';
+function renderFileList(listEl, files, currentVal, onSelect, emptyText) {
+  listEl.innerHTML = '';
+  if (files.length === 0) {
+    listEl.innerHTML = `<div class="thumb-file-item" style="cursor:default;color:var(--fg-dim)">${emptyText || 'No files found.'}</div>`;
     return;
   }
-  const current = document.getElementById('f-thumbnail').value.trim();
-  const thumbsGroup = thumbFiles.filter(p => p.startsWith('thumbs/'));
-  const imagesGroup = thumbFiles.filter(p => p.startsWith('images/'));
+  // Filter input
+  const filter = document.createElement('input');
+  filter.className = 'thumb-file-filter';
+  filter.placeholder = 'Filter by name…';
+  filter.addEventListener('input', () => {
+    const q = filter.value.toLowerCase();
+    listEl.querySelectorAll('.thumb-file-item[data-search-name]').forEach(el => {
+      el.style.display = el.dataset.searchName.includes(q) ? '' : 'none';
+    });
+  });
+  listEl.appendChild(filter);
+  setTimeout(() => filter.focus(), 30);
+
+  // Group by folder
+  const thumbsGroup = files.filter(p => p.startsWith('thumbs/'));
+  const imagesGroup = files.filter(p => p.startsWith('images/'));
   if (thumbsGroup.length && imagesGroup.length) {
-    // Show section headers when both folders have files
     const makeHeader = (label, first) => {
       const h = document.createElement('div');
       h.style.cssText = `font-size:8px;letter-spacing:0.14em;text-transform:uppercase;color:var(--fg-dim);padding:6px 10px 3px;cursor:default${first ? '' : ';border-top:1px solid var(--fg-dimmer);margin-top:2px'}`;
       h.textContent = label;
       return h;
     };
-    list.appendChild(makeHeader('/thumbs', true));
-    thumbsGroup.forEach(p => buildThumbListItem(p, list, current));
-    list.appendChild(makeHeader('/images', false));
-    imagesGroup.forEach(p => buildThumbListItem(p, list, current));
+    listEl.appendChild(makeHeader('/thumbs', true));
+    thumbsGroup.forEach(p => buildFileListItem(p, listEl, currentVal, onSelect));
+    listEl.appendChild(makeHeader('/images', false));
+    imagesGroup.forEach(p => buildFileListItem(p, listEl, currentVal, onSelect));
   } else {
-    thumbFiles.forEach(path => buildThumbListItem(path, list, current));
+    files.forEach(p => buildFileListItem(p, listEl, currentVal, onSelect));
   }
+}
+
+async function deleteUploadedFile(path, listEl, onSelectCallback) {
+  const fileName = path.split('/').pop();
+  if (!confirm(`Delete "${fileName}"?\n\nThis removes the file from the repo. Any projects using it will show a broken image.`)) return;
+  const o = localStorage.getItem(K_OWNER), r = localStorage.getItem(K_REPO), b = localStorage.getItem(K_BRANCH);
+  if (!o || !r || !b) { showToast('GitHub config missing.', 'error'); return; }
+  try {
+    const metaRes = await fetch(`https://api.github.com/repos/${o}/${r}/contents/${path}?ref=${b}`, { headers: ghHeaders() });
+    if (!metaRes.ok) throw new Error('File not found');
+    const { sha } = await metaRes.json();
+    const delRes = await fetch(`https://api.github.com/repos/${o}/${r}/contents/${path}`, {
+      method: 'DELETE', headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: `Delete ${fileName}`, sha, branch: b })
+    });
+    if (!delRes.ok) throw new Error('Delete failed');
+    const ti = thumbFiles.indexOf(path);
+    if (ti !== -1) thumbFiles.splice(ti, 1);
+    // Re-render the list in place
+    const inputIdMap = { 'thumb-file-list': 'f-thumbnail', 'og-file-list': 'site-og-input', 'about-photo-file-list': 'about-photo-input' };
+    const inputId = inputIdMap[listEl.id] || 'f-thumbnail';  // fallback to project thumbnail
+    const currentVal = document.getElementById(inputId)?.value?.trim() || '';
+    const files = listEl.id === 'about-photo-file-list' ? thumbFiles.filter(p => p.startsWith('images/')) : thumbFiles;
+    renderFileList(listEl, files, currentVal, onSelectCallback, 'No files.');
+    showToast(`Deleted ${fileName}`, 'success');
+  } catch(e) {
+    showToast('Delete failed: ' + e.message, 'error');
+  }
+}
+
+// Legacy alias — kept for any external callers
+function buildThumbListItem(path, listEl, currentVal) {
+  buildFileListItem(path, listEl, currentVal, val => {
+    document.getElementById('f-thumbnail').value = val;
+    updateThumbPreview(); markDirty();
+  });
+}
+
+function toggleThumbList() {
+  const list = document.getElementById('thumb-file-list');
+  const isOpen = list.classList.toggle('open');
+  if (!isOpen) return;
+  const current = document.getElementById('f-thumbnail').value.trim();
+  const onSelect = val => { document.getElementById('f-thumbnail').value = val; updateThumbPreview(); markDirty(); };
+  renderFileList(list, thumbFiles, current, onSelect, 'No uploaded files found');
 }
 
 
@@ -5222,6 +5296,7 @@ function updateOgPreview() {
 }
 
 function buildOgListItem(path, listEl, currentVal) {
+  // Legacy — kept for safety; new callers use renderFileList
   const displayName = path.replace(/^(thumbs|images)\//, '');
   const item = document.createElement('div');
   item.className = 'thumb-file-item' + (path === currentVal ? ' selected' : '');
@@ -5251,57 +5326,37 @@ function toggleOgList() {
   const list = document.getElementById('og-file-list');
   const isOpen = list.classList.toggle('open');
   if (!isOpen) return;
-  list.innerHTML = '';
-  if (thumbFiles.length === 0) {
-    list.innerHTML = '<div class="thumb-file-item" style="cursor:default;color:var(--fg-dim)">No uploaded files found — open a project first</div>';
-    return;
-  }
   const current = document.getElementById('site-og-input').value.trim();
-  const thumbsGroup = thumbFiles.filter(p => p.startsWith('thumbs/'));
-  const imagesGroup = thumbFiles.filter(p => p.startsWith('images/'));
-  if (thumbsGroup.length && imagesGroup.length) {
-    const makeHeader = (label, first) => {
-      const h = document.createElement('div');
-      h.style.cssText = `font-size:8px;letter-spacing:0.14em;text-transform:uppercase;color:var(--fg-dim);padding:6px 10px 3px;cursor:default${first ? '' : ';border-top:1px solid var(--fg-dimmer);margin-top:2px'}`;
-      h.textContent = label;
-      return h;
-    };
-    list.appendChild(makeHeader('/thumbs', true));
-    thumbsGroup.forEach(p => buildOgListItem(p, list, current));
-    list.appendChild(makeHeader('/images', false));
-    imagesGroup.forEach(p => buildOgListItem(p, list, current));
-  } else {
-    thumbFiles.forEach(path => buildOgListItem(path, list, current));
-  }
+  renderFileList(
+    list,
+    thumbFiles,
+    current,
+    path => {
+      document.getElementById('site-og-input').value = path;
+      updateOgPreview();
+      markDirty();
+    },
+    'No uploaded files found — open a project first'
+  );
 }
 
 function toggleAboutPhotoList() {
   const list = document.getElementById('about-photo-file-list');
   const isOpen = list.classList.toggle('open');
   if (!isOpen) return;
-  list.innerHTML = '';
-  const imagesGroup = thumbFiles.filter(p => p.startsWith('images/'));
-  if (imagesGroup.length === 0) {
-    list.innerHTML = '<div class="thumb-file-item" style="cursor:default;color:var(--fg-dim)">No files found in /images/</div>';
-    return;
-  }
   const current = document.getElementById('about-photo-input').value.trim();
-  imagesGroup.forEach(path => {
-    const displayName = path.replace(/^images\//, '');
-    const item = document.createElement('div');
-    item.className = 'thumb-file-item' + (path === current ? ' selected' : '');
-    const name = document.createElement('span');
-    name.className = 'thumb-file-item-name';
-    name.textContent = displayName;
-    item.appendChild(name);
-    item.addEventListener('click', () => {
+  const imagesGroup = thumbFiles.filter(p => p.startsWith('images/'));
+  renderFileList(
+    list,
+    imagesGroup,
+    current,
+    path => {
       document.getElementById('about-photo-input').value = path;
       updateAboutPhotoPreview();
       markDirty();
-      list.classList.remove('open');
-    });
-    list.appendChild(item);
-  });
+    },
+    'No files found in /images/'
+  );
 }
 
 async function patchIndexOgTags() {
@@ -5549,8 +5604,8 @@ function handleFileInput(input, type) {
   if (!file) return;
   input.value = ''; // reset so same file can be re-picked
 
-  // Per-type size limits (MB)
-  const limitsMB = { photo: 2, thumb: 1, og: 2, favicon: 0.5 };
+  // Per-type size limits (MB) — og has no pre-check; reencodeOgImage handles large files
+  const limitsMB = { photo: 2, thumb: 1, favicon: 0.5 };
   const limitMB = limitsMB[type] ?? 5;
   if (file.size > limitMB * 1024 * 1024) {
     const sizeMB = (file.size / 1024 / 1024).toFixed(1);
@@ -5565,11 +5620,68 @@ function handleFileInput(input, type) {
   } else if (type === 'favicon') {
     uploadFaviconFile(file);
   } else if (type === 'og') {
-    uploadImageFile(file, 'images', null, () => {
-      document.getElementById('site-og-input').value = file.name;
-      updateOgPreview();
-    });
+    reencodeOgImage(file);
   }
+}
+
+// ─── OG IMAGE RE-ENCODE ──────────────────────────────────────────────────────
+// Re-encodes the uploaded file as JPEG at max 1200px wide before upload.
+// Handles PNG (drops transparency → white bg), WebP, and any other image/*.
+// SVG can't be reliably rasterized via canvas, so it's uploaded as-is.
+async function reencodeOgImage(file) {
+  const OG_MAX_W  = 1200;
+  const OG_QUALITY = 0.88;
+
+  // SVG: no canvas re-encode — upload directly with original name
+  if (file.type === 'image/svg+xml' || /\.svg$/i.test(file.name)) {
+    const safeName = sanitizeName(file.name);
+    const ok = await uploadToGitHub(file, 'images/' + safeName);
+    if (!ok) return;
+    document.getElementById('site-og-input').value = 'images/' + safeName;
+    updateOgPreview(); markDirty();
+    showToast('"' + file.name + '" uploaded.', 'success');
+    return;
+  }
+
+  showToast('Processing image…', '');
+
+  // Draw source into canvas, resize if wider than OG_MAX_W
+  const blobUrl = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = async () => {
+    URL.revokeObjectURL(blobUrl);
+    let { naturalWidth: w, naturalHeight: h } = img;
+    if (w > OG_MAX_W) { h = Math.round(h * OG_MAX_W / w); w = OG_MAX_W; }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff'; // white background replaces any transparency
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+
+    canvas.toBlob(async blob => {
+      if (!blob) { showToast('Could not process image.', 'error'); return; }
+      // Build output filename: strip original extension, force .jpg
+      const baseName = sanitizeName(file.name).replace(/\.[^.]+$/, '') + '.jpg';
+      const jpegFile = new File([blob], baseName, { type: 'image/jpeg' });
+      const ok = await uploadToGitHub(jpegFile, 'images/' + baseName);
+      if (!ok) return;
+      document.getElementById('site-og-input').value = 'images/' + baseName;
+      // Show re-encoded preview via blob URL immediately
+      const prev = document.getElementById('og-preview');
+      const previewUrl = URL.createObjectURL(blob);
+      prev.onload  = () => { prev.style.display = 'block'; URL.revokeObjectURL(previewUrl); };
+      prev.onerror = () => URL.revokeObjectURL(previewUrl);
+      prev.src = previewUrl;
+      markDirty();
+      const origKB  = Math.round(file.size / 1024);
+      const newKB   = Math.round(blob.size / 1024);
+      showToast(`Uploaded as JPEG — ${origKB} KB → ${newKB} KB (${w}×${h})`, 'success');
+    }, 'image/jpeg', OG_QUALITY);
+  };
+  img.onerror = () => { URL.revokeObjectURL(blobUrl); showToast('Could not load image.', 'error'); };
+  img.src = blobUrl;
 }
 
 // ─── KEYBOARD ────────────────────────────────────────────────────────────────
