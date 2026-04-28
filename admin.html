@@ -1250,13 +1250,18 @@
             <label>Email</label>
             <input type="email" id="about-email-input" placeholder="you@example.com" oninput="markDirty()" />
           </div>
-          <div class="field">
-            <label>CV / Resume <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(optional — URL or relative path)</span></label>
-            <div class="field-clearable">
-              <input type="text" id="about-resume-input" placeholder="files/resume.pdf or https://…" oninput="markDirty()" />
-              <button class="field-clear-btn" type="button" onclick="clearField('about-resume-input')" title="Clear">×</button>
+          <div style="margin-bottom:16px">
+            <button class="add-link" id="cv-toggle" data-closed="+ CV / Resume" data-open="− CV / Resume" onclick="toggleDisclosure('cv')">+ CV / Resume</button>
+            <div id="cv-body" style="display:none;margin-top:8px">
+              <div class="field" style="margin-bottom:0">
+                <label>CV / Resume <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(optional — URL or relative path)</span></label>
+                <div class="field-clearable">
+                  <input type="text" id="about-resume-input" placeholder="files/resume.pdf or https://…" oninput="markDirty()" />
+                  <button class="field-clear-btn" type="button" onclick="clearField('about-resume-input')" title="Clear">×</button>
+                </div>
+                <div class="field-hint" style="margin-top:4px">Shows a "Download CV" button on the About page</div>
+              </div>
             </div>
-            <div class="field-hint" style="margin-top:4px">Shows a "Download CV" button on the About page</div>
           </div>
           <div class="field" style="margin-top:4px">
             <label>Social links</label>
@@ -1320,28 +1325,38 @@
           <div class="about-subsection-title" style="margin-top:32px">Clients &amp; Collaborators</div>
 
           <!-- Text names -->
-          <p style="font-size:10px;color:var(--fg-dim);margin-bottom:8px;line-height:1.5">Add client names as plain text — shown as a list on the About page.</p>
-          <div id="client-text-list" class="client-text-list"></div>
-          <div style="display:flex;gap:6px;margin-top:6px;margin-bottom:20px">
-            <input type="text" id="client-text-input" placeholder="e.g. Nordstrom" style="flex:1;font-size:12px" onkeydown="if(event.key==='Enter'){addTextClient();event.preventDefault()}" />
-            <button class="btn btn-ghost btn-sm" onclick="addTextClient()">+ Add</button>
+          <div style="margin-bottom:8px">
+            <button class="add-link" id="client-text-toggle" data-closed="+ Client list (text)" data-open="− Client list (text)" onclick="toggleDisclosure('client-text')">+ Client list (text)</button>
+            <div id="client-text-body" style="display:none;margin-top:8px">
+              <p style="font-size:10px;color:var(--fg-dim);margin-bottom:8px;line-height:1.5">Add client names as plain text — shown as a list on the About page.</p>
+              <div id="client-text-list" class="client-text-list"></div>
+              <div style="display:flex;gap:6px;margin-top:6px">
+                <input type="text" id="client-text-input" placeholder="e.g. Nordstrom" style="flex:1;font-size:12px" onkeydown="if(event.key==='Enter'){addTextClient();event.preventDefault()}" />
+                <button class="btn btn-ghost btn-sm" onclick="addTextClient()">+ Add</button>
+              </div>
+            </div>
           </div>
 
           <!-- Logo wall -->
-          <p style="font-size:10px;color:var(--fg-dim);margin-bottom:10px;line-height:1.5">Or add logos — shown as an image wall when any logos are present. Click any logo to cycle its type: <strong style="color:var(--fg-mid)">White</strong> → <strong style="color:var(--accent)">Dark</strong> → <strong style="color:var(--success)">Color</strong>.</p>
-          <div id="client-logo-list" class="client-logo-list"></div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px">
-            <label class="btn btn-ghost btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-              + Upload logo
-              <input type="file" accept="image/*,.svg" class="file-input-hidden" onchange="uploadClientLogo(this)" />
-            </label>
-            <span style="font-size:10px;color:var(--fg-dim)">or</span>
-            <div style="display:flex;gap:6px;align-items:center;flex:1;min-width:200px">
-              <input type="text" id="client-logo-url" placeholder="https://example.com/logo.svg" style="flex:1;font-size:11px" />
-              <button class="btn btn-ghost btn-sm" onclick="addClientByUrl()">+ Add URL</button>
+          <div style="margin-bottom:8px">
+            <button class="add-link" id="client-logos-toggle" data-closed="+ Logo wall" data-open="− Logo wall" onclick="toggleDisclosure('client-logos')">+ Logo wall</button>
+            <div id="client-logos-body" style="display:none;margin-top:8px">
+              <p style="font-size:10px;color:var(--fg-dim);margin-bottom:10px;line-height:1.5">Shown as an image wall when any logos are present. Click any logo to cycle its type: <strong style="color:var(--fg-mid)">White</strong> → <strong style="color:var(--accent)">Dark</strong> → <strong style="color:var(--success)">Color</strong>.</p>
+              <div id="client-logo-list" class="client-logo-list"></div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px">
+                <label class="btn btn-ghost btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+                  + Upload logo
+                  <input type="file" accept="image/*,.svg" class="file-input-hidden" onchange="uploadClientLogo(this)" />
+                </label>
+                <span style="font-size:10px;color:var(--fg-dim)">or</span>
+                <div style="display:flex;gap:6px;align-items:center;flex:1;min-width:200px">
+                  <input type="text" id="client-logo-url" placeholder="https://example.com/logo.svg" style="flex:1;font-size:11px" />
+                  <button class="btn btn-ghost btn-sm" onclick="addClientByUrl()">+ Add URL</button>
+                </div>
+              </div>
+              <div class="field-hint" style="margin-top:6px">Upload a PNG/SVG, or paste any direct image URL.</div>
             </div>
           </div>
-          <div class="field-hint" style="margin-top:6px">Upload a PNG/SVG, or paste any direct image URL.</div>
         </div>
       </div>
 
@@ -2965,6 +2980,11 @@ function populateAboutEditor() {
   }
   renderClientList();
   renderTextClientList();
+  // Auto-open disclosures if values already exist
+  if (a.resume) openDisclosure('cv');
+  const clients = a.clients || [];
+  if (clients.some(c => typeof c === 'string')) openDisclosure('client-text');
+  if (clients.some(c => typeof c === 'object' && c.logo)) openDisclosure('client-logos');
   updateAboutPhotoPreview(true); // silent — populating, not user-initiated
   updateAboutPhotoUI();
 }
