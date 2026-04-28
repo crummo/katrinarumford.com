@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cameron Rumford — Editor</title>
-  <meta name="description"        content="Los Angeles editor with 20+ years in post-production. Branded content, documentary &amp; commercial. Telly Award winner. Asst. editor, Oscar-winning Undefeated." />
+  <title>Katrina Rumford — Styling / Custom Made</title>
+  <meta name="description"        content="Katrina Rumford is a wardrobe stylist based in Los Angeles, California." />
   <meta property="og:type"        content="website" />
-  <meta property="og:title"       content="Cameron Rumford" />
-  <meta property="og:description" content="Los Angeles editor with 20+ years in post-production. Branded content, documentary &amp; commercial. Telly Award winner. Asst. editor, Oscar-winning Undefeated." />
-  <meta property="og:image"       content="https://www.cameronrumford.com/images/AWS_FarmCityFence01.jpeg" />
-  <meta property="og:url"         content="https://www.cameronrumford.com" />
+  <meta property="og:title"       content="Katrina Rumford" />
+  <meta property="og:description" content="Katrina Rumford is a wardrobe stylist based in Los Angeles, California." />
+  <meta property="og:image"       content="" />
+  <meta property="og:url"         content="https://www.katrinarumford.com" />
   <meta name="twitter:card"       content="summary_large_image" />
-  <meta name="twitter:image"      content="https://www.cameronrumford.com/images/AWS_FarmCityFence01.jpeg" />
+  <meta name="twitter:image"      content="" />
   <link rel="canonical"           href="" id="site-canonical" />
   <link rel="icon" id="site-favicon" href="data:image/svg+xml,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%23c9a96e' stroke-width='1.5' stroke-linejoin='round'%3E%3Cpolygon points='16,2 28,9 16,16 4,9'/%3E%3Cpolygon points='28,9 28,23 16,30 16,16'/%3E%3Cpolygon points='4,9 16,16 16,30 4,23'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -30,8 +30,9 @@
       try {
         var s = JSON.parse(sessionStorage.getItem('cr_preview') || '{}');
         var cfg = s.siteConfig || s;
-        _applyTheme(cfg.themeMode || 'auto');
-      } catch(e) { _applyTheme('auto'); }
+        var cached = localStorage.getItem('kr_theme');
+        _applyTheme(cfg.themeMode || cached || 'light');
+      } catch(e) { _applyTheme(localStorage.getItem('kr_theme') || 'light'); }
     })();
   </script>
 
@@ -39,19 +40,29 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:         #131110;
-      --bg2:        #1c1917;
-      --bg3:        #231f1c;
-      --fg:         #ede8e0;
-      --fg-mid:     #a89e90;
-      --fg-dim:     #5a5248;
-      --fg-dimmer:  #2a2623;
+      --bg:         #f0ece6;
+      --bg2:        #e8e3dc;
+      --bg3:        #ddd8d0;
+      --fg:         #1a1714;
+      --fg-mid:     #5a5248;
+      --fg-dim:     #8a8078;
+      --fg-dimmer:  #ccc7be;
       --accent:     #c9a96e;
       --font-serif: 'Playfair Display', Georgia, serif;
       --font-sans:  'DM Sans', sans-serif;
       --nav-h:      60px;
       --nav-w:      270px;
       --ease:       cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    [data-theme="dark"] {
+      --bg:        #131110;
+      --bg2:       #1c1917;
+      --bg3:       #231f1c;
+      --fg:        #ede8e0;
+      --fg-mid:    #a89e90;
+      --fg-dim:    #5a5248;
+      --fg-dimmer: #2a2623;
     }
 
     [data-theme="light"] {
@@ -702,6 +713,7 @@
         : mode === 'dark'  ? 'dark'
         : (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
       document.documentElement.setAttribute('data-theme', resolved);
+      try { localStorage.setItem('kr_theme', resolved); } catch(e) {}
     }
 
     function toggleTheme() {

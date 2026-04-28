@@ -538,6 +538,74 @@
     }
     .project-actions { display: flex; gap: 8px; flex-shrink: 0; }
 
+    /* ── GALLERY ADMIN GRID ── */
+    .gallery-admin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 8px; padding: 8px 0 32px;
+    }
+    .gai-item {
+      position: relative; aspect-ratio: 1;
+      border-radius: 3px; overflow: hidden;
+      background: var(--bg3); cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.15s, opacity 0.2s;
+      user-select: none;
+    }
+    .gai-item:hover { border-color: var(--fg-dim); }
+    .gai-item.unpublished { opacity: 0.45; }
+    .gai-item.drag-over { border-color: var(--accent); }
+    .gai-item.dragging { opacity: 0.25; border-style: dashed; }
+    .gai-item img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+    .gai-dot {
+      position: absolute; top: 6px; right: 6px;
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 0 2px var(--bg3);
+      pointer-events: none;
+    }
+    .gai-item.unpublished .gai-dot { background: var(--danger); }
+    .gai-label {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 22px 7px 7px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.7));
+      font-size: 10px; color: #ede8e0; line-height: 1.3;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      pointer-events: none;
+    }
+
+    /* ── BULK IMPORT ZONE ── */
+    .bulk-drop-zone {
+      border: 1px dashed var(--fg-dimmer); border-radius: 4px;
+      padding: 24px 20px; text-align: center; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 12px; position: relative;
+    }
+    .bulk-drop-zone:hover,
+    .bulk-drop-zone.drag-active { border-color: var(--accent); background: rgba(201,169,110,0.04); }
+    .bulk-drop-zone-label { font-size: 12px; color: var(--fg-mid); margin-bottom: 8px; }
+    .bulk-drop-zone-hint { font-size: 10px; color: var(--fg-dim); margin-top: 6px; }
+    .bulk-drop-zone input[type="file"] { display: none; }
+
+    .bulk-import-controls {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; margin-bottom: 12px; flex-wrap: wrap;
+    }
+    .bulk-toggle-label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: var(--fg-mid); cursor: pointer;
+      flex-shrink: 0;
+    }
+    .bulk-toggle-label input { cursor: pointer; }
+
+    .bulk-progress { display: none; margin-bottom: 12px; }
+    .bulk-progress.visible { display: block; }
+    .bulk-progress-bar-wrap {
+      height: 2px; background: var(--fg-dimmer); border-radius: 2px; overflow: hidden; margin-bottom: 6px;
+    }
+    .bulk-progress-bar { height: 100%; background: var(--accent); transition: width 0.3s var(--ease); width: 0%; }
+    .bulk-progress-label { font-size: 10px; color: var(--fg-dim); letter-spacing: 0.04em; }
+
     .empty {
       text-align: center; padding: 48px 20px;
       color: var(--fg-dim); font-size: 13px;
@@ -1487,6 +1555,35 @@
   </div>
 </div>
 
+<!-- ═══════════════ GALLERY IMAGE EDIT MODAL ═══════════════ -->
+<div class="modal-backdrop hidden" id="modal-gallery-edit">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-title" id="ge-modal-title">Edit Image</div>
+    <div class="field">
+      <label>Title <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(optional)</span></label>
+      <input type="text" id="ge-title" placeholder="e.g. Editorial shoot, Spring 2024" />
+    </div>
+    <div class="field">
+      <label>Client <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(optional)</span></label>
+      <input type="text" id="ge-client" placeholder="e.g. Nordstrom" />
+    </div>
+    <div class="field" style="margin-top:4px">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:13px;font-weight:300;margin-bottom:0">
+        <input type="checkbox" id="ge-published" />
+        Published
+      </label>
+      <div class="field-hint" style="margin-top:6px">Uncheck to hide this image without deleting it.</div>
+    </div>
+    <div style="border-top:1px solid var(--fg-dimmer);margin-top:16px;padding-top:12px">
+      <button class="btn btn-danger btn-sm" onclick="deleteGalleryImage()">Delete image…</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeGalleryEdit()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveGalleryEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════ FILE MANAGER MODAL ═══════════════ -->
 <div class="modal-backdrop hidden" id="modal-files">
   <div class="modal modal-files">
@@ -1993,16 +2090,50 @@ function buildAdminCategoryPanes() {
     const pane = document.createElement('div');
     pane.id = 'pane-' + cat.id;
     pane.style.display = 'none';
-    pane.innerHTML = `
-      <div class="toolbar">
-        <span class="toolbar-label" id="count-${cat.id}"></span>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-ghost btn-sm" onclick="openAdd('${cat.id}')">+ Add Project</button>
+
+    if (cat.type === 'gallery') {
+      pane.innerHTML = `
+        <div class="toolbar">
+          <span class="toolbar-label" id="count-${cat.id}"></span>
           <button class="btn btn-ghost btn-sm" onclick="previewCategory('${cat.id}')">Preview ↗</button>
         </div>
-      </div>
-      <div class="project-list" id="list-${cat.id}"></div>
-    `;
+        <div class="bulk-import-controls">
+          <label class="bulk-toggle-label">
+            <input type="checkbox" id="bulk-draft-${cat.id}" checked />
+            Import as draft (unpublished)
+          </label>
+          <label class="btn btn-ghost btn-sm" style="cursor:pointer;margin-bottom:0">
+            + Select images
+            <input type="file" accept="image/*" multiple onchange="handleBulkFilePicker(this,'${cat.id}')" />
+          </label>
+        </div>
+        <div class="bulk-drop-zone" id="bulk-zone-${cat.id}"
+          onclick="document.querySelector('#bulk-zone-${cat.id} input').click()"
+          ondragover="bulkDragOver(event,'${cat.id}')"
+          ondragleave="bulkDragLeave(event,'${cat.id}')"
+          ondrop="bulkDrop(event,'${cat.id}')">
+          <div class="bulk-drop-zone-label">Drop images here</div>
+          <div class="bulk-drop-zone-hint">JPEG, PNG, WebP · multiple files OK</div>
+          <input type="file" accept="image/*" multiple onchange="handleBulkFilePicker(this,'${cat.id}')" style="display:none" />
+        </div>
+        <div class="bulk-progress" id="bulk-progress-${cat.id}">
+          <div class="bulk-progress-bar-wrap"><div class="bulk-progress-bar" id="bulk-bar-${cat.id}"></div></div>
+          <div class="bulk-progress-label" id="bulk-label-${cat.id}"></div>
+        </div>
+        <div class="gallery-admin-grid" id="list-${cat.id}"></div>
+      `;
+    } else {
+      pane.innerHTML = `
+        <div class="toolbar">
+          <span class="toolbar-label" id="count-${cat.id}"></span>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="openAdd('${cat.id}')">+ Add Project</button>
+            <button class="btn btn-ghost btn-sm" onclick="previewCategory('${cat.id}')">Preview ↗</button>
+          </div>
+        </div>
+        <div class="project-list" id="list-${cat.id}"></div>
+      `;
+    }
     container.appendChild(pane);
   });
 }
@@ -2013,6 +2144,9 @@ function renderAll() {
 }
 
 function renderCategory(cat) {
+  const catDef = siteConfig.categories.find(c => c.id === cat);
+  if (catDef?.type === 'gallery') { renderGalleryCategory(cat); return; }
+
   const items = projects.filter(p => p.category === cat);
   const list  = document.getElementById('list-' + cat);
   const count = document.getElementById('count-' + cat);
@@ -2090,6 +2224,276 @@ function renderCategory(cat) {
       }
     }
   });
+}
+
+// ─── GALLERY CATEGORY RENDER ─────────────────────────────────────────────────
+function renderGalleryCategory(cat) {
+  const items = projects.filter(p => p.category === cat);
+  const list  = document.getElementById('list-' + cat);
+  const count = document.getElementById('count-' + cat);
+  if (!list) return;
+
+  if (count) count.textContent = `${items.length} image${items.length !== 1 ? 's' : ''}`;
+
+  if (items.length === 0) {
+    list.innerHTML = '<div class="empty" style="grid-column:1/-1">No images yet. Drop some above to get started.</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  items.forEach(p => {
+    const globalIdx = projects.indexOf(p);
+    const imgSrc = p.url || p.thumbnail || '';
+    const label  = [p.client, p.title].filter(Boolean).join(' · ');
+    const item   = document.createElement('div');
+    item.className = 'gai-item' + (p.published === false ? ' unpublished' : '');
+    item.draggable = true;
+    item.dataset.idx = globalIdx;
+    const displaySrc = p._blobUrl || imgSrc;
+    item.innerHTML = `
+      ${displaySrc ? `<img src="${esc(displaySrc)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}
+      <div class="gai-dot" title="${p.published === false ? 'Unpublished' : 'Published'}"></div>
+      ${label ? `<div class="gai-label">${esc(label)}</div>` : ''}
+    `;
+    item.addEventListener('click', () => openGalleryEdit(globalIdx));
+    item.addEventListener('dragstart', onGaiDragStart);
+    item.addEventListener('dragover',  onGaiDragOver);
+    item.addEventListener('dragleave', onGaiDragLeave);
+    item.addEventListener('drop',      onGaiDrop);
+    item.addEventListener('dragend',   onGaiDragEnd);
+    list.appendChild(item);
+  });
+}
+
+// ─── GALLERY IMAGE DRAG-TO-REORDER ───────────────────────────────────────────
+let gaiDragSrcIdx = null;
+function onGaiDragStart(e) {
+  gaiDragSrcIdx = parseInt(this.dataset.idx);
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => this.classList.add('dragging'), 0);
+}
+function onGaiDragOver(e) {
+  e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.gai-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+  if (parseInt(this.dataset.idx) !== gaiDragSrcIdx) this.classList.add('drag-over');
+}
+function onGaiDragLeave() { this.classList.remove('drag-over'); }
+function onGaiDragEnd()   {
+  document.querySelectorAll('.gai-item').forEach(el => el.classList.remove('dragging','drag-over'));
+}
+function onGaiDrop(e) {
+  e.preventDefault();
+  const targetIdx = parseInt(this.dataset.idx);
+  if (gaiDragSrcIdx === null || gaiDragSrcIdx === targetIdx) return;
+  const moved = projects.splice(gaiDragSrcIdx, 1)[0];
+  const newTarget = gaiDragSrcIdx < targetIdx ? targetIdx - 1 : targetIdx;
+  projects.splice(newTarget, 0, moved);
+  markDirty();
+  renderAll();
+}
+
+// ─── GALLERY IMAGE EDIT MODAL ─────────────────────────────────────────────────
+let editingGalleryIdx = null;
+
+function openGalleryEdit(globalIdx) {
+  editingGalleryIdx = globalIdx;
+  const p = projects[globalIdx];
+  document.getElementById('ge-modal-title').textContent = p.url ? p.url.split('/').pop() : 'Edit Image';
+  document.getElementById('ge-title').value     = p.title  || '';
+  document.getElementById('ge-client').value    = p.client || '';
+  document.getElementById('ge-published').checked = p.published !== false;
+  document.getElementById('modal-gallery-edit').classList.remove('hidden');
+}
+
+function closeGalleryEdit() {
+  document.getElementById('modal-gallery-edit').classList.add('hidden');
+  editingGalleryIdx = null;
+}
+
+async function saveGalleryEdit() {
+  if (editingGalleryIdx === null) return;
+  const p = projects[editingGalleryIdx];
+  p.title     = document.getElementById('ge-title').value.trim();
+  p.client    = document.getElementById('ge-client').value.trim();
+  p.published = document.getElementById('ge-published').checked;
+  markDirty();
+  renderAll();
+  closeGalleryEdit();
+  await saveToGitHub();
+}
+
+async function deleteGalleryImage() {
+  if (editingGalleryIdx === null) return;
+  const p = projects[editingGalleryIdx];
+  if (!confirm(`Remove "${p.title || p.url?.split('/').pop() || 'this image'}" from the list?\n\nThis won't delete the image file — just removes it from the site.`)) return;
+  projects.splice(editingGalleryIdx, 1);
+  markDirty();
+  renderAll();
+  closeGalleryEdit();
+  await saveToGitHub();
+}
+
+// ─── BULK IMPORT ─────────────────────────────────────────────────────────────
+function bulkDragOver(e, catId) {
+  e.preventDefault(); e.stopPropagation();
+  document.getElementById('bulk-zone-' + catId)?.classList.add('drag-active');
+}
+function bulkDragLeave(e, catId) {
+  document.getElementById('bulk-zone-' + catId)?.classList.remove('drag-active');
+}
+function bulkDrop(e, catId) {
+  e.preventDefault(); e.stopPropagation();
+  document.getElementById('bulk-zone-' + catId)?.classList.remove('drag-active');
+  const files = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
+  if (files.length) processBulkFiles(files, catId);
+}
+function handleBulkFilePicker(input, catId) {
+  const files = [...input.files].filter(f => f.type.startsWith('image/'));
+  input.value = '';
+  if (files.length) processBulkFiles(files, catId);
+}
+
+async function processBulkFiles(files, catId) {
+  const o = localStorage.getItem(K_OWNER);
+  const r = localStorage.getItem(K_REPO);
+  const b = localStorage.getItem(K_BRANCH);
+  if (!o || !r || !b) { showToast('GitHub config missing.', 'error'); return; }
+
+  const publishedByDefault = !document.getElementById('bulk-draft-' + catId)?.checked;
+  const folder = 'gallery/' + catId;
+  const total  = files.length;
+
+  const progressEl = document.getElementById('bulk-progress-' + catId);
+  const barEl      = document.getElementById('bulk-bar-' + catId);
+  const labelEl    = document.getElementById('bulk-label-' + catId);
+
+  const setProgress = (n, msg) => {
+    if (progressEl) progressEl.classList.add('visible');
+    if (barEl)    barEl.style.width = (n / total * 100) + '%';
+    if (labelEl)  labelEl.textContent = msg;
+  };
+  const resetProgress = () => {
+    if (progressEl) progressEl.classList.remove('visible');
+    if (barEl)    barEl.style.width = '0%';
+  };
+
+  try {
+  setProgress(0, `Preparing ${total} image${total !== 1 ? 's' : ''}…`);
+
+  // Step 1: read all files as base64
+  const fileData = await Promise.all(files.map(f => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = () => resolve({ file: f, base64: reader.result.split(',')[1] });
+    reader.onerror = reject;
+    reader.readAsDataURL(f);
+  })));
+
+  // Step 2: create blobs in parallel (batched to avoid rate limits)
+  setProgress(0, `Uploading 0 / ${total}…`);
+  const blobs = [];
+  const BATCH = 5;
+  let done = 0;
+  for (let i = 0; i < fileData.length; i += BATCH) {
+    const batch = fileData.slice(i, i + BATCH);
+    const results = await Promise.all(batch.map(async ({ file, base64 }) => {
+      const res = await fetch(`https://api.github.com/repos/${o}/${r}/git/blobs`, {
+        method: 'POST',
+        headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: base64, encoding: 'base64' })
+      });
+      if (!res.ok) throw new Error(`Blob creation failed for ${file.name}`);
+      const { sha } = await res.json();
+      done++;
+      setProgress(done, `Uploading ${done} / ${total}…`);
+      return { path: `${folder}/${file.name}`, sha, file };
+    }));
+    blobs.push(...results);
+  }
+
+  // Step 3: get current HEAD commit + tree
+  setProgress(total, 'Committing…');
+  const refRes = await fetch(`https://api.github.com/repos/${o}/${r}/git/ref/heads/${b}`, { headers: ghHeaders() });
+  if (!refRes.ok) throw new Error('Could not get branch ref');
+  const { object: { sha: headSha } } = await refRes.json();
+
+  const commitRes = await fetch(`https://api.github.com/repos/${o}/${r}/git/commits/${headSha}`, { headers: ghHeaders() });
+  if (!commitRes.ok) throw new Error('Could not get commit');
+  const { tree: { sha: treeSha } } = await commitRes.json();
+
+  // Step 4: create new tree with all blobs
+  const treeRes = await fetch(`https://api.github.com/repos/${o}/${r}/git/trees`, {
+    method: 'POST',
+    headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      base_tree: treeSha,
+      tree: blobs.map(({ path, sha }) => ({ path, mode: '100644', type: 'blob', sha }))
+    })
+  });
+  if (!treeRes.ok) throw new Error('Could not create tree');
+  const { sha: newTreeSha } = await treeRes.json();
+
+  // Step 5: create commit
+  const newCommitRes = await fetch(`https://api.github.com/repos/${o}/${r}/git/commits`, {
+    method: 'POST',
+    headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message: `Bulk import ${total} image${total !== 1 ? 's' : ''} to ${folder}`,
+      tree: newTreeSha,
+      parents: [headSha]
+    })
+  });
+  if (!newCommitRes.ok) throw new Error('Could not create commit');
+  const { sha: newCommitSha } = await newCommitRes.json();
+
+  // Step 6: update branch ref
+  const updateRes = await fetch(`https://api.github.com/repos/${o}/${r}/git/refs/heads/${b}`, {
+    method: 'PATCH',
+    headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sha: newCommitSha })
+  });
+  if (!updateRes.ok) throw new Error('Could not update branch ref');
+
+  // Step 7: generate projects.json entries and save
+  const blobUrls = {};
+  blobs.forEach(({ path, file }) => {
+    blobUrls[path] = URL.createObjectURL(file);
+  });
+
+  const catItems = projects.filter(p => p.category === catId);
+  const insertAfter = catItems.length > 0
+    ? projects.lastIndexOf(catItems[catItems.length - 1])
+    : projects.length - 1;
+
+  blobs.forEach(({ path, file }, i) => {
+    projects.splice(insertAfter + 1 + i, 0, {
+      id:        Date.now() + i,
+      category:  catId,
+      title:     '',
+      client:    '',
+      url:       path,
+      thumbnail: path,
+      published: publishedByDefault,
+      _blobUrl:  blobUrls[path]
+    });
+  });
+
+  markDirty();
+  renderAll();
+
+  if (progressEl) progressEl.classList.remove('visible');
+  if (barEl)    barEl.style.width = '0%';
+
+  showToast(`${total} image${total !== 1 ? 's' : ''} imported${publishedByDefault ? '' : ' as drafts'}.`, 'success');
+  await saveToGitHub();
+
+  // Revoke blob URLs after a delay
+  setTimeout(() => { Object.values(blobUrls).forEach(u => URL.revokeObjectURL(u)); }, 30000);
+
+  } catch(err) {
+    resetProgress();
+    showToast('Import failed: ' + err.message, 'error');
+    console.error('Bulk import error:', err);
+  }
 }
 
 // ─── DRAG-TO-REORDER ─────────────────────────────────────────────────────────
