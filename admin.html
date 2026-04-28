@@ -2154,10 +2154,13 @@ function buildAdminCategoryPanes() {
         <div class="toolbar">
           <span class="toolbar-label" id="count-${cat.id}"></span>
           <div style="display:flex;align-items:center;gap:8px">
-            <label class="bulk-toggle-label" style="margin-bottom:0">
-              <input type="checkbox" id="bulk-optimize-${cat.id}" checked />
-              <span title="Resizes to max 2500px, converts to WebP at 85% quality — typically 60–80% smaller. Uncheck to upload original file.">Optimize</span>
-            </label>
+            <div style="display:flex;flex-direction:column;gap:2px;align-items:flex-start">
+              <label class="bulk-toggle-label" style="margin-bottom:0">
+                <input type="checkbox" id="bulk-optimize-${cat.id}" checked />
+                <span>Optimize uploads</span>
+              </label>
+              <span class="field-hint" style="margin-left:20px">Resize to 2500px, convert to WebP — ~70% smaller</span>
+            </div>
             <label class="bulk-toggle-label" style="margin-bottom:0">
               <input type="checkbox" id="bulk-draft-${cat.id}" checked />
               Import as draft
