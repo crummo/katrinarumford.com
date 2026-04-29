@@ -869,6 +869,7 @@
       max-height: 56vh; min-height: 0; overflow-y: auto;
       padding: 2px;
     }
+    .pane-files .fm-grid { max-height: calc(100vh - 440px); }
     .fm-grid.tab-thumbs {
       grid-template-columns: repeat(4, 1fr);
       grid-auto-rows: 150px;
@@ -1024,6 +1025,7 @@
       </div>
       <button class="tab-scroll-btn right" id="tab-scroll-right" onclick="scrollTabs(1)" title="Scroll right">›</button>
       <button class="tab" id="tab-site" onclick="switchTab('site')">Site Settings</button>
+      <button class="tab" id="tab-files" onclick="switchTab('files')">Files</button>
     </div>
 
     <!-- Project category panes are injected here by buildAdminCategoryPanes() -->
@@ -1197,9 +1199,9 @@
         <div class="settings-section">
           <div class="settings-section-title" style="display:flex;align-items:center;justify-content:space-between">
             File Management
-            <button class="btn btn-ghost btn-sm" onclick="openFileManager()">📁 Manage Files</button>
+            <button class="btn btn-ghost btn-sm" onclick="switchTab('files')">📁 Files tab →</button>
           </div>
-          <p class="about-hint">Browse, rename, and delete files in your <code style="color:var(--accent)">/images/logos/</code>, <code style="color:var(--accent)">/thumbs/</code>, and <code style="color:var(--accent)">/images/</code> folders. In-use files are flagged; renaming auto-updates references.</p>
+          <p class="about-hint">Browse, upload, optimize, rename, and delete files in your <code style="color:var(--accent)">/images/logos/</code>, <code style="color:var(--accent)">/thumbs/</code>, and <code style="color:var(--accent)">/images/</code> folders.</p>
         </div>
 
       </div>
@@ -1530,6 +1532,47 @@
   </div>
 </div>
 
+<!-- ═══════════════ FILES TAB PANE ═══════════════ -->
+<div id="pane-files" style="display:none">
+  <div class="settings-section">
+    <div class="settings-section-title">Upload</div>
+    <div class="field-hint" style="margin-bottom:8px">Uploading to: <code id="fm-upload-dest" style="color:var(--accent)">thumbs/</code></div>
+    <div id="fm-upload-zone" class="thumb-drop-zone">
+      <div class="thumb-drop-hint">↓ Drop files here to upload</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px">
+        <label class="btn btn-ghost btn-sm" style="cursor:pointer">Browse files…<input type="file" id="fm-upload-input" multiple accept="image/*" class="file-input-hidden" onchange="fmHandleUploadInput(this)" /></label>
+        <label id="fm-upload-optimize-label" style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:10px;color:var(--fg-dim);letter-spacing:0.1em;text-transform:uppercase">
+          <input type="checkbox" id="fm-upload-optimize" checked />
+          Optimize (WebP, resize)
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="settings-section" style="padding-top:0">
+    <div class="fm-tabs" id="fm-tabs">
+      <button class="fm-tab-btn" onclick="switchFMTab('logos')">Logos</button>
+      <button class="fm-tab-btn active" onclick="switchFMTab('thumbs')">Thumbs</button>
+      <button class="fm-tab-btn" onclick="switchFMTab('images')">Images</button>
+      <button class="fm-tab-btn" onclick="switchFMTab('gallery')">Gallery</button>
+    </div>
+    <div id="fm-gallery-subtabs" style="display:none;gap:4px;padding:0 0 10px;border-bottom:1px solid var(--fg-dimmer);margin-bottom:10px;flex-wrap:wrap"></div>
+    <div class="fm-toolbar">
+      <span class="fm-count" id="fm-count"></span>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button id="fm-optimize-selected" class="btn btn-ghost btn-sm" onclick="fmOptimizeSelected()" style="display:none;font-size:9px;padding:4px 10px">Optimize Selected</button>
+        <button id="fm-delete-selected" class="btn btn-danger btn-sm" onclick="fmDeleteSelected()" style="display:none;font-size:9px;padding:4px 10px">Delete Selected</button>
+        <button id="fm-select-all" class="btn btn-ghost btn-sm" onclick="fmSelectAll()" style="font-size:9px;padding:4px 10px">Select All</button>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:10px;color:var(--fg-dim);letter-spacing:0.1em;text-transform:uppercase">
+          <input type="checkbox" id="fm-unused-only" onchange="fmFilterChange()" />
+          Unused only
+        </label>
+      </div>
+    </div>
+    <div id="fm-loading" class="fm-empty">Loading…</div>
+    <div id="fm-grid" class="fm-grid" style="display:none"></div>
+  </div>
+</div>
+
 <!-- ═══════════════ ADD / EDIT MODAL ═══════════════ -->
 <div class="modal-backdrop hidden" id="modal-edit">
   <div class="modal">
@@ -1805,36 +1848,6 @@
   </div>
 </div>
 
-<!-- ═══════════════ FILE MANAGER MODAL ═══════════════ -->
-<div class="modal-backdrop hidden" id="modal-files">
-  <div class="modal modal-files">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div class="modal-title" style="margin-bottom:0">Files</div>
-      <button class="btn btn-ghost btn-sm" onclick="closeFileManager()">✕ Close</button>
-    </div>
-    <div class="fm-tabs" id="fm-tabs">
-      <button class="fm-tab-btn active" onclick="switchFMTab('logos')">Logos</button>
-      <button class="fm-tab-btn" onclick="switchFMTab('thumbs')">Thumbs</button>
-      <button class="fm-tab-btn" onclick="switchFMTab('images')">Images</button>
-      <button class="fm-tab-btn" onclick="switchFMTab('gallery')">Gallery</button>
-    </div>
-    <div id="fm-gallery-subtabs" style="display:none;gap:4px;padding:0 0 10px;border-bottom:1px solid var(--fg-dimmer);margin-bottom:10px;flex-wrap:wrap"></div>
-    <div class="fm-toolbar">
-      <span class="fm-count" id="fm-count"></span>
-      <div style="display:flex;align-items:center;gap:10px">
-        <button id="fm-optimize-selected" class="btn btn-ghost btn-sm" onclick="fmOptimizeSelected()" style="display:none;font-size:9px;padding:4px 10px">Optimize Selected</button>
-        <button id="fm-delete-selected" class="btn btn-danger btn-sm" onclick="fmDeleteSelected()" style="display:none;font-size:9px;padding:4px 10px">Delete Selected</button>
-        <button id="fm-select-all" class="btn btn-ghost btn-sm" onclick="fmSelectAll()" style="font-size:9px;padding:4px 10px">Select All</button>
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:10px;color:var(--fg-dim);letter-spacing:0.1em;text-transform:uppercase">
-          <input type="checkbox" id="fm-unused-only" onchange="fmFilterChange()" />
-          Unused only
-        </label>
-      </div>
-    </div>
-    <div id="fm-loading" class="fm-empty">Loading…</div>
-    <div id="fm-grid" class="fm-grid" style="display:none"></div>
-  </div>
-</div>
 
 <!-- ═══════════════ CLEANUP MODAL ═══════════════ -->
 <div class="modal-backdrop hidden" id="modal-cleanup">
@@ -3049,7 +3062,7 @@ function onDragEnd() {
 
 // ─── TABS ────────────────────────────────────────────────────────────────────
 function switchTabDirect(tabId) {
-  const allTabIds = [...siteConfig.categories.map(c => c.id), 'site'];
+  const allTabIds = [...siteConfig.categories.map(c => c.id), 'site', 'files'];
   allTabIds.forEach(id => {
     const tab  = document.getElementById('tab-'  + id);
     const pane = document.getElementById('pane-' + id);
@@ -3058,6 +3071,7 @@ function switchTabDirect(tabId) {
   });
   currentTab = tabId;
   localStorage.setItem(K_TAB, tabId);
+  if (tabId === 'files') initFileManagerTab();
   // Scroll active tab into view in the scroll container
   const activeTab = document.getElementById('tab-' + tabId);
   if (activeTab) activeTab.scrollIntoView({ block: 'nearest', inline: 'nearest' });
@@ -3884,26 +3898,84 @@ function fmGetUsedPaths() {
   return used;
 }
 
-async function openFileManager() {
+// Legacy entry point — now just switches to the Files tab
+function openFileManager() { switchTab('files'); }
+function closeFileManager() {} // no-op — files is a tab now
+
+function initFileManagerTab() {
   const o = localStorage.getItem(K_OWNER);
   const r = localStorage.getItem(K_REPO);
   if (!o || !r) { showToast('GitHub config missing.', 'error'); return; }
   fmFiles    = { logos: [], thumbs: [], images: [], gallery: [] };
   fmLoaded   = { logos: false, thumbs: false, images: false, gallery: false };
   fmSelected = new Set();
-  fmCurrentTab = 'logos';
+  fmCurrentTab = 'thumbs';
   fmGalleryCat = (siteConfig.categories.find(c => c.type === 'gallery') || {}).id || null;
   updateFMDeleteBtn();
   document.getElementById('fm-unused-only').checked = false;
-  document.getElementById('modal-files').classList.remove('hidden');
   buildFMGallerySubtabs();
   updateFMTabs();
-  await loadFMTab('logos');
+  fmUpdateUploadHint();
+  initDropZone('fm-upload-zone', async file => {
+    await fmUploadFile(file);
+    fmLoaded[fmCurrentTab] = false;
+    await loadFMTab(fmCurrentTab);
+  });
+  loadFMTab('thumbs');
 }
 
-function closeFileManager() {
-  const el = document.getElementById('modal-files');
-  if (el) el.classList.add('hidden');
+function fmUpdateUploadHint() {
+  const folderMap = {
+    logos:   'images/logos/',
+    thumbs:  'thumbs/',
+    images:  'images/',
+    gallery: fmGalleryCat ? 'gallery/' + fmGalleryCat + '/' : '(no gallery category)'
+  };
+  const dest = document.getElementById('fm-upload-dest');
+  if (dest) dest.textContent = folderMap[fmCurrentTab] || '';
+  const canOpt = fmCurrentTab === 'thumbs' || fmCurrentTab === 'images';
+  const optLabel = document.getElementById('fm-upload-optimize-label');
+  if (optLabel) optLabel.style.display = canOpt ? '' : 'none';
+}
+
+async function fmUploadFile(file) {
+  const optimize = document.getElementById('fm-upload-optimize')?.checked;
+  const canOptimize = optimize && file.type.startsWith('image/') &&
+    (fmCurrentTab === 'thumbs' || fmCurrentTab === 'images');
+  let fileToUpload = file;
+  let safeName = sanitizeName(file.name);
+  if (canOptimize) {
+    try {
+      const maxEdge = fmCurrentTab === 'thumbs' ? 1200 : 2500;
+      const { base64 } = await compressImage(file, maxEdge, 0.85);
+      const baseName = safeName.replace(/\.[^.]+$/, '') + '.webp';
+      const bytes = atob(base64);
+      const ab = new ArrayBuffer(bytes.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < bytes.length; i++) ia[i] = bytes.charCodeAt(i);
+      fileToUpload = new File([ab], baseName, { type: 'image/webp' });
+      safeName = baseName;
+    } catch(e) { showToast('Optimize failed — uploading original.', 'warn'); }
+  }
+  const folderMap = {
+    logos:   'images/logos',
+    thumbs:  'thumbs',
+    images:  'images',
+    gallery: fmGalleryCat ? 'gallery/' + fmGalleryCat : null
+  };
+  const folder = folderMap[fmCurrentTab];
+  if (!folder) { showToast('No destination folder for this tab.', 'error'); return; }
+  await uploadToGitHub(fileToUpload, folder + '/' + safeName);
+}
+
+async function fmHandleUploadInput(input) {
+  const files = [...input.files];
+  input.value = '';
+  for (const file of files) {
+    await fmUploadFile(file);
+  }
+  fmLoaded[fmCurrentTab] = false;
+  await loadFMTab(fmCurrentTab);
 }
 
 async function loadFMTab(tab) {
@@ -3944,6 +4016,7 @@ function switchFMTab(tab) {
   fmSelected.clear();
   updateFMDeleteBtn();
   updateFMTabs();
+  fmUpdateUploadHint();
   if (!fmLoaded[tab]) { loadFMTab(tab); } else { renderFMGrid(); }
 }
 
