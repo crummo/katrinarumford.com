@@ -31,16 +31,37 @@
     {
       "id": "test",
       "label": "Test",
-      "published": false,
+      "published": true,
       "layout": "masonry",
       "type": "lightbox"
     },
     {
       "id": "test-gallery",
       "label": "test gallery",
-      "published": false,
+      "published": true,
       "layout": "masonry",
       "type": "gallery"
+    },
+    {
+      "id": "sda",
+      "label": "sda",
+      "published": true,
+      "layout": "masonry",
+      "type": "lightbox"
+    },
+    {
+      "id": "333",
+      "label": "333",
+      "published": false,
+      "layout": "masonry",
+      "type": "lightbox"
+    },
+    {
+      "id": "231",
+      "label": "231",
+      "published": false,
+      "layout": "masonry",
+      "type": "lightbox"
     }
   ],
   "about": {
