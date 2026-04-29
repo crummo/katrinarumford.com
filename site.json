@@ -41,13 +41,6 @@
       "published": false,
       "layout": "masonry",
       "type": "gallery"
-    },
-    {
-      "id": "asdfad",
-      "label": "asdfad",
-      "published": false,
-      "layout": "masonry",
-      "type": "lightbox"
     }
   ],
   "about": {
@@ -139,9 +132,9 @@
     "id": ""
   },
   "navStyle": "left",
-  "allowThemeToggle": false,
-  "themeMode": "light",
+  "allowThemeToggle": true,
+  "themeMode": "auto",
   "filmGrain": 0.1,
   "thumbnailFilter": 0,
-  "viewerBg": "auto"
+  "viewerBg": "dark"
 }
