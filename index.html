@@ -152,13 +152,13 @@
     .nav-drawer.open { max-height: 500px; padding: 16px 24px 20px; }
     .nav-drawer a {
       display: block; text-decoration: none; font-size: 12px; letter-spacing: 0.16em;
-      text-transform: uppercase; color: var(--fg-dim); padding: 14px 0;
-      border-bottom: 1px solid var(--fg-dimmer); cursor: pointer;
-      transition: color 0.25s var(--ease); font-weight: 400;
+      text-transform: uppercase; color: var(--fg-dim); padding: 14px 0 14px 10px;
+      border-bottom: 1px solid var(--fg-dimmer); border-left: 2px solid transparent; cursor: pointer;
+      transition: color 0.25s var(--ease), border-color 0.25s var(--ease); font-weight: 400;
     }
     .nav-drawer a:last-child { border-bottom: none; }
     .nav-drawer a:hover { color: var(--fg); }
-    .nav-drawer a.active { color: var(--accent); }
+    .nav-drawer a.active { color: var(--accent); border-left-color: var(--accent); }
 
     /* ── LEFT NAV ── */
     body.nav-left nav {
@@ -585,6 +585,15 @@
     </div>
   </div>
 
+  <!-- Share password prompt -->
+  <div id="share-prompt" style="display:none;position:fixed;inset:0;z-index:400;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;gap:14px">
+    <div style="font-family:var(--font-serif);font-size:22px;font-style:italic;color:var(--fg)">Password protected</div>
+    <div style="font-size:10px;letter-spacing:0.16em;color:var(--fg-dim);text-transform:uppercase">Enter the password to view this project</div>
+    <input id="share-prompt-input" type="password" placeholder="Password" style="font-family:var(--font-sans);font-size:14px;background:var(--bg2);border:1px solid var(--fg-dimmer);color:var(--fg);padding:10px 14px;border-radius:2px;width:260px;outline:none;margin-top:4px" />
+    <div id="share-prompt-error" style="display:none;font-size:10px;color:#c0392b;letter-spacing:0.12em;text-transform:uppercase">Incorrect password</div>
+    <button id="share-prompt-submit" style="font-family:var(--font-sans);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;background:var(--fg);color:var(--bg);border:none;padding:10px 28px;cursor:pointer;border-radius:2px;margin-top:4px">View</button>
+  </div>
+
   <!-- Lightbox -->
   <div id="lightbox" class="lightbox" onclick="closeLbOverlay(event)">
     <button class="lb-close" onclick="closeLb()">Close</button>
@@ -684,7 +693,10 @@
       const _shareKey = _sp.get('key');
       if (_shareId && _shareKey) {
         const _shared = projects.find(p => String(p.id) === _shareId && p.shareKey === _shareKey);
-        if (_shared) openLbDirect(_shared);
+        if (_shared) {
+          if (_shared.sharePass) showSharePrompt(_shared);
+          else openLbDirect(_shared);
+        }
       }
     }
 
@@ -1239,6 +1251,32 @@
       renderLb();
       document.getElementById('lightbox').classList.add('open');
       lockScroll();
+    }
+
+    async function hashStr(str) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function showSharePrompt(project) {
+      const overlay = document.getElementById('share-prompt');
+      const input   = document.getElementById('share-prompt-input');
+      const error   = document.getElementById('share-prompt-error');
+      overlay.style.display = 'flex';
+      input.value = ''; error.style.display = 'none';
+      setTimeout(() => input.focus(), 50);
+      const submit = async () => {
+        const hash = await hashStr(input.value);
+        if (hash === project.sharePass) {
+          overlay.style.display = 'none';
+          openLbDirect(project);
+        } else {
+          error.style.display = 'block';
+          input.value = ''; input.focus();
+        }
+      };
+      document.getElementById('share-prompt-submit').onclick = submit;
+      input.onkeydown = e => { if (e.key === 'Enter') submit(); };
     }
 
     function openLbDirect(p) {

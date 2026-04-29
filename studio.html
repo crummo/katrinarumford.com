@@ -1936,6 +1936,26 @@
   </div>
 </div>
 
+<!-- ═══════════════ SHARE PASSWORD MODAL ═══════════════ -->
+<div class="modal-backdrop hidden" id="modal-share-pass">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-title" id="share-pass-title">Set share password</div>
+    <div class="field" style="margin-top:4px">
+      <label>Password</label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input id="share-pass-input" type="password" placeholder="Enter password…" style="flex:1" />
+        <button type="button" class="btn btn-ghost btn-sm" id="share-pass-reveal" onclick="toggleSharePassReveal()" style="flex-shrink:0;font-size:11px;padding:6px 10px">Show</button>
+      </div>
+      <div class="field-hint" id="share-pass-hint" style="margin-top:4px"></div>
+    </div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-ghost" onclick="closeSharePassModal()">Cancel</button>
+      <button id="share-pass-remove" class="btn btn-ghost" style="color:var(--danger)" onclick="confirmSharePassword(true)">Remove password</button>
+      <button class="btn btn-primary" onclick="confirmSharePassword(false)">Set password</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════ TOAST ═══════════════ -->
 <div class="toast" id="toast"></div>
 
@@ -2450,6 +2470,7 @@ function renderCategory(cat) {
       <div class="project-actions">
         <button class="btn btn-ghost btn-sm" onclick="toggleProjectPublished(${globalIdx})">${p.published === false ? 'Publish' : 'Unpublish'}</button>
         <button class="btn btn-ghost btn-sm" onclick="copyShareLink(${globalIdx})" title="${p.shareKey ? 'Copy share link' : 'Generate share link'}">Share ↗</button>
+        ${p.shareKey ? `<button class="btn btn-ghost btn-sm" onclick="setSharePassword(${globalIdx})" title="${p.sharePass ? 'Change or remove password' : 'Add password'}" style="${p.sharePass ? 'color:var(--accent)' : ''}">${p.sharePass ? '🔒' : '🔓'}</button>` : ''}
         ${p.shareKey ? `<button class="btn btn-ghost btn-sm" style="color:var(--danger);opacity:0.7" onclick="revokeShareLink(${globalIdx})" title="Revoke share link">Revoke</button>` : ''}
         <button class="btn btn-ghost btn-sm" onclick="openEdit(${globalIdx})">Edit</button>
       </div>
@@ -4465,6 +4486,60 @@ function clearSocial(platform) {
 }
 
 // ─── PROJECT SHARE LINKS ──────────────────────────────────────────────────────
+async function hashStr(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+let _sharePassIdx = null;
+
+function setSharePassword(idx) {
+  const p = projects[idx];
+  if (!p || !p.shareKey) return;
+  _sharePassIdx = idx;
+  const hasPass = !!p.sharePass;
+  document.getElementById('share-pass-title').textContent = hasPass ? 'Change share password' : 'Set share password';
+  document.getElementById('share-pass-hint').textContent  = hasPass ? 'Leave blank and click Set to keep existing password.' : '';
+  document.getElementById('share-pass-remove').style.display = hasPass ? '' : 'none';
+  const input = document.getElementById('share-pass-input');
+  input.value = ''; input.type = 'password';
+  document.getElementById('share-pass-reveal').textContent = 'Show';
+  document.getElementById('modal-share-pass').classList.remove('hidden');
+  setTimeout(() => input.focus(), 50);
+}
+
+function closeSharePassModal() {
+  document.getElementById('modal-share-pass').classList.add('hidden');
+  _sharePassIdx = null;
+}
+
+function toggleSharePassReveal() {
+  const input = document.getElementById('share-pass-input');
+  const btn   = document.getElementById('share-pass-reveal');
+  const show  = input.type === 'password';
+  input.type  = show ? 'text' : 'password';
+  btn.textContent = show ? 'Hide' : 'Show';
+}
+
+async function confirmSharePassword(remove) {
+  const p = projects[_sharePassIdx];
+  if (!p) return;
+  if (remove) {
+    if (!p.sharePass) { closeSharePassModal(); return; }
+    delete p.sharePass;
+    await saveToGitHub();
+    showToast('Password removed.', 'success');
+  } else {
+    const pw = document.getElementById('share-pass-input').value.trim();
+    if (!pw) { closeSharePassModal(); return; }
+    p.sharePass = await hashStr(pw);
+    await saveToGitHub();
+    showToast('Password set.', 'success');
+  }
+  closeSharePassModal();
+  renderCategory(p.category);
+}
+
 function buildShareUrl(p) {
   // Derive base from admin's own URL — always correct regardless of site.json config
   const base = location.href.replace(/admin\.html.*$/, '').replace(/\/$/, '');
@@ -4501,6 +4576,7 @@ async function revokeShareLink(idx) {
   if (!p || !p.shareKey) return;
   if (!confirm('Revoke share link? Anyone with the old link will lose access.')) return;
   delete p.shareKey;
+  delete p.sharePass;
   try {
     await saveToGitHub();
     showToast('Share link revoked.', 'success');
@@ -5956,6 +6032,7 @@ document.addEventListener('keydown', e => {
     closeModal();
     closeDelete();
     closeFileManager();
+    closeSharePassModal();
   }
 });
 
