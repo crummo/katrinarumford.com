@@ -1973,6 +1973,18 @@
   </div>
 </div>
 
+<!-- ═══════════════ CONFIRM MODAL ═══════════════ -->
+<div class="modal-backdrop hidden" id="modal-confirm">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-title" id="confirm-title">Are you sure?</div>
+    <div id="confirm-body" style="font-size:13px;color:var(--fg-mid);line-height:1.7;margin-bottom:4px"></div>
+    <div class="modal-actions" style="border-top:1px solid var(--fg-dimmer);margin-top:20px;padding-top:16px">
+      <button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger" id="confirm-ok-btn" onclick="_confirmCallback && _confirmCallback()">Delete</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════ TOAST ═══════════════ -->
 <div class="toast" id="toast"></div>
 
@@ -4047,7 +4059,7 @@ async function loadFMTab(tab) {
     let files = res.ok ? await res.json() : [];
     if (!Array.isArray(files)) files = [];
     fmFiles[tab] = files
-      .filter(f => f.type === 'file')
+      .filter(f => f.type === 'file' && f.name !== '.gitkeep')
       .map(f => ({ name: f.name, path: f.path, sha: f.sha, inUse: usedPaths.has(f.path) }));
     fmLoaded[tab] = true;
   } catch(e) {
@@ -4210,13 +4222,13 @@ function updateFMDeleteBtn() {
     btn.textContent = n > 1 ? `Delete (${n})` : 'Delete';
   }
   if (optBtn) {
-    // Show only if selected files include non-WebP, non-SVG images
-    const hasOptimizable = n > 0 && [...fmSelected].some(p => {
+    // Count only files that can actually be optimized (non-WebP, non-SVG, non-GIF)
+    const optimizableCount = [...fmSelected].filter(p => {
       const e = p.split('.').pop().toLowerCase();
       return !['webp', 'svg', 'gif'].includes(e);
-    });
-    optBtn.style.display = hasOptimizable ? '' : 'none';
-    optBtn.textContent = n > 1 ? `Optimize (${n})` : 'Optimize';
+    }).length;
+    optBtn.style.display = optimizableCount > 0 ? '' : 'none';
+    optBtn.textContent = optimizableCount > 1 ? `Optimize (${optimizableCount})` : 'Optimize';
   }
   if (selBtn) {
     const allSelected = filtered.length > 0 && filtered.every(f => fmSelected.has(f.path));
@@ -4229,11 +4241,20 @@ async function fmDeleteSelected() {
   if (!paths.length) return;
   const files = paths.map(p => fmFiles[fmCurrentTab].find(f => f.path === p)).filter(Boolean);
   const inUse = files.filter(f => f.inUse);
-  const names = files.map(f => f.name).join(', ');
-  let msg = `Delete ${paths.length} file${paths.length > 1 ? 's' : ''}?\n\n${names}`;
-  if (inUse.length) msg += `\n\n⚠️ ${inUse.length} file${inUse.length > 1 ? 's are' : ' is'} currently in use.`;
-  if (!confirm(msg)) return;
+  const nameList = files.map(f => `<span style="color:var(--fg)">${esc(f.name)}</span>`).join(', ');
+  const inUseWarning = inUse.length
+    ? `<div style="margin-top:12px;padding:10px 12px;background:color-mix(in srgb,var(--danger) 10%,transparent);border:1px solid color-mix(in srgb,var(--danger) 30%,transparent);border-radius:3px;font-size:11px;color:var(--danger)">⚠ ${inUse.length} file${inUse.length > 1 ? 's are' : ' is'} currently in use — deleting will break references on the site.</div>`
+    : '';
+  showConfirm({
+    title: `Delete ${paths.length} file${paths.length > 1 ? 's' : ''}`,
+    body: `<div style="margin-bottom:4px">${nameList}</div>${inUseWarning}`,
+    confirmLabel: 'Delete',
+    danger: true,
+    onConfirm: () => _fmDoDelete(files)
+  });
+}
 
+async function _fmDoDelete(files) {
   const o = localStorage.getItem(K_OWNER);
   const r = localStorage.getItem(K_REPO);
   const b = localStorage.getItem(K_BRANCH);
@@ -4254,8 +4275,9 @@ async function fmDeleteSelected() {
   fmSelected.clear();
   updateFMDeleteBtn();
   renderFMGrid();
-  if (failed) showToast(`${paths.length - failed} deleted, ${failed} failed`, 'error');
-  else showToast(`${paths.length} file${paths.length > 1 ? 's' : ''} deleted`, 'success');
+  const n = files.length;
+  if (failed) showToast(`${n - failed} deleted, ${failed} failed`, 'error');
+  else showToast(`${n} file${n > 1 ? 's' : ''} deleted`, 'success');
 }
 
 async function fmOptimizeSelected() {
@@ -4578,6 +4600,24 @@ async function openShareModal(idx) {
 
   document.getElementById('modal-share').classList.remove('hidden');
   setTimeout(() => passInput.focus(), 50);
+}
+
+// ─── CONFIRM MODAL ───────────────────────────────────────────────────────────
+let _confirmCallback = null;
+
+function showConfirm({ title, body, confirmLabel = 'Delete', danger = true, onConfirm }) {
+  _confirmCallback = () => { closeConfirm(); onConfirm(); };
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-body').innerHTML = body;
+  const btn = document.getElementById('confirm-ok-btn');
+  btn.textContent = confirmLabel;
+  btn.className = 'btn ' + (danger ? 'btn-danger' : 'btn-primary');
+  document.getElementById('modal-confirm').classList.remove('hidden');
+}
+
+function closeConfirm() {
+  document.getElementById('modal-confirm').classList.add('hidden');
+  _confirmCallback = null;
 }
 
 function closeShareModal() {
@@ -6090,6 +6130,7 @@ document.addEventListener('keydown', e => {
     closeDelete();
     closeFileManager();
     closeShareModal();
+    closeConfirm();
   }
 });
 
