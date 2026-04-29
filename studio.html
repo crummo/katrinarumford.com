@@ -861,22 +861,24 @@
       margin-bottom: 10px;
     }
     .fm-count { font-size: 10px; color: var(--fg-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+    #pane-files { padding: 36px 44px; max-width: 1000px; }
     .fm-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
       align-content: start;
       gap: 8px;
-      max-height: 56vh; min-height: 0; overflow-y: auto;
       padding: 2px;
     }
-    .pane-files .fm-grid { max-height: calc(100vh - 440px); }
     .fm-grid.tab-thumbs {
-      grid-template-columns: repeat(4, 1fr);
-      grid-auto-rows: 150px;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     }
-    .fm-grid.tab-thumbs .fm-tile { height: 150px; min-height: 150px; }
-    .fm-grid.tab-thumbs .fm-preview { height: 90px !important; min-height: 90px; padding: 0 !important; overflow: hidden; display: block !important; }
-    .fm-grid.tab-thumbs .fm-preview img { width: 100% !important; height: 90px !important; object-fit: cover !important; display: block !important; }
+    .fm-grid.tab-thumbs .fm-preview { aspect-ratio: 16/9; height: auto; padding: 0; overflow: hidden; display: block; }
+    .fm-grid.tab-thumbs .fm-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .fm-grid.tab-gallery {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+    .fm-grid.tab-gallery .fm-preview { aspect-ratio: 3/2; height: auto; padding: 0; overflow: hidden; display: block; }
+    .fm-grid.tab-gallery .fm-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .fm-tile {
       background: var(--bg3); border: 1px solid var(--fg-dimmer);
       border-radius: 3px; display: flex; flex-direction: column;
@@ -3974,8 +3976,11 @@ function fmUpdateUploadHint() {
 
 async function fmUploadFile(file) {
   const optimize = document.getElementById('fm-upload-optimize')?.checked;
-  const canOptimize = optimize && file.type.startsWith('image/') &&
-    (fmCurrentTab === 'thumbs' || fmCurrentTab === 'images');
+  const ext = file.name.split('.').pop().toLowerCase();
+  const isWebP = ext === 'webp';
+  const isSVG  = ext === 'svg';
+  // WebP is already optimal format; SVG is vector — skip both
+  const canOptimize = optimize && !isWebP && !isSVG && file.type.startsWith('image/');
   let fileToUpload = file;
   let safeName = sanitizeName(file.name);
   if (canOptimize) {
@@ -4005,6 +4010,13 @@ async function fmUploadFile(file) {
 async function fmHandleUploadInput(input) {
   const files = [...input.files];
   input.value = '';
+  // Show/hide optimize checkbox based on whether any file can benefit from it
+  const hasOptimizable = files.some(f => {
+    const e = f.name.split('.').pop().toLowerCase();
+    return !['webp', 'svg', 'gif'].includes(e) && f.type.startsWith('image/');
+  });
+  const optLabel = document.getElementById('fm-upload-optimize-label');
+  if (optLabel) optLabel.style.display = hasOptimizable ? '' : 'none';
   for (const file of files) {
     await fmUploadFile(file);
   }
@@ -4106,7 +4118,13 @@ function fmFilterChange() {
 }
 
 function fmSelectAll() {
-  fmGetFiltered().forEach(f => fmSelected.add(f.path));
+  const filtered = fmGetFiltered();
+  const allSelected = filtered.length > 0 && filtered.every(f => fmSelected.has(f.path));
+  if (allSelected) {
+    filtered.forEach(f => fmSelected.delete(f.path));
+  } else {
+    filtered.forEach(f => fmSelected.add(f.path));
+  }
   updateFMDeleteBtn();
   renderFMGrid();
 }
@@ -4120,7 +4138,7 @@ function renderFMGrid() {
   document.getElementById('fm-loading').style.display = 'none';
   const grid = document.getElementById('fm-grid');
   grid.style.display = '';
-  grid.className = 'fm-grid' + ((fmCurrentTab === 'thumbs' || fmCurrentTab === 'gallery') ? ' tab-thumbs' : '');
+  grid.className = 'fm-grid' + (fmCurrentTab === 'thumbs' ? ' tab-thumbs' : fmCurrentTab === 'gallery' ? ' tab-gallery' : '');
   grid.innerHTML = '';
   if (filtered.length === 0) {
     grid.innerHTML = `<div class="fm-empty">${unusedOnly ? 'No unused files.' : 'No files found.'}</div>`;
@@ -4146,7 +4164,7 @@ function renderFMGrid() {
       const imgStyle = fmCurrentTab === 'logos'
         ? `max-width:90%;max-height:46px;object-fit:contain${invert}`
         : (isThumb || isGallery)
-          ? 'width:100%;height:90px;object-fit:cover;display:block;flex-shrink:0'
+          ? 'width:100%;height:100%;object-fit:cover;display:block'
           : 'max-width:100%;max-height:46px;object-fit:cover;border-radius:1px';
       previewInner = `<img src="${rawUrl}" alt="" style="${imgStyle}" onerror="this.style.display='none'" />`;
     } else {
@@ -4154,7 +4172,7 @@ function renderFMGrid() {
     }
     const badge = f.inUse ? '<span class="fm-badge">in use</span>' : '';
     const safePath = f.path.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    const previewStyle = (isThumb || isGallery) ? ' style="height:90px;padding:0;overflow:hidden;display:block"' : '';
+    const previewStyle = '';
     const isSelected = fmSelected.has(f.path);
     if (isSelected) tile.classList.add('selected');
     tile.innerHTML = `
@@ -4183,15 +4201,26 @@ function fmToggleSelect(path, checked) {
 function updateFMDeleteBtn() {
   const btn    = document.getElementById('fm-delete-selected');
   const optBtn = document.getElementById('fm-optimize-selected');
+  const selBtn = document.getElementById('fm-select-all');
   const n = fmSelected.size;
+  const filtered = fmGetFiltered();
+
   if (btn) {
     btn.style.display = n > 0 ? '' : 'none';
-    btn.textContent = n > 1 ? `Delete Selected (${n})` : 'Delete Selected';
+    btn.textContent = n > 1 ? `Delete (${n})` : 'Delete';
   }
   if (optBtn) {
-    const canOpt = n > 0 && (fmCurrentTab === 'thumbs' || fmCurrentTab === 'images');
-    optBtn.style.display = canOpt ? '' : 'none';
-    optBtn.textContent = n > 1 ? `Optimize Selected (${n})` : 'Optimize Selected';
+    // Show only if selected files include non-WebP, non-SVG images
+    const hasOptimizable = n > 0 && [...fmSelected].some(p => {
+      const e = p.split('.').pop().toLowerCase();
+      return !['webp', 'svg', 'gif'].includes(e);
+    });
+    optBtn.style.display = hasOptimizable ? '' : 'none';
+    optBtn.textContent = n > 1 ? `Optimize (${n})` : 'Optimize';
+  }
+  if (selBtn) {
+    const allSelected = filtered.length > 0 && filtered.every(f => fmSelected.has(f.path));
+    selBtn.textContent = allSelected ? 'Deselect All' : 'Select All';
   }
 }
 
