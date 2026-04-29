@@ -1101,7 +1101,7 @@
               <button class="field-clear-btn" type="button" onclick="clearField('site-og-input');updateOgPreview()" title="Clear">×</button>
             </div>
             <div id="og-drop-zone" class="thumb-drop-zone" style="margin-top:6px">
-              <div class="thumb-drop-hint">↓ Drop image here · re-encodes to JPEG automatically</div>
+              <div class="thumb-drop-hint">↓ Drop image here · re-encodes to JPEG · landscape 2:1 recommended (e.g. 1200×630)</div>
               <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px">
                 <label class="btn btn-ghost btn-sm" style="cursor:pointer">Browse local files…<input type="file" id="og-file-input" accept="image/*" class="file-input-hidden" onchange="handleFileInput(this,'og')" /></label>
                 <button class="btn btn-ghost btn-sm" type="button" onclick="toggleOgList()">Browse uploaded ↓</button>
@@ -1182,6 +1182,15 @@
               style="width:100%;accent-color:var(--accent)"
               oninput="updateThumbFilter(this.value);markDirty()" />
             <div class="field-hint" style="margin-top:4px">Desaturates and dims thumbnails at rest. 0 = natural, 100 = cinematic.</div>
+          </div>
+          <div class="field" style="margin-top:12px">
+            <label>Viewer Background</label>
+            <select id="site-viewer-bg" onchange="markDirty()" style="margin-top:6px;width:100%">
+              <option value="auto">Auto — match site theme</option>
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+            </select>
+            <div class="field-hint" style="margin-top:4px">Background color of the lightbox and gallery viewer. Auto follows the site theme.</div>
           </div>
         </div>
 
@@ -1643,8 +1652,11 @@
         <label class="btn btn-ghost btn-sm" style="cursor:pointer">Browse local files…<input type="file" id="thumb-file-input" accept="image/*" class="file-input-hidden" onchange="handleFileInput(this,'thumb')" /></label>
         <button class="btn btn-ghost btn-sm" type="button" onclick="toggleThumbList()">Browse uploaded ↓</button>
       </div>
-      <div class="field-hint" style="margin-top:4px">↑ or drop an image onto the preview above</div>
-      <div class="field-hint" style="margin-top:6px">Optimal: 800 × 450 px (16:9) or 800 × 600 px (4:3) · JPEG · under 300 KB</div>
+      <label style="display:flex;align-items:center;gap:6px;margin-top:8px;cursor:pointer;font-size:10px;color:var(--fg-dim);letter-spacing:0.1em;text-transform:uppercase">
+        <input type="checkbox" id="thumb-optimize" checked />
+        Optimize (WebP)
+      </label>
+      <div class="field-hint" style="margin-top:4px">Re-encodes to WebP and resizes to longest edge ≤ 1200 px on upload. Turn off to keep the original file.</div>
       <div class="thumb-file-list" id="thumb-file-list"></div>
     </div>
     <div class="field">
@@ -1810,6 +1822,7 @@
     <div class="fm-toolbar">
       <span class="fm-count" id="fm-count"></span>
       <div style="display:flex;align-items:center;gap:10px">
+        <button id="fm-optimize-selected" class="btn btn-ghost btn-sm" onclick="fmOptimizeSelected()" style="display:none;font-size:9px;padding:4px 10px">Optimize Selected</button>
         <button id="fm-delete-selected" class="btn btn-danger btn-sm" onclick="fmDeleteSelected()" style="display:none;font-size:9px;padding:4px 10px">Delete Selected</button>
         <button id="fm-select-all" class="btn btn-ghost btn-sm" onclick="fmSelectAll()" style="font-size:9px;padding:4px 10px">Select All</button>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:10px;color:var(--fg-dim);letter-spacing:0.1em;text-transform:uppercase">
@@ -4061,11 +4074,18 @@ function fmToggleSelect(path, checked) {
 }
 
 function updateFMDeleteBtn() {
-  const btn = document.getElementById('fm-delete-selected');
-  if (!btn) return;
+  const btn    = document.getElementById('fm-delete-selected');
+  const optBtn = document.getElementById('fm-optimize-selected');
   const n = fmSelected.size;
-  btn.style.display = n > 0 ? '' : 'none';
-  btn.textContent = n > 1 ? `Delete Selected (${n})` : 'Delete Selected';
+  if (btn) {
+    btn.style.display = n > 0 ? '' : 'none';
+    btn.textContent = n > 1 ? `Delete Selected (${n})` : 'Delete Selected';
+  }
+  if (optBtn) {
+    const canOpt = n > 0 && (fmCurrentTab === 'thumbs' || fmCurrentTab === 'images');
+    optBtn.style.display = canOpt ? '' : 'none';
+    optBtn.textContent = n > 1 ? `Optimize Selected (${n})` : 'Optimize Selected';
+  }
 }
 
 async function fmDeleteSelected() {
@@ -4100,6 +4120,76 @@ async function fmDeleteSelected() {
   renderFMGrid();
   if (failed) showToast(`${paths.length - failed} deleted, ${failed} failed`, 'error');
   else showToast(`${paths.length} file${paths.length > 1 ? 's' : ''} deleted`, 'success');
+}
+
+async function fmOptimizeSelected() {
+  const mimeMap = { jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', gif:'image/gif', bmp:'image/bmp', tiff:'image/tiff' };
+  const maxDim  = fmCurrentTab === 'thumbs' ? 1200 : 2500;
+  const paths   = [...fmSelected].filter(p => { const e = p.split('.').pop().toLowerCase(); return e !== 'webp' && e !== 'svg'; });
+  if (!paths.length) { showToast('Nothing to optimize — selected files are already WebP or SVG.', ''); return; }
+  if (!confirm(`Optimize ${paths.length} file${paths.length > 1 ? 's' : ''} to WebP?\nOriginals will be replaced.`)) return;
+
+  const o = localStorage.getItem(K_OWNER);
+  const r = localStorage.getItem(K_REPO);
+  const b = localStorage.getItem(K_BRANCH);
+  let done = 0, failed = 0;
+
+  for (const path of paths) {
+    const f = fmFiles[fmCurrentTab].find(x => x.path === path);
+    if (!f) continue;
+    try {
+      // Fetch file content from GitHub
+      const res = await fetch(`https://api.github.com/repos/${o}/${r}/contents/${path}?ref=${b}&t=${Date.now()}`, { headers: ghHeaders() });
+      if (!res.ok) throw new Error('Fetch failed');
+      const data = await res.json();
+      const oldSha = data.sha;
+      const b64Content = data.content.replace(/\n/g, '');
+
+      // Decode to File object
+      const bytes = atob(b64Content);
+      const ab = new ArrayBuffer(bytes.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < bytes.length; i++) ia[i] = bytes.charCodeAt(i);
+      const ext  = f.name.split('.').pop().toLowerCase();
+      const mime = mimeMap[ext] || 'image/jpeg';
+      const fileObj = new File([ab], f.name, { type: mime });
+
+      // Re-encode to WebP
+      const { base64: webpB64 } = await compressImage(fileObj, maxDim, 0.85);
+
+      // New path
+      const newName = f.name.replace(/\.[^.]+$/, '') + '.webp';
+      const folder  = path.substring(0, path.lastIndexOf('/'));
+      const newPath = folder + '/' + newName;
+
+      // Upload WebP
+      const putRes = await fetch(`https://api.github.com/repos/${o}/${r}/contents/${newPath}`, {
+        method: 'PUT', headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: `Optimize ${f.name} → ${newName}`, content: webpB64, branch: b })
+      });
+      if (!putRes.ok) throw new Error('Upload failed');
+
+      // Delete old file
+      await fetch(`https://api.github.com/repos/${o}/${r}/contents/${path}`, {
+        method: 'DELETE', headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: `Remove ${f.name} after optimize`, sha: oldSha, branch: b })
+      });
+
+      // Update in-memory references
+      fmUpdateRefs(path, newPath);
+      done++;
+    } catch(e) { console.error('Optimize failed:', path, e); failed++; }
+  }
+
+  fmSelected.clear();
+  updateFMDeleteBtn();
+  fmLoaded[fmCurrentTab] = false;
+  await loadFMTab(fmCurrentTab);
+  const parts = [];
+  if (done)   parts.push(`${done} optimized`);
+  if (failed) parts.push(`${failed} failed`);
+  showToast(parts.join(' · '), failed && !done ? 'error' : 'success');
+  if (done > 0) await saveToGitHub();
 }
 
 function startFMRename(path) {
@@ -4858,6 +4948,7 @@ function flushSettingsForms() {
   siteConfig.themeMode      = document.getElementById('site-theme-mode')?.value || 'auto';
   siteConfig.allowThemeToggle = document.getElementById('site-allow-theme-toggle')?.checked || false;
   siteConfig.filmGrain      = parseFloat(document.getElementById('site-film-grain')?.value || 14) / 500;
+  siteConfig.viewerBg       = document.getElementById('site-viewer-bg')?.value || 'auto';
   siteConfig.thumbnailFilter = parseInt(document.getElementById('site-thumb-filter')?.value || 0);
 
   updateNavBrand();
@@ -5277,6 +5368,7 @@ function populateGeneralSettings() {
   document.getElementById('site-theme-mode').value = themeMode;
   document.getElementById('site-allow-theme-toggle').checked = !!siteConfig.allowThemeToggle;
   applyAdminTheme(themeMode);
+  document.getElementById('site-viewer-bg').value = siteConfig.viewerBg || 'auto';
   // Version
   const versionEl = document.getElementById('admin-version-display');
   if (versionEl) versionEl.textContent = ADMIN_VERSION;
@@ -5590,9 +5682,27 @@ async function uploadToGitHub(file, filePath) {
 }
 
 async function uploadThumbFile(file) {
-  const safeName = sanitizeName(file.name);
-  const blobUrl = URL.createObjectURL(file);
-  const ok = await uploadToGitHub(file, 'thumbs/' + safeName);
+  const optimize = document.getElementById('thumb-optimize')?.checked !== false;
+  let fileToUpload = file;
+  let safeName = sanitizeName(file.name);
+
+  if (optimize) {
+    try {
+      const { base64 } = await compressImage(file, 1200, 0.85);
+      const baseName = safeName.replace(/\.[^.]+$/, '') + '.webp';
+      const bytes = atob(base64);
+      const ab = new ArrayBuffer(bytes.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < bytes.length; i++) ia[i] = bytes.charCodeAt(i);
+      fileToUpload = new File([ab], baseName, { type: 'image/webp' });
+      safeName = baseName;
+    } catch(e) {
+      showToast('Optimize failed — uploading original.', 'warn');
+    }
+  }
+
+  const blobUrl = URL.createObjectURL(fileToUpload);
+  const ok = await uploadToGitHub(fileToUpload, 'thumbs/' + safeName);
   if (!ok) { URL.revokeObjectURL(blobUrl); return; }
   const newPath = 'thumbs/' + safeName;
   if (!thumbFiles.includes(newPath)) thumbFiles.unshift(newPath);
@@ -5758,7 +5868,9 @@ async function reencodeOgImage(file) {
       markDirty();
       const origKB  = Math.round(file.size / 1024);
       const newKB   = Math.round(blob.size / 1024);
-      showToast(`Uploaded as JPEG — ${origKB} KB → ${newKB} KB (${w}×${h})`, 'success');
+      const ratio   = w / h;
+      const ratioWarn = ratio < 1.5 ? ' · ⚠️ portrait or square image — social previews work best at 2:1 landscape (e.g. 1200×630)' : '';
+      showToast(`Uploaded as JPEG — ${origKB} KB → ${newKB} KB (${w}×${h})${ratioWarn}`, ratio < 1.5 ? 'warn' : 'success');
     }, 'image/jpeg', OG_QUALITY);
   };
   img.onerror = () => { URL.revokeObjectURL(blobUrl); showToast('Could not load image.', 'error'); };
