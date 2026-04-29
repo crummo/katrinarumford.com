@@ -1041,9 +1041,7 @@
         <button class="settings-tab-btn active" onclick="switchSettingsTab('general')">General</button>
         <button class="settings-tab-btn" onclick="switchSettingsTab('sections')">Categories</button>
         <button class="settings-tab-btn" onclick="switchSettingsTab('about')">About</button>
-        <button class="settings-tab-btn" onclick="switchSettingsTab('contact')">Contact</button>
-        <button class="settings-tab-btn" onclick="switchSettingsTab('splash')">Splash</button>
-        <button class="settings-tab-btn" onclick="switchSettingsTab('404')">404</button>
+        <button class="settings-tab-btn" onclick="switchSettingsTab('advanced')">Advanced</button>
       </div>
 
       <!-- ── GENERAL TAB ── -->
@@ -1065,72 +1063,10 @@
               <button class="field-clear-btn" type="button" onclick="clearField('site-title-input')" title="Clear">×</button>
             </div>
           </div>
-          <div style="margin-bottom:20px">
-          <button class="add-link" id="sharing-toggle" data-closed="+ SEO &amp; Sharing" data-open="− SEO &amp; Sharing" onclick="toggleDisclosure('sharing')">+ SEO &amp; Sharing</button>
-          <div id="sharing-body" style="display:none;margin-top:12px">
-          <div class="field">
-            <label>Favicon <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(optional)</span></label>
-            <div class="field-clearable">
-              <input type="text" id="site-favicon-input" placeholder="favicon.png or https://…" oninput="updateFaviconPreview();markDirty()" />
-              <button class="field-clear-btn" type="button" onclick="clearField('site-favicon-input');updateFaviconPreview()" title="Clear">×</button>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
-              <div id="favicon-drop-zone" class="thumb-drop-zone" style="flex:1;margin-top:0">
-                <div class="thumb-drop-hint">↓ Drop .ico / .png / .svg here to upload to repo root</div>
-                <label class="btn btn-ghost btn-sm" style="cursor:pointer">Browse local files…<input type="file" id="favicon-file-input" accept="image/*,.ico,.svg" class="file-input-hidden" onchange="handleFileInput(this,'favicon')" /></label>
-              </div>
-              <div id="favicon-preview-wrap" style="display:none;flex-direction:column;gap:6px;flex-shrink:0">
-              <div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-dim)">Tab preview</div>
-              <div style="display:flex;gap:8px;align-items:flex-end">
-                <!-- Light mode tab -->
-                <div style="background:#e8e8e8;border-radius:6px 6px 0 0;padding:5px 10px 4px;display:flex;align-items:center;gap:5px;font-size:11px;color:#444;border:1px solid #ccc;border-bottom:2px solid #e8e8e8;width:140px;box-sizing:border-box">
-                  <img id="favicon-preview" alt="" style="width:16px;height:16px;object-fit:contain;flex-shrink:0" />
-                  <span id="favicon-preview-label" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Preview</span>
-                </div>
-                <!-- Dark mode tab -->
-                <div style="background:#2a2a2a;border-radius:6px 6px 0 0;padding:5px 10px 4px;display:flex;align-items:center;gap:5px;font-size:11px;color:#ccc;border:1px solid #444;border-bottom:2px solid #2a2a2a;width:140px;box-sizing:border-box">
-                  <img id="favicon-preview-dark" alt="" style="width:16px;height:16px;object-fit:contain;flex-shrink:0;background:white;border-radius:2px" />
-                  <span id="favicon-preview-label-dark" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Preview</span>
-                </div>
-              </div>
-            </div>
-            </div>
-            <div class="field-hint">Leave blank to use the built-in default. Recommended: 32×32 px PNG/ICO or any size SVG · under 100 KB.</div>
-            <div class="field-hint" style="margin-top:3px">Browsers cache favicons aggressively — after uploading a new one, you may need to hard-refresh (⌘⇧R on Mac, Ctrl+Shift+R on Windows) to see the update in the tab.</div>
-          </div>
-          <div class="field">
-            <label>Social Preview Image <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(shown when sharing your link)</span></label>
-            <div class="field-clearable">
-              <input type="text" id="site-og-input" placeholder="filename.jpg or https://…" oninput="updateOgPreview();markDirty()" />
-              <button class="field-clear-btn" type="button" onclick="clearField('site-og-input');updateOgPreview()" title="Clear">×</button>
-            </div>
-            <div id="og-drop-zone" class="thumb-drop-zone" style="margin-top:6px">
-              <div class="thumb-drop-hint">↓ Drop image here · re-encodes to JPEG · landscape 2:1 recommended (e.g. 1200×630)</div>
-              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px">
-                <label class="btn btn-ghost btn-sm" style="cursor:pointer">Browse local files…<input type="file" id="og-file-input" accept="image/*" class="file-input-hidden" onchange="handleFileInput(this,'og')" /></label>
-                <button class="btn btn-ghost btn-sm" type="button" onclick="toggleOgList()">Browse uploaded ↓</button>
-              </div>
-            </div>
-            <div class="thumb-file-list" id="og-file-list"></div>
-            <img id="og-preview" alt="social preview" style="margin-top:8px;display:none;max-width:100%;height:auto;border-radius:2px;border:1px solid var(--fg-dimmer)" />
-            <div class="field-hint">Recommended: 1200×630px · saved to <code style="color:var(--accent)">/images/</code> · set your site URL below for correct preview links</div>
-          </div>
-          <div class="field">
-            <label>Site URL <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(optional — used for social preview links)</span></label>
-            <div class="field-clearable">
-              <input type="url" id="site-website-input" placeholder="https://yoursite.com" oninput="markDirty()" />
-              <button class="field-clear-btn" type="button" onclick="clearField('site-website-input')" title="Clear">×</button>
-            </div>
-          </div>
-          <div class="field">
-            <label>Meta Description <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(shown in search results and social previews)</span></label>
-            <textarea id="site-meta-desc" rows="3" maxlength="160" placeholder="Brief description of your work — 120–160 characters recommended" oninput="markDirty();updateMetaDescCounter()"></textarea>
-            <div style="display:flex;justify-content:flex-end;margin-top:3px">
-              <span id="site-meta-desc-counter" style="font-size:9px;color:var(--fg-dim)">0 / 160</span>
-            </div>
-          </div>
-          </div><!-- /sharing-body -->
-          </div><!-- /sharing disclosure -->
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">Appearance</div>
           <div class="field">
             <label>Accent Color</label>
             <div style="display:flex;align-items:center;gap:10px">
@@ -1140,20 +1076,6 @@
             </div>
             <div class="field-hint" style="margin-top:4px">Used for highlights, active nav links, and client labels across the site</div>
           </div>
-          <div class="field">
-            <label>Analytics</label>
-            <div style="display:flex;gap:8px;margin-bottom:8px">
-              <select id="site-analytics-provider" onchange="updateAnalyticsFields();markDirty()" style="flex:none;width:160px">
-                <option value="">None</option>
-                <option value="ga4">Google Analytics 4</option>
-                <option value="plausible">Plausible</option>
-              </select>
-            </div>
-            <div id="analytics-id-field" style="display:none">
-              <input type="text" id="site-analytics-id" placeholder="" oninput="markDirty()" />
-              <div class="field-hint" id="analytics-id-hint" style="margin-top:4px"></div>
-            </div>
-          </div>
           <div class="field" style="margin-top:12px">
             <label>Nav Position</label>
             <select id="site-nav-style" onchange="markDirty()" style="margin-top:6px;width:100%">
@@ -1162,7 +1084,7 @@
             </select>
           </div>
           <div class="field" style="margin-top:12px">
-            <label>Site theme</label>
+            <label>Site Theme</label>
             <select id="site-theme-mode" onchange="markDirty();applyAdminTheme(this.value)" style="margin-top:6px;width:100%">
               <option value="auto">Auto — follow visitor's OS</option>
               <option value="light">Light</option>
@@ -1196,14 +1118,6 @@
             </select>
             <div class="field-hint" style="margin-top:4px">Background color of the lightbox and gallery viewer. Auto follows the site theme.</div>
           </div>
-        </div>
-
-        <div class="settings-section">
-          <div class="settings-section-title" style="display:flex;align-items:center;justify-content:space-between">
-            File Management
-            <button class="btn btn-ghost btn-sm" onclick="switchTab('files')">📁 Files tab →</button>
-          </div>
-          <p class="about-hint">Browse, upload, optimize, rename, and delete files in your <code style="color:var(--accent)">/images/logos/</code>, <code style="color:var(--accent)">/thumbs/</code>, and <code style="color:var(--accent)">/images/</code> folders.</p>
         </div>
 
       </div>
@@ -1436,27 +1350,9 @@
         </div>
       </div>
 
-      <!-- ── 404 TAB ── -->
-      <div class="settings-tab-pane" id="stab-404">
-        <div class="settings-section">
-          <div class="settings-section-title">404 Page</div>
-          <div class="field">
-            <label>Heading</label>
-            <input type="text" id="nf-heading" placeholder="This cut didn't make the final edit." />
-          </div>
-          <div class="field">
-            <label>Subtext</label>
-            <textarea id="nf-sub" rows="2" placeholder="The page you're looking for has been moved, renamed, or was left on the cutting room floor." style="resize:vertical"></textarea>
-          </div>
-          <div class="field">
-            <label>Back-link label</label>
-            <input type="text" id="nf-back" placeholder="Back to the reel" />
-          </div>
-        </div>
-      </div>
+      <!-- ── ADVANCED TAB ── -->
+      <div class="settings-tab-pane" id="stab-advanced">
 
-      <!-- ── CONTACT TAB ── -->
-      <div class="settings-tab-pane" id="stab-contact">
         <div class="settings-section">
           <div class="settings-section-title">Contact</div>
           <div class="field">
@@ -1491,10 +1387,7 @@
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- ── SPLASH TAB ── -->
-      <div class="settings-tab-pane" id="stab-splash">
         <div class="settings-section">
           <div class="settings-section-title" style="display:flex;align-items:center;justify-content:space-between">
             Splash Screen
@@ -1528,6 +1421,103 @@
             </div>
           </div>
         </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">SEO &amp; Sharing</div>
+          <div class="field">
+            <label>Favicon <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(optional)</span></label>
+            <div class="field-clearable">
+              <input type="text" id="site-favicon-input" placeholder="favicon.png or https://…" oninput="updateFaviconPreview();markDirty()" />
+              <button class="field-clear-btn" type="button" onclick="clearField('site-favicon-input');updateFaviconPreview()" title="Clear">×</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+              <div id="favicon-drop-zone" class="thumb-drop-zone" style="flex:1;margin-top:0">
+                <div class="thumb-drop-hint">↓ Drop .ico / .png / .svg here to upload to repo root</div>
+                <label class="btn btn-ghost btn-sm" style="cursor:pointer">Browse local files…<input type="file" id="favicon-file-input" accept="image/*,.ico,.svg" class="file-input-hidden" onchange="handleFileInput(this,'favicon')" /></label>
+              </div>
+              <div id="favicon-preview-wrap" style="display:none;flex-direction:column;gap:6px;flex-shrink:0">
+              <div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-dim)">Tab preview</div>
+              <div style="display:flex;gap:8px;align-items:flex-end">
+                <div style="background:#e8e8e8;border-radius:6px 6px 0 0;padding:5px 10px 4px;display:flex;align-items:center;gap:5px;font-size:11px;color:#444;border:1px solid #ccc;border-bottom:2px solid #e8e8e8;width:140px;box-sizing:border-box">
+                  <img id="favicon-preview" alt="" style="width:16px;height:16px;object-fit:contain;flex-shrink:0" />
+                  <span id="favicon-preview-label" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Preview</span>
+                </div>
+                <div style="background:#2a2a2a;border-radius:6px 6px 0 0;padding:5px 10px 4px;display:flex;align-items:center;gap:5px;font-size:11px;color:#ccc;border:1px solid #444;border-bottom:2px solid #2a2a2a;width:140px;box-sizing:border-box">
+                  <img id="favicon-preview-dark" alt="" style="width:16px;height:16px;object-fit:contain;flex-shrink:0;background:white;border-radius:2px" />
+                  <span id="favicon-preview-label-dark" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Preview</span>
+                </div>
+              </div>
+            </div>
+            </div>
+            <div class="field-hint">Leave blank to use the built-in default. Recommended: 32×32 px PNG/ICO or any size SVG · under 100 KB.</div>
+            <div class="field-hint" style="margin-top:3px">Browsers cache favicons aggressively — after uploading a new one, you may need to hard-refresh (⌘⇧R on Mac, Ctrl+Shift+R on Windows) to see the update in the tab.</div>
+          </div>
+          <div class="field">
+            <label>Social Preview Image <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(shown when sharing your link)</span></label>
+            <div class="field-clearable">
+              <input type="text" id="site-og-input" placeholder="filename.jpg or https://…" oninput="updateOgPreview();markDirty()" />
+              <button class="field-clear-btn" type="button" onclick="clearField('site-og-input');updateOgPreview()" title="Clear">×</button>
+            </div>
+            <div id="og-drop-zone" class="thumb-drop-zone" style="margin-top:6px">
+              <div class="thumb-drop-hint">↓ Drop image here · re-encodes to JPEG · landscape 2:1 recommended (e.g. 1200×630)</div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px">
+                <label class="btn btn-ghost btn-sm" style="cursor:pointer">Browse local files…<input type="file" id="og-file-input" accept="image/*" class="file-input-hidden" onchange="handleFileInput(this,'og')" /></label>
+                <button class="btn btn-ghost btn-sm" type="button" onclick="toggleOgList()">Browse uploaded ↓</button>
+              </div>
+            </div>
+            <div class="thumb-file-list" id="og-file-list"></div>
+            <img id="og-preview" alt="social preview" style="margin-top:8px;display:none;max-width:100%;height:auto;border-radius:2px;border:1px solid var(--fg-dimmer)" />
+            <div class="field-hint">Recommended: 1200×630px · saved to <code style="color:var(--accent)">/images/</code> · set your site URL below for correct preview links</div>
+          </div>
+          <div class="field">
+            <label>Site URL <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(optional — used for social preview links)</span></label>
+            <div class="field-clearable">
+              <input type="url" id="site-website-input" placeholder="https://yoursite.com" oninput="markDirty()" />
+              <button class="field-clear-btn" type="button" onclick="clearField('site-website-input')" title="Clear">×</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Meta Description <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(shown in search results and social previews)</span></label>
+            <textarea id="site-meta-desc" rows="3" maxlength="160" placeholder="Brief description of your work — 120–160 characters recommended" oninput="markDirty();updateMetaDescCounter()"></textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:3px">
+              <span id="site-meta-desc-counter" style="font-size:9px;color:var(--fg-dim)">0 / 160</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">Analytics</div>
+          <div class="field">
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+              <select id="site-analytics-provider" onchange="updateAnalyticsFields();markDirty()" style="flex:none;width:160px">
+                <option value="">None</option>
+                <option value="ga4">Google Analytics 4</option>
+                <option value="plausible">Plausible</option>
+              </select>
+            </div>
+            <div id="analytics-id-field" style="display:none">
+              <input type="text" id="site-analytics-id" placeholder="" oninput="markDirty()" />
+              <div class="field-hint" id="analytics-id-hint" style="margin-top:4px"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">404 Page</div>
+          <div class="field">
+            <label>Heading</label>
+            <input type="text" id="nf-heading" placeholder="Wrong fitting room." />
+          </div>
+          <div class="field">
+            <label>Subtext</label>
+            <textarea id="nf-sub" rows="2" placeholder="This page doesn't exist — but the rest of the collection does." style="resize:vertical"></textarea>
+          </div>
+          <div class="field">
+            <label>Back-link label</label>
+            <input type="text" id="nf-back" placeholder="Return to the portfolio" />
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -5800,6 +5790,9 @@ async function patchIndexOgTags() {
 }
 
 function switchSettingsTab(tab) {
+  // Map removed tabs to their new home
+  const tabMap = { contact: 'advanced', splash: 'advanced', '404': 'advanced' };
+  tab = tabMap[tab] || tab;
   document.querySelectorAll('#pane-site .settings-tab-btn').forEach(btn => {
     btn.classList.toggle('active', btn.textContent.trim().toLowerCase() === tab);
   });
