@@ -41,6 +41,13 @@
       "published": false,
       "layout": "masonry",
       "type": "gallery"
+    },
+    {
+      "id": "test2342",
+      "label": "test2342",
+      "published": false,
+      "layout": "masonry",
+      "type": "lightbox"
     }
   ],
   "about": {
