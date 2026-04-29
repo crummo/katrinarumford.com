@@ -533,18 +533,28 @@
     }
 
     @media (max-width: 767px) and (orientation: landscape) {
-      /* Gallery viewer: controls overlay image so media fills full viewport height */
+      /* Hide nav bar when viewer is open — reclaim the vertical space */
+      body.gv-open nav { display: none !important; }
+      body.gv-open .gv { top: 0 !important; }
+
+      /* Gallery viewer: media fills the full viewport height */
       #gallery-viewer { position: fixed; }
       .gv-media { flex: 1; min-height: 0; height: 100%; }
+
+      /* Side arrows: show at left/right edges instead of bottom Prev/Next buttons */
+      .gv-arrow { display: flex !important; opacity: 1; }
+      .gv-arrow::before { opacity: 0.45; }
+      #gv-ctrl-prev, #gv-ctrl-next { display: none !important; }
+
+      /* Controls: just Back + counter, overlaid at bottom with gradient */
       .gv-controls {
         position: absolute; bottom: 0; left: 0; right: 0;
         border-top: none;
-        padding: 24px 16px 8px;
+        padding: 20px 16px 8px;
         background: linear-gradient(transparent, var(--gv-bg, var(--bg)));
         z-index: 11;
       }
       .gv-back-btn { padding: 2px 0; }
-      .gv-ctrl-btn { padding: 5px 12px; }
     }
 
     @media (max-width: 400px) {

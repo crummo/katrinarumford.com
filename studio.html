@@ -1483,6 +1483,13 @@
               <span id="site-meta-desc-counter" style="font-size:9px;color:var(--fg-dim)">0 / 160</span>
             </div>
           </div>
+          <div class="field">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:12px">
+              <input type="checkbox" id="site-allow-indexing" onchange="markDirty()" style="margin:0" />
+              Allow search engines to index this site
+            </label>
+            <div class="field-hint">When unchecked, a <code style="color:var(--accent)">robots.txt</code> is saved to your repo that asks search engines not to crawl your site. The admin page is always excluded regardless of this setting.</div>
+          </div>
         </div>
 
         <div class="settings-section">
@@ -5089,6 +5096,46 @@ function toggleThumbList() {
 
 
 // ─── GITHUB SAVE ─────────────────────────────────────────────────────────────
+async function putRawFile(filename, textContent) {
+  const o = localStorage.getItem(K_OWNER);
+  const r = localStorage.getItem(K_REPO);
+  const b = localStorage.getItem(K_BRANCH);
+  const apiUrl = `https://api.github.com/repos/${o}/${r}/contents/${filename}`;
+
+  let fileSha = null;
+  const getRes = await fetch(apiUrl + `?ref=${b}&t=${Date.now()}`, { headers: ghHeaders() });
+  if (getRes.ok) fileSha = (await getRes.json()).sha;
+
+  const encoded = btoa(unescape(encodeURIComponent(textContent)));
+  const ts = new Date().toISOString().slice(0,16).replace('T',' ');
+  const body = {
+    message: `Update ${filename} via admin — ${ts} UTC`,
+    content: encoded,
+    branch:  b,
+    ...(fileSha ? { sha: fileSha } : {})
+  };
+
+  const putRes = await fetch(apiUrl, {
+    method: 'PUT',
+    headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+
+  if (!putRes.ok) {
+    const err = await putRes.json().catch(() => ({}));
+    throw new Error(err.message || `HTTP ${putRes.status} on ${filename}`);
+  }
+  return await putRes.json();
+}
+
+async function putRobotsFile() {
+  const allow = siteConfig.allowIndexing !== false;
+  const robots = allow
+    ? `User-agent: *\nAllow: /\nDisallow: /studio.html\n`
+    : `User-agent: *\nDisallow: /\n`;
+  await putRawFile('robots.txt', robots);
+}
+
 async function putGhFile(filename, content) {
   const o = localStorage.getItem(K_OWNER);
   const r = localStorage.getItem(K_REPO);
@@ -5130,6 +5177,7 @@ function flushSettingsForms() {
   siteConfig.ownerTitle = document.getElementById('site-title-input').value.trim();
   siteConfig.favicon         = document.getElementById('site-favicon-input').value.trim();
   siteConfig.metaDescription = document.getElementById('site-meta-desc').value.trim() || undefined;
+  siteConfig.allowIndexing = document.getElementById('site-allow-indexing').checked;
   const ogRaw = document.getElementById('site-og-input').value.trim();
   siteConfig.ogImage = ogRaw && !ogRaw.startsWith('http') && !ogRaw.startsWith('images/') && !ogRaw.startsWith('thumbs/') ? 'images/' + ogRaw : ogRaw;
 
@@ -5238,6 +5286,7 @@ async function saveToGitHub() {
     projectsSha = projResult.fileSha;
     const siteResult = await putGhFile('site.json', siteConfig);
     siteSha = siteResult.fileSha;
+    await putRobotsFile();
     clearDirty();
     setStatus('Saved ✓', 'saved');
     // showToast('Saved!', 'success');
@@ -5599,6 +5648,7 @@ function populateGeneralSettings() {
   document.getElementById('site-og-input').value      = siteConfig.ogImage    || '';
   document.getElementById('site-website-input').value = siteConfig.website || (siteConfig.about && siteConfig.about.website) || '';
   document.getElementById('site-meta-desc').value     = siteConfig.metaDescription || '';
+  document.getElementById('site-allow-indexing').checked = siteConfig.allowIndexing !== false;
   updateMetaDescCounter();
   // Accent color
   const accent = siteConfig.accentColor || DEFAULT_ACCENT;
