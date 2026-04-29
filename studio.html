@@ -1039,7 +1039,7 @@
       <!-- Sub-tabs -->
       <div class="settings-tabs">
         <button class="settings-tab-btn active" onclick="switchSettingsTab('general')">General</button>
-        <button class="settings-tab-btn" onclick="switchSettingsTab('sections')">Categories</button>
+        <button class="settings-tab-btn" onclick="switchSettingsTab('categories')">Categories</button>
         <button class="settings-tab-btn" onclick="switchSettingsTab('about')">About</button>
         <button class="settings-tab-btn" onclick="switchSettingsTab('advanced')">Advanced</button>
       </div>
@@ -1123,7 +1123,7 @@
       </div>
 
       <!-- ── SECTIONS TAB ── -->
-      <div class="settings-tab-pane" id="stab-sections">
+      <div class="settings-tab-pane" id="stab-categories">
         <div class="settings-section">
           <div class="settings-section-title">Categories</div>
           <p class="about-hint">
@@ -1940,7 +1940,7 @@
         <input id="share-modal-url" type="text" readonly style="flex:1;cursor:default;color:var(--fg-mid);font-size:12px" />
         <button type="button" class="btn btn-ghost btn-sm" id="share-modal-copy-btn" onclick="shareModalCopy()" style="flex-shrink:0">Copy</button>
       </div>
-      <div class="field-hint" style="margin-top:5px">Allow 1–2 minutes for GitHub to publish the link before sharing.</div>
+      <div class="field-hint" style="margin-top:5px">Allow 2–3 min for GitHub to publish.</div>
     </div>
 
     <!-- Password row -->
@@ -2270,12 +2270,11 @@ async function reloadFromGitHub() {
   // Remember where we are
   const savedTab = currentTab;
   const activePane = document.querySelector('#pane-site .settings-tab-pane.active');
-  const savedSettingsTab = activePane ? activePane.id.replace('stab-', '') : 'general';
   clearDirty();
   await loadAll();
   // Restore position
   if (savedTab) switchTab(savedTab);
-  switchSettingsTab(savedSettingsTab);
+  switchSettingsTab('general');
   showToast('Reverted to last saved.', 'success');
 }
 
@@ -2321,9 +2320,8 @@ function buildAdminUI(restoreTab = false) {
     const saved = localStorage.getItem(K_TAB);
     const valid = [...siteConfig.categories.map(c => c.id), 'site'];
     const tab   = saved && valid.includes(saved) ? saved : (siteConfig.categories[0]?.id || 'site');
-    const stab  = localStorage.getItem(K_STAB) || 'general';
     switchTab(tab);
-    if (tab === 'site') switchSettingsTab(stab);
+    if (tab === 'site') switchSettingsTab('general');
   } else {
     // Fresh login — first category
     switchTab(siteConfig.categories[0]?.id || 'site');
@@ -3423,7 +3421,7 @@ function deleteCategoryFromModal() {
       renderAll();
       renderCategoryList();
       switchTabDirect('site');
-      switchSettingsTab('sections');
+      switchSettingsTab('categories');
       showToast('Section deleted.', 'success');
       saveToGitHub();
     }
@@ -4591,8 +4589,8 @@ async function openShareModal(idx) {
   document.getElementById('share-modal-reveal').textContent = 'Show';
   document.getElementById('share-modal-pass-status').textContent = hasPass ? '— protected' : '';
   document.getElementById('share-modal-pass-hint').textContent = hasPass
-    ? 'Link is password-protected. Visitors will be prompted when opening.'
-    : 'Optional. Adding a password requires visitors to enter it before viewing.';
+    ? 'Visitors will be prompted on open.'
+    : 'Optional. Visitors must enter it before viewing.';
 
   document.getElementById('modal-share').classList.remove('hidden');
   setTimeout(() => passInput.focus(), 50);
@@ -4653,7 +4651,7 @@ async function shareModalSave() {
   if (pw) {
     p.sharePass = await hashStr(pw);
     try { await saveToGitHub(); } catch(e) { showToast('Save failed.', 'error'); return; }
-    showToast('Password saved — allow 1–2 min for GitHub to publish.', 'success');
+    showToast('Password saved — allow 2–3 min for GitHub to publish.', 'success');
   } else if (!pw && !hadPass) {
     // No change needed — just copy and close
   }
@@ -5797,7 +5795,7 @@ async function patchIndexOgTags() {
 
 function switchSettingsTab(tab) {
   // Map removed tabs to their new home
-  const tabMap = { contact: 'advanced', splash: 'advanced', '404': 'advanced' };
+  const tabMap = { sections: 'categories', contact: 'advanced', splash: 'advanced', '404': 'advanced' };
   tab = tabMap[tab] || tab;
   document.querySelectorAll('#pane-site .settings-tab-btn').forEach(btn => {
     btn.classList.toggle('active', btn.textContent.trim().toLowerCase() === tab);
@@ -5805,8 +5803,8 @@ function switchSettingsTab(tab) {
   document.querySelectorAll('#pane-site .settings-tab-pane').forEach(pane => {
     pane.classList.toggle('active', pane.id === 'stab-' + tab);
   });
-  localStorage.setItem(K_STAB, tab);
 }
+
 
 function updateNavBrand() {
   const name = siteConfig.ownerName;
