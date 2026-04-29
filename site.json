@@ -41,6 +41,13 @@
       "published": true,
       "layout": "masonry",
       "type": "gallery"
+    },
+    {
+      "id": "sda",
+      "label": "sda",
+      "published": false,
+      "layout": "masonry",
+      "type": "lightbox"
     }
   ],
   "about": {
