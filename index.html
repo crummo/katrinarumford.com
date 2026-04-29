@@ -533,12 +533,25 @@
     }
 
     @media (max-height: 600px) and (orientation: landscape) {
-      /* Hide nav bar when viewer is open — reclaim the full viewport */
-      body.gv-open nav { display: none !important; }
-      body.gv-open .gv { top: 0 !important; left: 0 !important; }
+      /* Compact nav — vertical real estate is precious in landscape */
+      :root { --nav-h: 40px; }
+      nav { padding: 0 16px; }
+      .nav-brand-name { font-size: 14px; }
+      .nav-drawer.open { padding: 6px 16px 10px; }
+      .nav-drawer a { padding: 8px 0 8px 10px; font-size: 10px; }
+      body.nav-left .nav-drawer.open { padding: 6px 16px 10px; }
+
+      /* Viewer covers the full viewport — sits above the nav (z-index 200) */
+      .gv.open {
+        z-index: 300 !important;
+        top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+      }
+
+      /* Grid: show masonry instead of the full-width mobile list */
+      .gallery-grid { display: block !important; }
+      .mobile-list { display: none !important; }
 
       /* Gallery viewer: media fills the full viewport */
-      #gallery-viewer { position: fixed; }
       .gv-media { flex: 1; min-height: 0; height: 100%; padding: 0; }
       .gv-back-btn { display: block; width: 100%; text-align: left; padding: 2px 0; }
 
