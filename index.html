@@ -330,7 +330,8 @@
 
     .gv-arrow { position: absolute; top: 0; bottom: 0; width: 56px; background: none; border: none; cursor: pointer; z-index: 10;
       display: flex; align-items: center; justify-content: center;
-      opacity: 0; transition: opacity 0.35s var(--ease); }
+      opacity: 0; transition: opacity 0.35s var(--ease); -webkit-tap-highlight-color: transparent; }
+    #gv-curtain { position: absolute; inset: 0; background: #0e0c0b; opacity: 0; pointer-events: none; z-index: 12; }
     .gv-media:hover .gv-arrow { opacity: 1; }
     .gv-arrow:disabled { opacity: 0 !important; cursor: default; }
     .gv-arrow::before { content: ''; display: block; width: 13px; height: 13px;
@@ -582,6 +583,7 @@
       <iframe id="gv-iframe" class="gv-iframe" src="" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="display:none"></iframe>
       <button class="gv-arrow gv-arrow-prev" id="gv-prev" onclick="galleryNav(-1)" aria-label="Previous" disabled></button>
       <button class="gv-arrow gv-arrow-next" id="gv-next" onclick="galleryNav(1)"  aria-label="Next"></button>
+      <div id="gv-curtain"></div>
     </div>
     <div class="gv-controls">
       <button class="gv-back-btn" onclick="closeGallery()">← Back</button>
@@ -1405,16 +1407,14 @@
     function galleryNav(dir) {
       const newIdx = Math.max(0, Math.min(gvItems.length - 1, gvIdx + dir));
       if (newIdx === gvIdx) return; // at boundary
-      const media = document.getElementById('gv-media');
-      media.style.transition = 'opacity 0.12s ease';
-      media.style.opacity = '0';
+      const curtain = document.getElementById('gv-curtain');
+      curtain.style.transition = 'opacity 0.12s ease';
+      curtain.style.opacity = '1';
       setTimeout(() => {
         gvIdx = newIdx;
         renderGallery();
-        requestAnimationFrame(() => requestAnimationFrame(() => {
-          media.style.transition = 'opacity 0.2s ease';
-          media.style.opacity = '1';
-        }));
+        curtain.style.transition = 'opacity 0.22s ease';
+        curtain.style.opacity = '0';
       }, 120);
     }
 
