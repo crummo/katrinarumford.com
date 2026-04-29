@@ -1936,22 +1936,37 @@
   </div>
 </div>
 
-<!-- ═══════════════ SHARE PASSWORD MODAL ═══════════════ -->
-<div class="modal-backdrop hidden" id="modal-share-pass">
-  <div class="modal" style="max-width:380px">
-    <div class="modal-title" id="share-pass-title">Set share password</div>
-    <div class="field" style="margin-top:4px">
-      <label>Password</label>
+<!-- ═══════════════ SHARE MODAL ═══════════════ -->
+<div class="modal-backdrop hidden" id="modal-share">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-title" id="share-modal-title">Share project</div>
+
+    <!-- Link row -->
+    <div class="field" style="margin-bottom:20px">
+      <label>Share link</label>
       <div style="display:flex;gap:6px;align-items:center">
-        <input id="share-pass-input" type="password" placeholder="Enter password…" style="flex:1" />
-        <button type="button" class="btn btn-ghost btn-sm" id="share-pass-reveal" onclick="toggleSharePassReveal()" style="flex-shrink:0;font-size:11px;padding:6px 10px">Show</button>
+        <input id="share-modal-url" type="text" readonly style="flex:1;cursor:default;color:var(--fg-mid);font-size:12px" />
+        <button type="button" class="btn btn-ghost btn-sm" id="share-modal-copy-btn" onclick="shareModalCopy()" style="flex-shrink:0">Copy</button>
       </div>
-      <div class="field-hint" id="share-pass-hint" style="margin-top:4px"></div>
+      <div class="field-hint" style="margin-top:5px">Live in up to 10 minutes after first generation.</div>
     </div>
-    <div class="modal-actions" style="margin-top:16px">
-      <button class="btn btn-ghost" onclick="closeSharePassModal()">Cancel</button>
-      <button id="share-pass-remove" class="btn btn-ghost" style="color:var(--danger)" onclick="confirmSharePassword(true)">Remove password</button>
-      <button class="btn btn-primary" onclick="confirmSharePassword(false)">Set password</button>
+
+    <!-- Password row -->
+    <div class="field" style="margin-bottom:6px">
+      <label>Password <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0;font-weight:300" id="share-modal-pass-status"></span></label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input id="share-modal-pass" type="password" placeholder="Leave blank to share without a password" style="flex:1" onkeydown="if(event.key==='Enter')shareModalSave()" />
+        <button type="button" class="btn btn-ghost btn-sm" id="share-modal-reveal" onclick="shareModalToggleReveal()" style="flex-shrink:0;font-size:11px;padding:6px 10px">Show</button>
+      </div>
+      <div class="field-hint" id="share-modal-pass-hint" style="margin-top:5px"></div>
+    </div>
+
+    <div class="modal-actions" style="border-top:1px solid var(--fg-dimmer);margin-top:20px;padding-top:16px;display:flex;justify-content:space-between;align-items:center">
+      <button class="btn btn-ghost btn-sm" id="share-modal-revoke-btn" style="color:var(--danger);opacity:0.8" onclick="shareModalRevoke()">Revoke link</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="closeShareModal()">Close</button>
+        <button class="btn btn-primary" onclick="shareModalSave()">Save</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2469,9 +2484,7 @@ function renderCategory(cat) {
       </div>
       <div class="project-actions">
         <button class="btn btn-ghost btn-sm" onclick="toggleProjectPublished(${globalIdx})">${p.published === false ? 'Publish' : 'Unpublish'}</button>
-        <button class="btn btn-ghost btn-sm" onclick="copyShareLink(${globalIdx})" title="${p.shareKey ? 'Copy share link' : 'Generate share link'}">Share ↗</button>
-        ${p.shareKey ? `<button class="btn btn-ghost btn-sm" onclick="setSharePassword(${globalIdx})" title="${p.sharePass ? 'Change or remove password' : 'Add password'}" style="${p.sharePass ? 'color:var(--accent)' : ''}">${p.sharePass ? '🔒' : '🔓'}</button>` : ''}
-        ${p.shareKey ? `<button class="btn btn-ghost btn-sm" style="color:var(--danger);opacity:0.7" onclick="revokeShareLink(${globalIdx})" title="Revoke share link">Revoke</button>` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="openShareModal(${globalIdx})" title="${p.shareKey ? (p.sharePass ? 'Share link · password protected' : 'Share link') : 'Generate share link'}">${p.sharePass ? '🔒 ' : ''}Share ↗</button>
         <button class="btn btn-ghost btn-sm" onclick="openEdit(${globalIdx})">Edit</button>
       </div>
     `;
