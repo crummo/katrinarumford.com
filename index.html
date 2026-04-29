@@ -331,7 +331,7 @@
     .gv-arrow { position: absolute; top: 0; bottom: 0; width: 56px; background: none; border: none; cursor: pointer; z-index: 10;
       display: flex; align-items: center; justify-content: center;
       opacity: 0; transition: opacity 0.35s var(--ease); -webkit-tap-highlight-color: transparent; }
-    #gv-curtain { position: absolute; inset: 0; background: #0e0c0b; opacity: 0; pointer-events: none; z-index: 12; }
+    #gv-curtain { position: absolute; inset: 0; background: var(--gv-bg, var(--bg)); opacity: 0; pointer-events: none; z-index: 12; }
     .gv-media:hover .gv-arrow { opacity: 1; }
     .gv-arrow:disabled { opacity: 0 !important; cursor: default; }
     .gv-arrow::before { content: ''; display: block; width: 13px; height: 13px;
@@ -523,10 +523,11 @@
       body.nav-left .gv { left: 0; top: var(--nav-h); }
       body.nav-left .gv-nav-info { display: none !important; }
       .gv-back-btn { display: block; }
-      .gv-ctrl-btn { display: none; } /* arrows + swipe handle nav on mobile */
-      .gv-ctrl-counter { flex: 1; text-align: center; }
-      .gv-arrow { opacity: 0.55; } /* always visible on touch devices */
-      .gv-arrow:disabled { opacity: 0 !important; }
+      .gv-media { padding: 0; } /* full bleed — image fills screen width */
+      .gv-arrow { display: none; } /* use labeled buttons on mobile */
+      .gv-ctrl-btn { display: block; font-size: 9px; padding: 7px 12px; }
+      .gv-ctrl-counter { min-width: 48px; }
+      .gv-controls { padding: 10px 16px 20px; }
       body.is-preview.nav-left nav { top: 28px; height: var(--nav-h); right: 0; width: 100%; bottom: auto; }
       body.is-preview.nav-left main { padding-top: var(--nav-h); }
     }
