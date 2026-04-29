@@ -45,6 +45,13 @@
     {
       "id": "sda",
       "label": "sda",
+      "published": true,
+      "layout": "masonry",
+      "type": "lightbox"
+    },
+    {
+      "id": "333",
+      "label": "333",
       "published": false,
       "layout": "masonry",
       "type": "lightbox"
