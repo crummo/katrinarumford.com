@@ -3461,13 +3461,13 @@ function saveCategoryModal() {
 
   const targetTab = editingCatIdx !== null ? id : id; // always go to the affected category
   closeCatModal();
-  markDirty();
   buildAdminTabs();
   buildAdminCategoryPanes();
   renderAll();
   renderCategoryList();
   switchTabDirect(targetTab);
   showToast(editingCatIdx !== null ? 'Section renamed.' : 'Section added — unpublished. Add projects and publish when ready.', 'success');
+  saveToGitHub();
 }
 
 function previewCategory(catId) {
