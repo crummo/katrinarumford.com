@@ -478,6 +478,7 @@
       .mobile-list { display: block; padding: 4px 0 32px; }
       .about-wrap { padding: 52px 22px 80px; }
       body.nav-left .about-wrap { left: 0; }
+      .mobile-item { animation: none; }
       .contact-wrap { padding: 52px 22px 80px; }
       .about-layout.placement-left,
       .about-layout.placement-right { flex-direction: column; }
@@ -1404,19 +1405,17 @@
     function galleryNav(dir) {
       const newIdx = Math.max(0, Math.min(gvItems.length - 1, gvIdx + dir));
       if (newIdx === gvIdx) return; // at boundary
-      const img    = document.getElementById('gv-img');
-      const iframe = document.getElementById('gv-iframe');
-      // Instant hide — no fade-out overlap
-      img.style.transition = iframe.style.transition = 'none';
-      img.style.opacity    = iframe.style.opacity    = '0';
-      gvIdx = newIdx;
-      renderGallery();
-      // Fade in whichever is now active, after paint
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        const active = img.style.display !== 'none' ? img : iframe;
-        active.style.transition = 'opacity 0.2s ease';
-        active.style.opacity = '1';
-      }));
+      const media = document.getElementById('gv-media');
+      media.style.transition = 'opacity 0.12s ease';
+      media.style.opacity = '0';
+      setTimeout(() => {
+        gvIdx = newIdx;
+        renderGallery();
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          media.style.transition = 'opacity 0.2s ease';
+          media.style.opacity = '1';
+        }));
+      }, 120);
     }
 
     function renderGallery() {
