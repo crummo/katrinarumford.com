@@ -869,6 +869,18 @@
         li.appendChild(a);
         document.getElementById('nav-links').appendChild(li);
       }
+      updateDrawerPadding();
+    }
+
+    function updateDrawerPadding() {
+      const drawerEl = document.getElementById('nav-drawer');
+      if (!drawerEl) return;
+      const links = drawerEl.querySelectorAll('a');
+      const isLandscape = window.innerHeight < 600 && window.innerWidth > window.innerHeight;
+      links.forEach(a => {
+        a.style.paddingTop = isLandscape ? Math.max(3, Math.min(8, Math.floor(40 / links.length))) + 'px' : '';
+        a.style.paddingBottom = a.style.paddingTop;
+      });
     }
 
     /* ── PAGES ── */
@@ -1091,6 +1103,7 @@
       cancelAnimationFrame(_masonryRaf);
       _masonryRaf = requestAnimationFrame(() => {
         document.querySelectorAll('.gallery-grid:not(.layout-grid)').forEach(layoutMasonry);
+        updateDrawerPadding();
       });
     });
 
