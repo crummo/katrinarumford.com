@@ -2496,9 +2496,7 @@
     "award": "",
     "description": "",
     "published": false,
-    "aspect": 2.75,
-    "shareKey": "441437c5-88fa-4634-aae4-780e91a0ebee",
-    "sharePass": "6b51d431df5d7f141cbececcf79edf3dd861c3b4069f0b11661a3eefacbba918"
+    "aspect": 2.75
   },
   {
     "id": 1777439811023,
@@ -2509,8 +2507,7 @@
     "url": "",
     "award": "",
     "description": "",
-    "published": true,
-    "shareKey": "7feb765e-f9a8-4b71-85ab-09f2daace0a7"
+    "published": true
   },
   {
     "id": 1777407928773,
