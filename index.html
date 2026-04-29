@@ -595,7 +595,7 @@
   </div>
 
   <!-- Share password prompt -->
-  <div id="share-prompt" style="display:none;position:fixed;inset:0;z-index:400;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;gap:14px">
+  <div id="share-prompt" style="display:none;position:fixed;inset:0;z-index:900;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;gap:14px">
     <div style="font-family:var(--font-serif);font-size:22px;font-style:italic;color:var(--fg)">Password protected</div>
     <div style="font-size:10px;letter-spacing:0.16em;color:var(--fg-dim);text-transform:uppercase">Enter the password to view this project</div>
     <input id="share-prompt-input" type="password" placeholder="Password" style="font-family:var(--font-sans);font-size:14px;background:var(--bg2);border:1px solid var(--fg-dimmer);color:var(--fg);padding:10px 14px;border-radius:2px;width:260px;outline:none;margin-top:4px" />
@@ -680,6 +680,12 @@
       buildNav(publishedCats);
       buildPages(isPreview ? allCats : publishedCats);
 
+      // Share link: ?share=ID&key=SHAREKEY — opens any project (incl. unpublished) directly
+      const _sp = new URLSearchParams(location.search);
+      const _shareId  = _sp.get('share');
+      const _shareKey = _sp.get('key');
+      const _isShareLink = !!(_shareId && _shareKey);
+
       if (isPreview) {
         document.body.classList.add('is-preview');
         const banner = document.createElement('div');
@@ -688,19 +694,15 @@
         document.body.prepend(banner);
         if (forceSplash) {
           sessionStorage.removeItem(SPLASH_SEEN_KEY);
-          maybeShowSplash();
+          if (!_isShareLink) maybeShowSplash();
         }
       } else {
-        maybeShowSplash();
+        if (!_isShareLink) maybeShowSplash();
       }
 
       showFirst();
 
-      // Share link: ?share=ID&key=SHAREKEY — opens any project (incl. unpublished) directly
-      const _sp = new URLSearchParams(location.search);
-      const _shareId  = _sp.get('share');
-      const _shareKey = _sp.get('key');
-      if (_shareId && _shareKey) {
+      if (_isShareLink) {
         const _shared = projects.find(p => String(p.id) === _shareId && p.shareKey === _shareKey);
         if (_shared) {
           if (_shared.sharePass) showSharePrompt(_shared);
