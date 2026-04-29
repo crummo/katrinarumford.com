@@ -44,9 +44,9 @@
     },
     {
       "id": "sda",
-      "label": "sda",
+      "label": "Grid - landscape test",
       "published": true,
-      "layout": "masonry",
+      "layout": "grid",
       "type": "lightbox"
     },
     {
