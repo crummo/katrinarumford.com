@@ -55,6 +55,13 @@
       "published": false,
       "layout": "masonry",
       "type": "lightbox"
+    },
+    {
+      "id": "231",
+      "label": "231",
+      "published": false,
+      "layout": "masonry",
+      "type": "lightbox"
     }
   ],
   "about": {
