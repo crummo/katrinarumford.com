@@ -31,14 +31,14 @@
     {
       "id": "test",
       "label": "Test",
-      "published": false,
+      "published": true,
       "layout": "masonry",
       "type": "lightbox"
     },
     {
       "id": "test-gallery",
       "label": "test gallery",
-      "published": false,
+      "published": true,
       "layout": "masonry",
       "type": "gallery"
     }
