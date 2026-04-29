@@ -1402,17 +1402,21 @@
     }
 
     function galleryNav(dir) {
+      const newIdx = Math.max(0, Math.min(gvItems.length - 1, gvIdx + dir));
+      if (newIdx === gvIdx) return; // at boundary
       const img    = document.getElementById('gv-img');
       const iframe = document.getElementById('gv-iframe');
-      const target = isVideoUrl((gvItems[gvIdx] || {}).url) ? iframe : img;
-      target.style.transition = 'opacity 0.1s ease';
-      target.style.opacity = '0';
-      setTimeout(() => {
-        gvIdx = Math.max(0, Math.min(gvItems.length - 1, gvIdx + dir));
-        renderGallery();
-        target.style.transition = 'opacity 0.15s ease';
-        target.style.opacity = '1';
-      }, 100);
+      // Instant hide — no fade-out overlap
+      img.style.transition = iframe.style.transition = 'none';
+      img.style.opacity    = iframe.style.opacity    = '0';
+      gvIdx = newIdx;
+      renderGallery();
+      // Fade in whichever is now active, after paint
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const active = img.style.display !== 'none' ? img : iframe;
+        active.style.transition = 'opacity 0.2s ease';
+        active.style.opacity = '1';
+      }));
     }
 
     function renderGallery() {
