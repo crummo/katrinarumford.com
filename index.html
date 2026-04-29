@@ -477,6 +477,7 @@
       .gallery-grid { display: none; }
       .mobile-list { display: block; padding: 4px 0 32px; }
       .about-wrap { padding: 52px 22px 80px; }
+      body.nav-left .about-wrap { left: 0; }
       .contact-wrap { padding: 52px 22px 80px; }
       .about-layout.placement-left,
       .about-layout.placement-right { flex-direction: column; }
@@ -520,6 +521,10 @@
       body.nav-left .gv { left: 0; top: var(--nav-h); }
       body.nav-left .gv-nav-info { display: none !important; }
       .gv-back-btn { display: block; }
+      .gv-ctrl-btn { display: none; } /* arrows + swipe handle nav on mobile */
+      .gv-ctrl-counter { flex: 1; text-align: center; }
+      .gv-arrow { opacity: 0.55; } /* always visible on touch devices */
+      .gv-arrow:disabled { opacity: 0 !important; }
       body.is-preview.nav-left nav { top: 28px; height: var(--nav-h); right: 0; width: 100%; bottom: auto; }
       body.is-preview.nav-left main { padding-top: var(--nav-h); }
     }
@@ -908,7 +913,7 @@
       const cats = isPreview
         ? siteConfig.categories
         : siteConfig.categories.filter(c => c.published !== false);
-      if (cats.some(c => c.id === id)) buildCat(id);
+      if (cats.some(c => c.id === id)) { buildCat(id); reanimateMobileList(id); }
 
       if (id === 'about') renderAbout();
     }
@@ -1043,6 +1048,16 @@
         document.querySelectorAll('.gallery-grid:not(.layout-grid)').forEach(layoutMasonry);
       });
     });
+
+    function reanimateMobileList(catId) {
+      const list = document.getElementById('mlist-' + catId);
+      if (!list) return;
+      list.querySelectorAll('.mobile-item').forEach(el => {
+        el.style.animation = 'none';
+        void el.offsetWidth; // force reflow
+        el.style.animation = '';
+      });
+    }
 
     function buildMobileList(cat, items) {
       const list = document.getElementById('mlist-' + cat);
@@ -1482,6 +1497,19 @@
     /* ── NAV DRAWER ── */
     function toggleDrawer() { document.getElementById('nav-drawer').classList.toggle('open'); }
     function closeDrawer()  { document.getElementById('nav-drawer').classList.remove('open'); }
+
+    /* ── TOUCH SWIPE — gallery viewer ── */
+    let _gvTouchX = null;
+    document.getElementById('gv-media').addEventListener('touchstart', e => {
+      _gvTouchX = e.touches[0].clientX;
+    }, { passive: true });
+    document.getElementById('gv-media').addEventListener('touchend', e => {
+      if (_gvTouchX === null) return;
+      const dx = e.changedTouches[0].clientX - _gvTouchX;
+      _gvTouchX = null;
+      if (Math.abs(dx) < 40) return;
+      galleryNav(dx < 0 ? 1 : -1);
+    }, { passive: true });
 
     /* ── KEYBOARD ── */
     document.addEventListener('keydown', e => {
