@@ -1940,7 +1940,7 @@
         <input id="share-modal-url" type="text" readonly style="flex:1;cursor:default;color:var(--fg-mid);font-size:12px" />
         <button type="button" class="btn btn-ghost btn-sm" id="share-modal-copy-btn" onclick="shareModalCopy()" style="flex-shrink:0">Copy</button>
       </div>
-      <div class="field-hint" style="margin-top:5px">Live in up to 10 minutes after first generation.</div>
+      <div class="field-hint" style="margin-top:5px">Allow 1–2 minutes for GitHub to publish the link before sharing.</div>
     </div>
 
     <!-- Password row -->
@@ -3409,19 +3409,25 @@ function deleteCategoryFromModal() {
   if (editingCatIdx === null) return;
   const cat   = siteConfig.categories[editingCatIdx];
   const count = projects.filter(p => p.category === cat.id).length;
-  const warn  = count > 0 ? ` ${count} project(s) will still exist but won't appear on site.` : '';
-  if (!confirm(`Delete "${cat.label}"?${warn}`)) return;
-  closeCatModal();
-  siteConfig.categories.splice(editingCatIdx, 1);
-  markDirty();
-  buildAdminTabs();
-  buildAdminCategoryPanes();
-  renderAll();
-  renderCategoryList();
-  // Stay on site settings / categories list
-  switchTabDirect('site');
-  switchSettingsTab('sections');
-  showToast('Section deleted. Save to apply.', 'success');
+  const warn  = count > 0 ? `<br><span style="color:var(--fg-mid)">${count} project(s) will still exist but won't appear on the site.</span>` : '';
+  showConfirm({
+    title: `Delete "${cat.label}"?`,
+    body: `This section will be removed from the nav.${warn}`,
+    confirmLabel: 'Delete',
+    danger: true,
+    onConfirm: () => {
+      closeCatModal();
+      siteConfig.categories.splice(editingCatIdx, 1);
+      buildAdminTabs();
+      buildAdminCategoryPanes();
+      renderAll();
+      renderCategoryList();
+      switchTabDirect('site');
+      switchSettingsTab('sections');
+      showToast('Section deleted.', 'success');
+      saveToGitHub();
+    }
+  });
 }
 
 function closeCatModal() {
@@ -4647,7 +4653,7 @@ async function shareModalSave() {
   if (pw) {
     p.sharePass = await hashStr(pw);
     try { await saveToGitHub(); } catch(e) { showToast('Save failed.', 'error'); return; }
-    showToast('Password saved.', 'success');
+    showToast('Password saved — allow 1–2 min for GitHub to publish.', 'success');
   } else if (!pw && !hadPass) {
     // No change needed — just copy and close
   }

@@ -766,6 +766,7 @@
         lnk.rel  = 'icon';
         lnk.id   = 'site-favicon';
         lnk.href = cfg.favicon + '?v=' + Date.now();
+        if (/\.svg$/i.test(cfg.favicon)) lnk.type = 'image/svg+xml';
         if (prev) prev.replaceWith(lnk); else document.head.appendChild(lnk);
       }
       if (cfg.ogImage) {
