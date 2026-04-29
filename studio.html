@@ -3958,8 +3958,10 @@ function initFileManagerTab() {
   buildFMGallerySubtabs();
   updateFMTabs();
   fmUpdateUploadHint();
-  initDropZone('fm-upload-zone', async file => {
-    await fmUploadFile(file);
+  initDropZone('fm-upload-zone', async files => {
+    for (const file of files) {
+      await fmUploadFile(file);
+    }
     fmLoaded[fmCurrentTab] = false;
     await loadFMTab(fmCurrentTab);
   });
@@ -5843,30 +5845,34 @@ function initDropZone(zoneId, onFileDrop) {
     e.preventDefault(); e.stopPropagation();
     counter = 0;
     zone.classList.remove('drag-active');
-    const files = e.dataTransfer.files;
-    if (files.length) onFileDrop(files[0]);
+    const files = [...e.dataTransfer.files];
+    if (files.length) onFileDrop(files);
   });
 }
 
 function initThumbDropZone() {
-  initDropZone('thumb-drop-zone', file => {
+  initDropZone('thumb-drop-zone', files => {
+    const file = files[0];
     if (!file.type.startsWith('image/')) {
       showToast('Wrong file type — please drop an image (JPG, PNG, WebP, etc.)', 'error'); return;
     }
     uploadThumbFile(file);
   });
-  initDropZone('about-photo-drop-zone', file => {
+  initDropZone('about-photo-drop-zone', files => {
+    const file = files[0];
     if (!file.type.startsWith('image/')) {
       showToast('Wrong file type — please drop an image (JPG, PNG, WebP, etc.)', 'error'); return;
     }
     uploadImageFile(file, 'images', 'about-photo-input', updateAboutPhotoPreview);
   });
-  initDropZone('favicon-drop-zone', file => {
+  initDropZone('favicon-drop-zone', files => {
+    const file = files[0];
     const ok = file.type.startsWith('image/') || /\.(ico|svg|png)$/i.test(file.name);
     if (!ok) { showToast('Please drop an image, .ico, or .svg file.', 'error'); return; }
     uploadFaviconFile(file);
   });
-  initDropZone('og-drop-zone', file => {
+  initDropZone('og-drop-zone', files => {
+    const file = files[0];
     if (!file.type.startsWith('image/')) {
       showToast('Please drop an image file (JPG, PNG, WebP, etc.)', 'error'); return;
     }
