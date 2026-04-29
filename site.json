@@ -140,8 +140,8 @@
   },
   "navStyle": "left",
   "allowThemeToggle": true,
-  "themeMode": "auto",
-  "filmGrain": 0.1,
+  "themeMode": "light",
+  "filmGrain": 0,
   "thumbnailFilter": 0,
-  "viewerBg": "dark"
+  "viewerBg": "auto"
 }
