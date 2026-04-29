@@ -81,7 +81,8 @@
     "award": "",
     "published": true,
     "overlay": "none",
-    "vignette": 0
+    "vignette": 0,
+    "shareKey": "e5212ed5-4a08-4c1f-84f1-1ddc199a381b"
   },
   {
     "id": 2008,
@@ -93,7 +94,8 @@
     "award": "",
     "published": true,
     "overlay": "none",
-    "vignette": 0
+    "vignette": 0,
+    "shareKey": "73c20038-2925-4580-9bb4-6ec70e36503e"
   },
   {
     "id": 2009,
@@ -105,7 +107,8 @@
     "award": "",
     "published": true,
     "overlay": "none",
-    "vignette": 0
+    "vignette": 0,
+    "shareKey": "e7919fec-b105-41c1-b9b5-3116a0231f19"
   },
   {
     "id": 2010,
