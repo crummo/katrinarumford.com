@@ -2032,6 +2032,8 @@ let projectsSha    = null;
 let siteSha        = null;
 let dragSrcIdx     = null;
 let catDragSrcIdx  = null;
+let _isSaving      = false;  // mutex — prevents concurrent GitHub writes
+let _pendingSave   = false;  // queues a save requested while one is in flight
 
 // ─── CRYPTO ─────────────────────────────────────────────────────────────────
 async function sha256(str) {
@@ -5273,11 +5275,15 @@ function openPreview() {
 }
 
 async function saveToGitHub() {
+  // If a save is already running, mark a pending save and return — the
+  // in-flight save will re-run with the latest in-memory state when done.
+  if (_isSaving) { _pendingSave = true; return; }
+  _isSaving = true;
+
   flushSettingsForms();
   const btn = document.getElementById('save-btn');
   btn.disabled = true;
   setStatus('Saving…', 'saving');
-  // showToast('Saving — changes may take up to 30 seconds to be reflected on your site…', '', 0);
 
   try {
     // Save sequentially to avoid any timing conflicts
@@ -5289,7 +5295,6 @@ async function saveToGitHub() {
     await putRobotsFile();
     clearDirty();
     setStatus('Saved ✓', 'saved');
-    // showToast('Saved!', 'success');
     setTimeout(() => setStatus('', ''), 4000);
     deployHide();
     pollDeployStatus();
@@ -5299,6 +5304,9 @@ async function saveToGitHub() {
     console.error(e);
   } finally {
     btn.disabled = false;
+    _isSaving = false;
+    // Flush any save that arrived while we were in flight
+    if (_pendingSave) { _pendingSave = false; saveToGitHub(); }
   }
 }
 

@@ -553,6 +553,8 @@
 
       /* Gallery viewer: media fills the full viewport */
       .gv-media { flex: 1; min-height: 0; height: 100%; padding: 0; }
+      /* iframe: constrain by height in landscape (56.25vw overshoots short viewport) */
+      .gv-iframe { height: 100%; width: auto; aspect-ratio: 16 / 9; max-width: 100%; }
       .gv-back-btn { display: block; width: 100%; text-align: left; padding: 2px 0; }
 
       /* Side arrows: show at left/right edges instead of bottom Prev/Next buttons */
@@ -568,6 +570,11 @@
         background: linear-gradient(transparent, var(--gv-bg, var(--bg)));
         z-index: 11;
       }
+
+      /* Lightbox: constrain video by height; hide text info to save space but keep Prev/Next */
+      .lb-image-wrap { aspect-ratio: auto; height: calc(100vh - 80px); width: min(100%, calc((100vh - 80px) * 1.7778)); }
+      .lb-info { display: none; }
+      .lb-meta { margin-top: 8px; }
     }
 
     @media (max-width: 400px) {
@@ -1579,6 +1586,14 @@
     /* ── NAV DRAWER ── */
     function toggleDrawer() { document.getElementById('nav-drawer').classList.toggle('open'); }
     function closeDrawer()  { document.getElementById('nav-drawer').classList.remove('open'); }
+
+    // Close drawer when tapping anywhere outside the nav bar
+    document.addEventListener('click', function(e) {
+      const drawer = document.getElementById('nav-drawer');
+      if (drawer && drawer.classList.contains('open') && !e.target.closest('nav')) {
+        closeDrawer();
+      }
+    });
 
     /* ── TOUCH SWIPE — gallery viewer ── */
     let _gvTouchX = null;
