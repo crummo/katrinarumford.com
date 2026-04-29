@@ -4504,68 +4504,21 @@ async function hashStr(str) {
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-let _sharePassIdx = null;
-
-function setSharePassword(idx) {
-  const p = projects[idx];
-  if (!p || !p.shareKey) return;
-  _sharePassIdx = idx;
-  const hasPass = !!p.sharePass;
-  document.getElementById('share-pass-title').textContent = hasPass ? 'Change share password' : 'Set share password';
-  document.getElementById('share-pass-hint').textContent  = hasPass ? 'Leave blank and click Set to keep existing password.' : '';
-  document.getElementById('share-pass-remove').style.display = hasPass ? '' : 'none';
-  const input = document.getElementById('share-pass-input');
-  input.value = ''; input.type = 'password';
-  document.getElementById('share-pass-reveal').textContent = 'Show';
-  document.getElementById('modal-share-pass').classList.remove('hidden');
-  setTimeout(() => input.focus(), 50);
-}
-
-function closeSharePassModal() {
-  document.getElementById('modal-share-pass').classList.add('hidden');
-  _sharePassIdx = null;
-}
-
-function toggleSharePassReveal() {
-  const input = document.getElementById('share-pass-input');
-  const btn   = document.getElementById('share-pass-reveal');
-  const show  = input.type === 'password';
-  input.type  = show ? 'text' : 'password';
-  btn.textContent = show ? 'Hide' : 'Show';
-}
-
-async function confirmSharePassword(remove) {
-  const p = projects[_sharePassIdx];
-  if (!p) return;
-  if (remove) {
-    if (!p.sharePass) { closeSharePassModal(); return; }
-    delete p.sharePass;
-    await saveToGitHub();
-    showToast('Password removed.', 'success');
-  } else {
-    const pw = document.getElementById('share-pass-input').value.trim();
-    if (!pw) { closeSharePassModal(); return; }
-    p.sharePass = await hashStr(pw);
-    await saveToGitHub();
-    showToast('Password set.', 'success');
-  }
-  closeSharePassModal();
-  renderCategory(p.category);
-}
+let _shareIdx = null;
 
 function buildShareUrl(p) {
   // Derive base from admin's own URL — always correct regardless of site.json config
-  const base = location.href.replace(/admin\.html.*$/, '').replace(/\/$/, '');
+  const base = location.href.replace(/studio\.html.*$/, '').replace(/admin\.html.*$/, '').replace(/\/$/, '');
   return `${base}/?share=${p.id}&key=${p.shareKey}`;
 }
 
-async function copyShareLink(idx) {
+async function openShareModal(idx) {
   const p = projects[idx];
   if (!p) return;
-  const needsKey = !p.shareKey;
-  if (needsKey) {
+
+  // Generate key if needed
+  if (!p.shareKey) {
     p.shareKey = crypto.randomUUID();
-    // Save so the link works immediately
     try {
       await saveToGitHub();
     } catch(e) {
@@ -4573,19 +4526,80 @@ async function copyShareLink(idx) {
       showToast('Save failed — share link not created.', 'error');
       return;
     }
+    renderCategory(p.category);
   }
-  const url = buildShareUrl(p);
-  try {
-    await navigator.clipboard.writeText(url);
-    showToast(`Copied: ${url} — may take up to 10 minutes to activate.`, 'success');
-  } catch {
-    prompt('Copy this share link:', url);
-  }
-  if (needsKey) renderCategory(p.category); // refresh card to show revoke button
+
+  _shareIdx = idx;
+  const hasPass = !!p.sharePass;
+
+  document.getElementById('share-modal-title').textContent = p.title || 'Share project';
+  document.getElementById('share-modal-url').value = buildShareUrl(p);
+  document.getElementById('share-modal-copy-btn').textContent = 'Copy';
+
+  const passInput = document.getElementById('share-modal-pass');
+  passInput.value = '';
+  passInput.type = 'password';
+  passInput.placeholder = hasPass ? 'Enter new password to change, or leave blank to keep' : 'Leave blank to share without a password';
+
+  document.getElementById('share-modal-reveal').textContent = 'Show';
+  document.getElementById('share-modal-pass-status').textContent = hasPass ? '— protected' : '';
+  document.getElementById('share-modal-pass-hint').textContent = hasPass
+    ? 'Link is password-protected. Visitors will be prompted when opening.'
+    : 'Optional. Adding a password requires visitors to enter it before viewing.';
+
+  document.getElementById('modal-share').classList.remove('hidden');
+  setTimeout(() => passInput.focus(), 50);
 }
 
-async function revokeShareLink(idx) {
-  const p = projects[idx];
+function closeShareModal() {
+  document.getElementById('modal-share').classList.add('hidden');
+  _shareIdx = null;
+}
+
+function shareModalToggleReveal() {
+  const input = document.getElementById('share-modal-pass');
+  const btn   = document.getElementById('share-modal-reveal');
+  const show  = input.type === 'password';
+  input.type  = show ? 'text' : 'password';
+  btn.textContent = show ? 'Hide' : 'Show';
+}
+
+async function shareModalCopy() {
+  const url = document.getElementById('share-modal-url').value;
+  const btn = document.getElementById('share-modal-copy-btn');
+  try {
+    await navigator.clipboard.writeText(url);
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+  } catch {
+    // Fallback: select the input
+    const input = document.getElementById('share-modal-url');
+    input.select();
+    showToast('Select and copy the URL above.', '');
+  }
+}
+
+async function shareModalSave() {
+  const p = projects[_shareIdx];
+  if (!p) return;
+  const pw = document.getElementById('share-modal-pass').value.trim();
+  const hadPass = !!p.sharePass;
+
+  if (pw) {
+    p.sharePass = await hashStr(pw);
+    try { await saveToGitHub(); } catch(e) { showToast('Save failed.', 'error'); return; }
+    showToast('Password saved.', 'success');
+  } else if (!pw && !hadPass) {
+    // No change needed — just copy and close
+  }
+  // Copy link
+  try { await navigator.clipboard.writeText(buildShareUrl(p)); } catch {}
+  closeShareModal();
+  renderCategory(p.category);
+}
+
+async function shareModalRevoke() {
+  const p = projects[_shareIdx];
   if (!p || !p.shareKey) return;
   if (!confirm('Revoke share link? Anyone with the old link will lose access.')) return;
   delete p.shareKey;
@@ -4597,6 +4611,7 @@ async function revokeShareLink(idx) {
     showToast('Save failed.', 'error');
     return;
   }
+  closeShareModal();
   renderCategory(p.category);
 }
 
@@ -6045,7 +6060,7 @@ document.addEventListener('keydown', e => {
     closeModal();
     closeDelete();
     closeFileManager();
-    closeSharePassModal();
+    closeShareModal();
   }
 });
 

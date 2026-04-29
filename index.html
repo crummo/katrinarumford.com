@@ -349,7 +349,7 @@
     .gv-ctrl-btn:hover:not(:disabled) { border-color: var(--gv-fg-dim, var(--fg-dim)); }
     .gv-ctrl-btn:disabled { opacity: 0.22; cursor: default; }
     .gv-ctrl-counter { font-size: 10px; letter-spacing: 0.1em; color: var(--gv-fg-dim, var(--fg-dim)); min-width: 72px; text-align: center; }
-    .gv-back-btn { display: none; background: none; border: none; cursor: pointer; font-family: var(--font-sans); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gv-fg-dim, var(--fg-dim)); padding: 7px 0; transition: color 0.2s; margin-right: auto; }
+    .gv-back-btn { display: none; background: none; border: none; cursor: pointer; font-family: var(--font-sans); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gv-fg-dim, var(--fg-dim)); padding: 7px 0; transition: color 0.2s; }
     .gv-back-btn:hover { color: var(--gv-fg, var(--fg)); }
 
     /* Nav info shown when gallery viewer is open */
@@ -522,12 +522,12 @@
       body.nav-left main { padding-left: 0; padding-top: var(--nav-h); }
       body.nav-left .gv { left: 0; top: var(--nav-h); }
       body.nav-left .gv-nav-info { display: none !important; }
-      .gv-back-btn { display: block; }
+      .gv-back-btn { display: block; position: absolute; left: 16px; }
       .gv-media { padding: 0; } /* full bleed — image fills screen width */
       .gv-arrow { display: none; } /* use labeled buttons on mobile */
       .gv-ctrl-btn { display: block; font-size: 9px; padding: 7px 12px; }
       .gv-ctrl-counter { min-width: 48px; }
-      .gv-controls { padding: 10px 16px 20px; }
+      .gv-controls { padding: 10px 16px 20px; position: relative; justify-content: center; }
       body.is-preview.nav-left nav { top: 28px; height: var(--nav-h); right: 0; width: 100%; bottom: auto; }
       body.is-preview.nav-left main { padding-top: var(--nav-h); }
     }
@@ -1409,14 +1409,38 @@
       const newIdx = Math.max(0, Math.min(gvItems.length - 1, gvIdx + dir));
       if (newIdx === gvIdx) return; // at boundary
       const curtain = document.getElementById('gv-curtain');
-      curtain.style.transition = 'opacity 0.12s ease';
+
+      function revealCurtain() {
+        curtain.style.transition = 'opacity 0.22s ease';
+        curtain.style.opacity = '0';
+      }
+
+      curtain.style.transition = 'opacity 0.15s ease';
       curtain.style.opacity = '1';
+
       setTimeout(() => {
         gvIdx = newIdx;
         renderGallery();
-        curtain.style.transition = 'opacity 0.22s ease';
-        curtain.style.opacity = '0';
-      }, 120);
+        const img = document.getElementById('gv-img');
+        // If it's a video (img hidden) or the image is already loaded/cached, reveal immediately
+        if (img.style.display === 'none' || img.complete) {
+          revealCurtain();
+        } else {
+          // Wait for the new image to actually paint before lifting the curtain
+          let revealed = false;
+          const done = () => {
+            if (revealed) return;
+            revealed = true;
+            img.removeEventListener('load',  done);
+            img.removeEventListener('error', done);
+            revealCurtain();
+          };
+          img.addEventListener('load',  done);
+          img.addEventListener('error', done);
+          // Fallback — never hold the curtain longer than 700ms
+          setTimeout(done, 700);
+        }
+      }, 150);
     }
 
     function renderGallery() {
