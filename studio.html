@@ -1096,6 +1096,15 @@
             </label>
           </div>
           <div class="field" style="margin-top:12px">
+            <label>Viewer Background</label>
+            <select id="site-viewer-bg" onchange="markDirty()" style="margin-top:6px;width:100%">
+              <option value="auto">Auto — match site theme</option>
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+            </select>
+            <div class="field-hint" style="margin-top:4px">Background color of the lightbox and gallery viewer. Auto follows the site theme.</div>
+          </div>
+          <div class="field" style="margin-top:12px">
             <label>Film Grain <span id="site-film-grain-pct" style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0;font-weight:400"></span></label>
             <input type="range" id="site-film-grain" min="0" max="100" step="1" value="28"
               style="width:100%;accent-color:var(--accent)"
@@ -1108,15 +1117,6 @@
               style="width:100%;accent-color:var(--accent)"
               oninput="updateThumbFilter(this.value);markDirty()" />
             <div class="field-hint" style="margin-top:4px">Desaturates and dims thumbnails at rest. 0 = natural, 100 = cinematic.</div>
-          </div>
-          <div class="field" style="margin-top:12px">
-            <label>Viewer Background</label>
-            <select id="site-viewer-bg" onchange="markDirty()" style="margin-top:6px;width:100%">
-              <option value="auto">Auto — match site theme</option>
-              <option value="dark">Dark</option>
-              <option value="light">Light</option>
-            </select>
-            <div class="field-hint" style="margin-top:4px">Background color of the lightbox and gallery viewer. Auto follows the site theme.</div>
           </div>
         </div>
 
