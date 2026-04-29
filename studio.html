@@ -2005,6 +2005,7 @@ const K_BRANCH     = 'cr_gh_branch';
 const K_HIDE_INUSE = 'cr_hide_inuse';
 const K_TAB        = 'cr_active_tab';
 const K_STAB       = 'cr_active_stab';
+const K_FM_TAB     = 'cr_active_fmtab';
 const K_SESSION    = 'cr_session';   // sessionStorage — clears on tab close
 const IDLE_MS      = 30 * 60 * 1000; // 30 minutes
 let idleTimer      = null;
@@ -2321,7 +2322,7 @@ function buildAdminUI(restoreTab = false) {
     const valid = [...siteConfig.categories.map(c => c.id), 'site'];
     const tab   = saved && valid.includes(saved) ? saved : (siteConfig.categories[0]?.id || 'site');
     switchTab(tab);
-    if (tab === 'site') switchSettingsTab('general');
+    if (tab === 'site') switchSettingsTab(localStorage.getItem(K_STAB) || 'general');
   } else {
     // Fresh login — first category
     switchTab(siteConfig.categories[0]?.id || 'site');
@@ -3107,6 +3108,7 @@ function switchTabDirect(tabId) {
   });
   currentTab = tabId;
   localStorage.setItem(K_TAB, tabId);
+  if (tabId !== 'site') localStorage.removeItem(K_STAB);
   if (tabId === 'files') initFileManagerTab();
   // Scroll active tab into view in the scroll container
   const activeTab = document.getElementById('tab-' + tabId);
@@ -3951,7 +3953,8 @@ function initFileManagerTab() {
   fmFiles    = { logos: [], thumbs: [], images: [], gallery: [] };
   fmLoaded   = { logos: false, thumbs: false, images: false, gallery: false };
   fmSelected = new Set();
-  fmCurrentTab = 'thumbs';
+  const savedFMTab = localStorage.getItem(K_FM_TAB) || 'thumbs';
+  fmCurrentTab = ['logos','thumbs','images','gallery'].includes(savedFMTab) ? savedFMTab : 'thumbs';
   fmGalleryCat = (siteConfig.categories.find(c => c.type === 'gallery') || {}).id || null;
   updateFMDeleteBtn();
   document.getElementById('fm-unused-only').checked = false;
@@ -3965,7 +3968,7 @@ function initFileManagerTab() {
     fmLoaded[fmCurrentTab] = false;
     await loadFMTab(fmCurrentTab);
   });
-  loadFMTab('thumbs');
+  loadFMTab(fmCurrentTab);
 }
 
 function fmUpdateUploadHint() {
@@ -4067,6 +4070,7 @@ async function loadFMTab(tab) {
 
 function switchFMTab(tab) {
   fmCurrentTab = tab;
+  localStorage.setItem(K_FM_TAB, tab);
   fmSelected.clear();
   updateFMDeleteBtn();
   updateFMTabs();
@@ -5805,6 +5809,7 @@ function switchSettingsTab(tab) {
   document.querySelectorAll('#pane-site .settings-tab-pane').forEach(pane => {
     pane.classList.toggle('active', pane.id === 'stab-' + tab);
   });
+  localStorage.setItem(K_STAB, tab);
 }
 
 

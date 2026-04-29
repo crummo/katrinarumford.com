@@ -532,6 +532,21 @@
       body.is-preview.nav-left main { padding-top: var(--nav-h); }
     }
 
+    @media (max-width: 767px) and (orientation: landscape) {
+      /* Gallery viewer: controls overlay image so media fills full viewport height */
+      #gallery-viewer { position: fixed; }
+      .gv-media { flex: 1; min-height: 0; height: 100%; }
+      .gv-controls {
+        position: absolute; bottom: 0; left: 0; right: 0;
+        border-top: none;
+        padding: 24px 16px 8px;
+        background: linear-gradient(transparent, var(--gv-bg, var(--bg)));
+        z-index: 11;
+      }
+      .gv-back-btn { padding: 2px 0; }
+      .gv-ctrl-btn { padding: 5px 12px; }
+    }
+
     @media (max-width: 400px) {
       .mobile-title { font-size: 15px; }
       .mobile-meta { padding: 12px 16px 16px; }
