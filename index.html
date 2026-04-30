@@ -586,10 +586,8 @@
       body.nav-left .nav-drawer { display: block !important; max-height: 0; overflow: hidden; }
       body.nav-left .nav-drawer.open { max-height: min(180px, calc(100dvh - var(--nav-h) - 16px)); padding: 6px 16px 10px; overflow-y: auto; }
 
-      /* Grid: 3-column CSS grid in landscape (overrides masonry JS positioning) */
-      .gallery-grid { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 3px; height: auto !important; }
-      .gallery-grid .grid-item { position: relative !important; left: auto !important; top: auto !important; width: auto !important; aspect-ratio: 16/9; }
-      .gallery-grid .grid-thumb { height: 100%; object-fit: cover; }
+      /* Grid: show masonry instead of the full-width mobile list */
+      .gallery-grid { display: block !important; }
       .mobile-list { display: none !important; }
 
       /* Viewer covers the full viewport — sits above the nav (z-index 200) */
