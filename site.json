@@ -44,9 +44,9 @@
     },
     {
       "id": "test-gallery",
-      "label": "test gallery grid",
+      "label": "test gallery Masonry",
       "published": true,
-      "layout": "grid",
+      "layout": "masonry",
       "type": "gallery"
     },
     {
