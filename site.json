@@ -37,9 +37,9 @@
     },
     {
       "id": "test-gallery",
-      "label": "test gallery",
+      "label": "test gallery grid",
       "published": true,
-      "layout": "masonry",
+      "layout": "grid",
       "type": "gallery"
     },
     {
