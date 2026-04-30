@@ -572,11 +572,11 @@
       body.nav-left .gv { left: 0; top: var(--nav-h); }
 
       .nav-brand-name { font-size: 14px; }
-      .nav-drawer.open { padding: 6px 16px 10px; }
+      .nav-drawer.open { padding: 6px 16px 10px; max-height: min(180px, calc(100dvh - var(--nav-h) - 16px)); overflow-y: auto; }
       .nav-drawer a { padding: 8px 0 8px 10px; font-size: 10px; }
       /* Allow drawer to open in landscape (desktop hides it with !important) */
       body.nav-left .nav-drawer { display: block !important; max-height: 0; overflow: hidden; }
-      body.nav-left .nav-drawer.open { max-height: 300px; padding: 6px 16px 10px; }
+      body.nav-left .nav-drawer.open { max-height: min(180px, calc(100dvh - var(--nav-h) - 16px)); padding: 6px 16px 10px; overflow-y: auto; }
 
       /* Viewer covers the full viewport — sits above the nav (z-index 200) */
       .gv.open {
