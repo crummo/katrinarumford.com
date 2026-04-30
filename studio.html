@@ -3300,7 +3300,7 @@ async function saveProject() {
 
   renderAll();
   closeModal();
-  switchTab(proj.category);
+  switchTabDirect(proj.category);
   await saveToGitHub();
 }
 
@@ -5251,26 +5251,29 @@ function flushSettingsForms() {
 }
 
 function openPreview() {
-  flushSettingsForms();
   try {
-    sessionStorage.setItem('cr_preview', JSON.stringify({ siteConfig, projects }));
-    let url;
+    flushSettingsForms();
+    // Write under a unique timestamped key so the preview tab always reads
+    // THIS snapshot — no risk of reading stale data from a previous session.
+    const pk  = Date.now();
+    const key = 'cr_preview_' + pk;
+    localStorage.setItem(key, JSON.stringify({ siteConfig, projects }));
+
+    let base;
     if (currentTab && currentTab !== 'site') {
-      // On a category tab
-      url = 'index.html?preview=1#' + currentTab;
+      base = 'index.html?preview=1&pk=' + pk + '#' + currentTab;
     } else {
-      // On site settings — check which sub-tab is active
       const activePane = document.querySelector('#pane-site .settings-tab-pane.active');
       const section = activePane ? activePane.id.replace('stab-', '') : 'general';
-      if (section === 'about')   url = 'index.html?preview=1#about';
-      else if (section === '404') url = '404.html?preview=1';
-      else if (section === 'contact') url = 'index.html?preview=1#contact';
-      else if (section === 'splash')  url = 'index.html?preview=1&splash=1';
-      else url = 'index.html?preview=1';
+      if (section === 'about')        base = 'index.html?preview=1&pk=' + pk + '#about';
+      else if (section === '404')     base = '404.html?preview=1&pk=' + pk;
+      else if (section === 'contact') base = 'index.html?preview=1&pk=' + pk + '#contact';
+      else if (section === 'splash')  base = 'index.html?preview=1&pk=' + pk + '&splash=1';
+      else                            base = 'index.html?preview=1&pk=' + pk;
     }
-    window.open(url, '_blank');
+    window.open(base, '_blank');
   } catch(e) {
-    showToast('Preview failed — sessionStorage unavailable.', 'error');
+    showToast('Preview failed — ' + e.message, 'error');
   }
 }
 
@@ -5571,7 +5574,7 @@ async function handleGeThumbInput(input) {
 // ─── VIDEO URL HELPERS ───────────────────────────────────────────────────────
 function isVideoUrl(url) {
   if (!url) return false;
-  return /youtube\.com|youtu\.be|vimeo\.com|wistia/i.test(url);
+  return /youtube\.com|youtu\.be|vimeo\.com|wistia|bunnycdn\.com|mediadelivery\.net|cloudflarestream\.com/i.test(url);
 }
 
 // ─── GALLERY ADD VIDEO ────────────────────────────────────────────────────────
@@ -5594,7 +5597,7 @@ function closeGvAddVideo() {
 function saveGvAddVideo() {
   const url = document.getElementById('gv-av-url').value.trim();
   if (!url || !isVideoUrl(url)) {
-    showToast('Please enter a valid YouTube or Vimeo URL.', 'error');
+    showToast('Please enter a valid video URL (YouTube, Vimeo, Bunny, or Cloudflare).', 'error');
     return;
   }
   const title  = document.getElementById('gv-av-title').value.trim();
