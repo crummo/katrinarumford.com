@@ -515,9 +515,17 @@
       .lb-meta { flex-direction: column; gap: 18px; margin-top: 16px; }
       .lb-client { font-size: 9px; margin-bottom: 4px; }
       .lb-title { font-size: 18px; }
-      .lb-controls { width: 100%; justify-content: space-between; }
+      /* Lightbox: controls pinned to bottom of screen — don't jump with image aspect ratio */
+      .lb-controls {
+        position: fixed; bottom: 0; left: 0; right: 0; width: auto;
+        padding: 12px max(20px, env(safe-area-inset-left, 0px)) max(20px, env(safe-area-inset-bottom, 0px));
+        justify-content: space-between;
+        background: linear-gradient(transparent, var(--lb-bg) 55%);
+      }
       .lb-btn { font-size: 9px; padding: 10px 18px; }
       .lb-close { top: 20px; right: auto; left: max(18px, env(safe-area-inset-left, 0px)); font-size: 10px; }
+      /* Give lightbox bottom breathing room so image isn't hidden under fixed controls */
+      .lightbox { padding-bottom: 80px; }
       body.lb-open nav { visibility: hidden; pointer-events: none; }
       .lb-desc { font-size: 11px; max-height: calc(1.7em * 3); }
 
@@ -542,12 +550,21 @@
       body.nav-left main { padding-left: 0; padding-top: calc(var(--nav-h) + var(--safe-top)); }
       body.nav-left .gv { left: 0; top: calc(var(--nav-h) + var(--safe-top)); }
       body.nav-left .gv-nav-info { display: none !important; }
-      .gv-back-btn { display: block; width: 100%; text-align: left; padding: 8px 0 4px; }
+      /* Gallery viewer: back button top-left, prev/next spread to bottom edges */
+      .gv-back-btn {
+        display: block; position: fixed;
+        top: calc(var(--nav-h) + var(--safe-top) + 14px);
+        left: max(18px, env(safe-area-inset-left, 0px));
+        width: auto; padding: 2px 0; z-index: 20;
+      }
       .gv-media { padding: 0; } /* full bleed — image fills screen width */
       .gv-arrow { display: none; } /* use labeled buttons on mobile */
       .gv-ctrl-btn { display: block; font-size: 9px; padding: 7px 12px; }
       .gv-ctrl-counter { min-width: 48px; }
-      .gv-controls { padding: 8px 16px 20px; flex-wrap: wrap; justify-content: center; }
+      .gv-controls {
+        padding: 12px max(20px, env(safe-area-inset-left, 0px)) max(20px, env(safe-area-inset-bottom, 0px));
+        flex-wrap: nowrap; justify-content: space-between; border-top: none;
+      }
       body.is-preview.nav-left nav { top: 28px; height: var(--nav-h); right: 0; width: 100%; bottom: auto; }
       body.is-preview.nav-left main { padding-top: var(--nav-h); }
     }
