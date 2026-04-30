@@ -574,7 +574,9 @@
       .nav-brand-name { font-size: 14px; }
       .nav-drawer.open { padding: 6px 16px 10px; }
       .nav-drawer a { padding: 8px 0 8px 10px; font-size: 10px; }
-      body.nav-left .nav-drawer.open { padding: 6px 16px 10px; }
+      /* Allow drawer to open in landscape (desktop hides it with !important) */
+      body.nav-left .nav-drawer { display: block !important; max-height: 0; overflow: hidden; }
+      body.nav-left .nav-drawer.open { max-height: 300px; padding: 6px 16px 10px; }
 
       /* Viewer covers the full viewport — sits above the nav (z-index 200) */
       .gv.open {
@@ -1700,9 +1702,15 @@
     function toggleDrawer() { document.getElementById('nav-drawer').classList.toggle('open'); }
     function closeDrawer()  { document.getElementById('nav-drawer').classList.remove('open'); }
 
-    // Close drawer on orientation change (avoids size/transition glitches)
-    window.addEventListener('orientationchange', closeDrawer);
-    window.addEventListener('resize', closeDrawer);
+    // Close drawer instantly (no animation) to prevent size-jump glitches on rotation
+    function closeDrawerInstant() {
+      const d = document.getElementById('nav-drawer');
+      d.style.transition = 'none';
+      d.classList.remove('open');
+      requestAnimationFrame(() => requestAnimationFrame(() => { d.style.transition = ''; }));
+    }
+    window.addEventListener('orientationchange', closeDrawerInstant);
+    window.addEventListener('resize', closeDrawerInstant);
 
     // Close drawer when tapping or scrolling outside the nav bar
     document.addEventListener('click', function(e) {
