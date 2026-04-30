@@ -606,12 +606,14 @@
       .gv-media { flex: 1; min-height: 0; height: 100%; padding: 0; }
       /* iframe: constrain by height in landscape (56.25vw overshoots short viewport) */
       .gv-iframe { height: 100%; width: auto; aspect-ratio: 16 / 9; max-width: 100%; }
-      /* Pull back button out of bottom controls, pin to upper-left like lb-close */
+      /* Pull back button out of bottom controls, pin to upper-left */
       .gv-back-btn {
-        position: fixed; top: 20px; left: max(18px, env(safe-area-inset-left, 0px));
+        display: block; position: fixed; top: 20px; left: max(18px, env(safe-area-inset-left, 0px));
         width: auto; text-align: left; padding: 2px 0;
         font-size: 10px; z-index: 20;
       }
+      /* Move lb-close from upper-right to upper-left in landscape */
+      .lb-close { top: 20px; right: auto; left: max(18px, env(safe-area-inset-left, 0px)); font-size: 10px; }
 
       /* Side arrows: show at left/right edges instead of bottom Prev/Next buttons */
       .gv-arrow { display: flex !important; opacity: 1; }
