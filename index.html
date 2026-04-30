@@ -478,8 +478,11 @@
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
       :root { --nav-h: 56px; --safe-top: env(safe-area-inset-top, 0px); }
-      /* Prevent iOS rubber-band overscroll from revealing content above the fixed nav */
-      html, body { overscroll-behavior-y: none; }
+      /* Extend nav background upward so rubber-band overscroll shows theme color, not content */
+      nav::before {
+        content: ''; position: absolute; bottom: 100%; left: 0; right: 0;
+        height: 100vh; background: var(--bg);
+      }
       nav {
         position: fixed;
         padding-top: var(--safe-top);
