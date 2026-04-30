@@ -626,7 +626,10 @@
          full viewport width with minimal natural top/bottom letterbox. */
       .gv-media { position: fixed; inset: 0; z-index: 301; flex: none; box-sizing: border-box;
                   padding: 0; }
-      .gv-img { width: 100%; height: 100%; }
+      /* Top-align the image: any natural letterbox from a wider-than-viewport
+         image goes to the bottom (where the home indicator absorbs some of it
+         and the rest reads as deliberate framing). Image flush to the tabs. */
+      .gv-img { width: 100%; height: 100%; object-position: 50% 0; }
       /* iframe: constrain by height in landscape (56.25vw overshoots short viewport) */
       .gv-iframe { height: 100%; width: auto; aspect-ratio: 16 / 9; max-width: 100%; }
       /* Pull back button out of bottom controls, pin to upper-left.
