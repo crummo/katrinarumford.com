@@ -30,7 +30,7 @@
     },
     {
       "id": "test",
-      "label": "Test",
+      "label": "Test Lightbox masonry",
       "published": true,
       "layout": "masonry",
       "type": "lightbox"
