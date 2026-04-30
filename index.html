@@ -606,6 +606,9 @@
       /* Side arrows: show at left/right edges instead of bottom Prev/Next buttons */
       .gv-arrow { display: flex !important; opacity: 1; }
       .gv-arrow::before { opacity: 0.45; }
+      /* Inset arrows to clear camera cutout and rounded corners */
+      .gv-arrow-prev { left: max(16px, env(safe-area-inset-left, 0px)); }
+      .gv-arrow-next { right: max(16px, env(safe-area-inset-right, 0px)); }
       #gv-ctrl-prev, #gv-ctrl-next { display: none !important; }
 
       /* Controls: just Back + counter, overlaid at bottom with gradient */
@@ -625,8 +628,8 @@
       .lb-meta { display: none; }
       .lb-inner { position: relative; }
       .lb-float-prev, .lb-float-next { display: flex; -webkit-tap-highlight-color: transparent; }
-      /* Inset both buttons to clear camera cutouts and rounded corners */
-      .lb-float-prev { left: max(16px, env(safe-area-inset-left, 0px)); }
+      /* Inset both buttons to clear camera cutouts and rounded corners; match top offset */
+      .lb-float-prev { left: max(16px, env(safe-area-inset-left, 0px)); top: 48px; }
       .lb-float-next { right: max(16px, env(safe-area-inset-right, 0px)); top: 48px; }
     }
 
@@ -1154,11 +1157,16 @@
       }
     }
 
-    function layoutMasonry(grid) {
+    function layoutMasonry(grid, _retry) {
       const COLS = 3, GAP = 3, PAD = 3;
       const items = Array.from(grid.querySelectorAll(':scope > .grid-item'));
       if (!items.length) return;
       const gridW = grid.clientWidth - PAD * 2;
+      if (gridW <= 0) {
+        // Grid not yet rendered — retry up to 10 frames before giving up
+        if ((_retry || 0) < 10) requestAnimationFrame(() => layoutMasonry(grid, (_retry || 0) + 1));
+        return;
+      }
       const colW  = Math.floor((gridW - GAP * (COLS - 1)) / COLS);
       const colH  = new Array(COLS).fill(0);
       items.forEach(item => {
