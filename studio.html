@@ -1118,6 +1118,13 @@
               oninput="updateThumbFilter(this.value);markDirty()" />
             <div class="field-hint" style="margin-top:4px">Desaturates and dims thumbnails at rest. 0 = natural, 100 = cinematic.</div>
           </div>
+          <div class="field" style="margin-top:12px">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:12px">
+              <input type="checkbox" id="site-zoom-lock" onchange="markDirty()" />
+              Lock zoom on mobile
+            </label>
+            <div class="field-hint" style="margin-top:4px">Prevents pinch-to-zoom on phones and tablets. Off by default — visitors can zoom in to inspect detail.</div>
+          </div>
         </div>
 
       </div>
@@ -5246,6 +5253,7 @@ function flushSettingsForms() {
   siteConfig.filmGrain      = parseFloat(document.getElementById('site-film-grain')?.value || 14) / 500;
   siteConfig.viewerBg       = document.getElementById('site-viewer-bg')?.value || 'auto';
   siteConfig.thumbnailFilter = parseInt(document.getElementById('site-thumb-filter')?.value || 0);
+  siteConfig.zoomLock       = document.getElementById('site-zoom-lock')?.checked || false;
 
   updateNavBrand();
 }
@@ -5674,6 +5682,7 @@ function populateGeneralSettings() {
   const themeMode = siteConfig.themeMode || 'auto';
   document.getElementById('site-theme-mode').value = themeMode;
   document.getElementById('site-allow-theme-toggle').checked = !!siteConfig.allowThemeToggle;
+  document.getElementById('site-zoom-lock').checked = !!siteConfig.zoomLock;
   applyAdminTheme(themeMode);
   document.getElementById('site-viewer-bg').value = siteConfig.viewerBg || 'auto';
   // Version

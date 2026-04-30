@@ -159,5 +159,6 @@
   "filmGrain": 0,
   "thumbnailFilter": 0,
   "viewerBg": "auto",
-  "allowIndexing": true
+  "allowIndexing": true,
+  "zoomLock": false
 }
