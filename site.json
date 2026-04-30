@@ -52,14 +52,14 @@
     {
       "id": "231",
       "label": "gallery grid",
-      "published": false,
+      "published": true,
       "layout": "grid",
       "type": "gallery"
     },
     {
       "id": "sda",
       "label": "sda",
-      "published": true,
+      "published": false,
       "layout": "masonry",
       "type": "lightbox"
     }
