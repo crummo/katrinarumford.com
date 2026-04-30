@@ -518,9 +518,9 @@
 
       /* Left nav collapses to top nav on mobile */
       body.nav-left nav {
-        top: 0; left: 0; right: 0; bottom: auto;
-        width: 100%; height: calc(var(--nav-h) + env(safe-area-inset-top, 0px));
-        padding: env(safe-area-inset-top, 0px) 20px 0; box-sizing: border-box;
+        position: fixed; top: 0; left: 0; right: 0; bottom: auto;
+        width: 100%; height: calc(var(--nav-h) + var(--safe-top));
+        padding: var(--safe-top) 20px 0; box-sizing: border-box;
         flex-direction: row; align-items: center; justify-content: space-between;
         border-bottom: 1px solid var(--fg-dimmer);
       }
@@ -534,8 +534,8 @@
       body.nav-left .nav-drawer { display: block !important; max-height: 0; }
       body.nav-left .nav-drawer.open { max-height: 500px; padding: 16px 24px 20px; }
       body.nav-left .theme-toggle { margin-top: 0; }
-      body.nav-left main { padding-left: 0; padding-top: var(--nav-h); }
-      body.nav-left .gv { left: 0; top: var(--nav-h); }
+      body.nav-left main { padding-left: 0; padding-top: calc(var(--nav-h) + var(--safe-top)); }
+      body.nav-left .gv { left: 0; top: calc(var(--nav-h) + var(--safe-top)); }
       body.nav-left .gv-nav-info { display: none !important; }
       .gv-back-btn { display: block; width: 100%; text-align: left; padding: 8px 0 4px; }
       .gv-media { padding: 0; } /* full bleed — image fills screen width */
