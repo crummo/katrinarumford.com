@@ -647,6 +647,18 @@
       .lb-float-next { right: max(16px, env(safe-area-inset-right, 0px)); top: 48px; }
     }
 
+    /* ── SAFE AREA TOP COVER ── */
+    /* Always keeps the status-bar zone filled with the background colour and
+       in front of any content that might bleed into it (portrait mobile). */
+    #safe-area-top {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: env(safe-area-inset-top, 0px);
+      background: var(--bg);
+      z-index: 201; /* just above nav (200), below preview-banner (210) & lightbox (500) */
+      pointer-events: none;
+    }
+
     @media (max-width: 400px) {
       .mobile-title { font-size: 15px; }
       .mobile-meta { padding: 12px 16px 16px; }
@@ -656,6 +668,9 @@
   </style>
 </head>
 <body>
+
+  <!-- Safe-area top cover: keeps status-bar zone in background colour, always in front -->
+  <div id="safe-area-top" aria-hidden="true"></div>
 
   <!-- Splash -->
   <div id="splash" class="gone">
