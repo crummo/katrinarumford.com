@@ -50,18 +50,18 @@
       "type": "gallery"
     },
     {
-      "id": "sda",
-      "label": "sda",
-      "published": true,
-      "layout": "masonry",
-      "type": "lightbox"
-    },
-    {
       "id": "231",
       "label": "gallery grid",
       "published": false,
       "layout": "grid",
       "type": "gallery"
+    },
+    {
+      "id": "sda",
+      "label": "sda",
+      "published": true,
+      "layout": "masonry",
+      "type": "lightbox"
     }
   ],
   "about": {
