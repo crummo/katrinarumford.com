@@ -36,6 +36,13 @@
       "type": "lightbox"
     },
     {
+      "id": "333",
+      "label": "Lightbox masonry",
+      "published": true,
+      "layout": "grid",
+      "type": "lightbox"
+    },
+    {
       "id": "test-gallery",
       "label": "test gallery grid",
       "published": true,
@@ -47,13 +54,6 @@
       "label": "sda",
       "published": true,
       "layout": "masonry",
-      "type": "lightbox"
-    },
-    {
-      "id": "333",
-      "label": "Lightbox masonry",
-      "published": true,
-      "layout": "grid",
       "type": "lightbox"
     },
     {
