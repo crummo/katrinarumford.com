@@ -2727,5 +2727,32 @@
     "url": "gallery/231/20130322-andreaslind-ef-LA-7271.webp",
     "thumbnail": "gallery/231/20130322-andreaslind-ef-LA-7271.webp",
     "published": true
+  },
+  {
+    "id": 1777564787992,
+    "category": "test-gallery",
+    "title": "",
+    "client": "",
+    "url": "gallery/test-gallery/delerium_01-penny_109.webp",
+    "thumbnail": "gallery/test-gallery/delerium_01-penny_109.webp",
+    "published": false
+  },
+  {
+    "id": 1777564787993,
+    "category": "test-gallery",
+    "title": "",
+    "client": "",
+    "url": "gallery/test-gallery/DreamTabCrop2.webp",
+    "thumbnail": "gallery/test-gallery/DreamTabCrop2.webp",
+    "published": false
+  },
+  {
+    "id": 1777564787994,
+    "category": "test-gallery",
+    "title": "",
+    "client": "",
+    "url": "gallery/test-gallery/DreamTabCrop3.webp",
+    "thumbnail": "gallery/test-gallery/DreamTabCrop3.webp",
+    "published": false
   }
 ]
