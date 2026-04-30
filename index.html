@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Katrina Rumford — Styling / Custom Made</title>
   <meta name="description"        content="Katrina Rumford is a wardrobe stylist based in Los Angeles, California." />
   <meta property="og:type"        content="website" />
@@ -28,7 +28,9 @@
         document.documentElement.setAttribute('data-theme', resolved);
       }
       try {
-        var s = JSON.parse(sessionStorage.getItem('cr_preview') || localStorage.getItem('cr_preview') || '{}');
+        var _pk2 = new URLSearchParams(location.search).get('pk');
+        var _raw2 = (_pk2 && localStorage.getItem('cr_preview_' + _pk2)) || localStorage.getItem('cr_preview') || sessionStorage.getItem('cr_preview') || '{}';
+        var s = JSON.parse(_raw2);
         var cfg = s.siteConfig || s;
         var cached = localStorage.getItem('kr_theme');
         _applyTheme(cfg.themeMode || cached || 'light');
@@ -91,7 +93,7 @@
     }
 
     html { background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-weight: 300; -webkit-font-smoothing: antialiased; }
-    body { min-height: 100vh; }
+    body { min-height: 100vh; background: var(--bg); }
 
     /* film grain */
     body::before {
@@ -104,9 +106,10 @@
     /* ── NAV ── */
     nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-      height: var(--nav-h);
+      /* env(safe-area-inset-top) = status-bar height with viewport-fit=cover; 0 elsewhere */
+      height: calc(var(--nav-h) + env(safe-area-inset-top, 0px));
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 44px;
+      padding: env(safe-area-inset-top, 0px) 44px 0;
       background: var(--bg);
       border-bottom: 1px solid var(--fg-dimmer);
     }
@@ -143,7 +146,7 @@
     .nav-hamburger span { display: block; width: 22px; height: 1px; background: var(--fg-mid); transition: all 0.25s var(--ease); }
 
     .nav-drawer {
-      position: fixed; top: var(--nav-h); left: 0; right: 0;
+      position: fixed; top: calc(var(--nav-h) + env(safe-area-inset-top, 0px)); left: 0; right: 0;
       background: var(--bg); border-bottom: 1px solid var(--fg-dimmer);
       padding: 0 24px; z-index: 190;
       max-height: 0; overflow: hidden;
@@ -184,7 +187,7 @@
     body.is-preview.nav-left nav { top: 28px; height: calc(100vh - 28px); }
 
     /* ── MAIN ── */
-    main { padding-top: var(--nav-h); }
+    main { padding-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px)); }
     .page { display: none; }
     .page.visible { display: block; animation: pageIn 0.35s var(--ease) both; }
     .page.leaving  { display: block; animation: pageOut 0.2s var(--ease) both; pointer-events: none; }
@@ -316,6 +319,11 @@
     .lb-counter { font-size: 11px; color: var(--lb-fg-dim); letter-spacing: 0.08em; min-width: 48px; text-align: center; }
     .lb-close { position: fixed; top: 22px; right: 30px; background: none; border: none; cursor: pointer; color: var(--lb-fg-dim); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; font-family: var(--font-sans); transition: color 0.2s; }
     .lb-close:hover { color: var(--lb-fg); }
+    .lb-float-prev, .lb-float-next { display: none; position: absolute; top: 0; bottom: 0; width: 52px; background: none; border: none; cursor: pointer; color: var(--fg-mid); opacity: 0.5; z-index: 10; align-items: center; justify-content: center; transition: opacity 0.2s; }
+    .lb-float-prev { left: 0; }
+    .lb-float-next { right: 0; }
+    .lb-float-prev:hover, .lb-float-next:hover { opacity: 1; }
+    .lb-float-prev:disabled, .lb-float-next:disabled { opacity: 0; pointer-events: none; }
 
     /* ── GALLERY VIEWER ── */
     .gv { display: none; position: fixed; z-index: 100; background: var(--gv-bg, var(--bg)); align-items: center; justify-content: center; overflow: hidden; flex-direction: column; }
@@ -469,13 +477,18 @@
 
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
-      :root { --nav-h: 56px; }
-      nav { padding: 0 20px; }
+      :root { --nav-h: 56px; --safe-top: env(safe-area-inset-top, 44px); }
+      nav {
+        padding-top: var(--safe-top);
+        padding-left: 20px; padding-right: 20px;
+        height: calc(var(--nav-h) + var(--safe-top));
+      }
+      main { padding-top: calc(var(--nav-h) + var(--safe-top)); }
       .nav-brand-name { font-size: 17px; }
       .nav-brand-rule, .nav-brand-title { display: none; }
       .nav-links { display: none; }
       .nav-hamburger { display: flex; }
-      .gallery-grid { display: none; }
+      .gallery-grid { display: none !important; }
       .mobile-list { display: block; padding: 4px 0 32px; }
       .about-wrap { padding: 52px 22px 80px; }
       body.nav-left .about-wrap { left: 0; }
@@ -498,15 +511,16 @@
       .lb-title { font-size: 18px; }
       .lb-controls { width: 100%; justify-content: space-between; }
       .lb-btn { font-size: 9px; padding: 10px 18px; }
-      .lb-close { top: 16px; right: 18px; font-size: 10px; }
+      .lb-close { top: 20px; right: 18px; font-size: 10px; }
+      body.lb-open nav { visibility: hidden; pointer-events: none; }
       .lb-desc { font-size: 11px; max-height: calc(1.7em * 3); }
 
       /* Left nav collapses to top nav on mobile */
       body.nav-left nav {
         top: 0; left: 0; right: 0; bottom: auto;
-        width: 100%; height: var(--nav-h);
+        width: 100%; height: calc(var(--nav-h) + env(safe-area-inset-top, 0px));
+        padding: env(safe-area-inset-top, 0px) 20px 0; box-sizing: border-box;
         flex-direction: row; align-items: center; justify-content: space-between;
-        padding: 0 20px;
         border-bottom: 1px solid var(--fg-dimmer);
       }
       body.nav-left .nav-brand { flex-direction: row; align-items: baseline; gap: 14px; margin-bottom: 0; }
@@ -533,9 +547,29 @@
     }
 
     @media (max-height: 600px) and (orientation: landscape) {
-      /* Compact nav — vertical real estate is precious in landscape */
+      /* ── LANDSCAPE: compact top nav regardless of nav-style setting ── */
       :root { --nav-h: 40px; }
-      nav { padding: 0 16px; }
+
+      /* Force top-bar layout for both default and left-nav configs */
+      nav, body.nav-left nav {
+        top: 0; left: 0; right: 0; bottom: auto;
+        width: 100%; height: var(--nav-h);
+        padding: 0 16px; box-sizing: border-box;
+        flex-direction: row; align-items: center; justify-content: space-between;
+        border-bottom: 1px solid var(--fg-dimmer); border-right: none;
+      }
+      /* Content starts below the 40px nav; no left indent from sidebar */
+      main, body.nav-left main { padding-top: var(--nav-h); padding-left: 0; }
+      /* Kill any sidebar-style sub-element overrides */
+      body.nav-left .nav-brand { flex-direction: row; align-items: baseline; gap: 10px; margin-bottom: 0; }
+      body.nav-left .nav-brand-name { font-size: 14px; }
+      body.nav-left .nav-brand-rule, body.nav-left .nav-brand-title { display: none; }
+      body.nav-left .nav-right { flex-direction: row; align-items: center; flex: none; width: auto; }
+      body.nav-left .nav-links { display: none; }
+      body.nav-left .nav-hamburger { display: flex !important; }
+      body.nav-left .theme-toggle { margin-top: 0; }
+      body.nav-left .gv { left: 0; top: var(--nav-h); }
+
       .nav-brand-name { font-size: 14px; }
       .nav-drawer.open { padding: 6px 16px 10px; }
       .nav-drawer a { padding: 8px 0 8px 10px; font-size: 10px; }
@@ -547,8 +581,10 @@
         top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
       }
 
-      /* Grid: show masonry instead of the full-width mobile list */
-      .gallery-grid { display: block !important; }
+      /* Grid: 3-column CSS grid in landscape (overrides masonry JS positioning) */
+      .gallery-grid { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 3px; height: auto !important; }
+      .gallery-grid .grid-item { position: relative !important; left: auto !important; top: auto !important; width: auto !important; aspect-ratio: 16/9; }
+      .gallery-grid .grid-thumb { height: 100%; object-fit: cover; }
       .mobile-list { display: none !important; }
 
       /* Gallery viewer: media fills the full viewport */
@@ -571,10 +607,14 @@
         z-index: 11;
       }
 
-      /* Lightbox: constrain video by height; hide text info to save space but keep Prev/Next */
-      .lb-image-wrap { aspect-ratio: auto; height: calc(100vh - 80px); width: min(100%, calc((100vh - 80px) * 1.7778)); }
-      .lb-info { display: none; }
-      .lb-meta { margin-top: 8px; }
+      /* Lightbox: cover full visual viewport; close button floats independently */
+      .lightbox { padding-top: 0; box-sizing: border-box; }
+      /* Video sized to visual viewport height via JS-set --vv-h; 100dvh as fallback */
+      .lb-image-wrap { aspect-ratio: auto; height: calc(var(--vv-h, 100dvh) - 44px); width: min(100%, calc((var(--vv-h, 100dvh) - 44px) * 1.7778)); }
+      /* Hide all meta/controls — replaced by floating arrows */
+      .lb-meta { display: none; }
+      .lb-inner { position: relative; }
+      .lb-float-prev, .lb-float-next { display: flex; }
     }
 
     @media (max-width: 400px) {
@@ -623,12 +663,12 @@
   <main id="main-content"></main>
 
   <!-- Gallery Viewer -->
-  <div id="gallery-viewer" class="gv">
-    <div class="gv-media" id="gv-media">
+  <div id="gallery-viewer" class="gv" onclick="if(event.target===this)closeGallery()">
+    <div class="gv-media" id="gv-media" onclick="if(event.target===this)closeGallery()">
       <img id="gv-img" class="gv-img" src="" alt="">
       <iframe id="gv-iframe" class="gv-iframe" src="" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="display:none"></iframe>
-      <button class="gv-arrow gv-arrow-prev" id="gv-prev" onclick="galleryNav(-1)" aria-label="Previous" disabled></button>
-      <button class="gv-arrow gv-arrow-next" id="gv-next" onclick="galleryNav(1)"  aria-label="Next"></button>
+      <button class="gv-arrow gv-arrow-prev" id="gv-prev" onclick="this.disabled?closeGallery():galleryNav(-1)" aria-label="Previous" disabled></button>
+      <button class="gv-arrow gv-arrow-next" id="gv-next" onclick="this.disabled?closeGallery():galleryNav(1)"  aria-label="Next"></button>
       <div id="gv-curtain"></div>
     </div>
     <div class="gv-controls">
@@ -651,7 +691,9 @@
   <!-- Lightbox -->
   <div id="lightbox" class="lightbox" onclick="closeLbOverlay(event)">
     <button class="lb-close" onclick="closeLb()">Close</button>
-    <div class="lb-inner" onclick="event.stopPropagation()">
+    <div class="lb-inner">
+      <button class="lb-float-prev" id="lb-float-prev" onclick="event.stopPropagation();lbNav(-1)" aria-label="Previous"><svg width="10" height="18" viewBox="0 0 10 18" fill="none"><path d="M9 1L1 9l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="lb-float-next" id="lb-float-next" onclick="event.stopPropagation();lbNav(1)"  aria-label="Next"><svg width="10" height="18" viewBox="0 0 10 18" fill="none"><path d="M1 1l8 8-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <div class="lb-image-wrap" id="lb-frame"></div>
       <div class="lb-meta">
         <div class="lb-info">
@@ -701,7 +743,12 @@
     async function init() {
       try {
         if (isPreview) {
-          const raw  = JSON.parse(sessionStorage.getItem('cr_preview') || localStorage.getItem('cr_preview') || '{}');
+          const _pk     = _params.get('pk');
+          const _stored = (_pk && localStorage.getItem('cr_preview_' + _pk))
+                        || localStorage.getItem('cr_preview')
+                        || sessionStorage.getItem('cr_preview')
+                        || '{}';
+          const raw  = JSON.parse(_stored);
           siteConfig = raw.siteConfig || raw || {};
           projects   = raw.projects   || [];
           projects.forEach((p, gi) => { if (p.published === false) previewHidden.add(gi); });
@@ -1003,6 +1050,12 @@
       const yt = p.url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
       if (yt) return { type: 'url', url: `https://img.youtube.com/vi/${yt[1]}/hqdefault.jpg` };
       if (/vimeo\.com\/\d+/.test(p.url)) return { type: 'vimeo', vimeoUrl: p.url };
+      // Cloudflare Stream — thumbnail available at /thumbnails/thumbnail.jpg
+      const cfCustomer = p.url.match(/(https?:\/\/[a-z0-9-]+\.cloudflarestream\.com\/[a-zA-Z0-9]+)/);
+      if (cfCustomer) return { type: 'url', url: cfCustomer[1] + '/thumbnails/thumbnail.jpg' };
+      const cfWatch = p.url.match(/(?:watch|iframe)\.cloudflarestream\.com\/([a-zA-Z0-9]+)/);
+      if (cfWatch) return { type: 'url', url: `https://cloudflarestream.com/${cfWatch[1]}/thumbnails/thumbnail.jpg` };
+      // Bunny.net — no reliable public thumbnail URL without pull zone; use placeholder
       return null;
     }
 
@@ -1324,12 +1377,45 @@
     }
 
     /* ── LIGHTBOX ── */
+    function fitLightboxToViewport() {
+      const lb = document.getElementById('lightbox');
+      if (!lb || !window.visualViewport) return;
+      const vv = window.visualViewport;
+      const landscape = window.innerWidth > window.innerHeight;
+      if (landscape) {
+        // For position:fixed, top:0 already anchors to the visual viewport top —
+        // vv.offsetTop is a document scroll offset and must NOT be used here or
+        // the lightbox gets pushed down on a scrolled page, exposing content above.
+        // We only need to pin the height to the visual viewport so it doesn't
+        // overshoot when the browser chrome is visible.
+        lb.style.top    = '';      // let CSS inset:0 → top:0 handle this
+        lb.style.bottom = '';      // let CSS inset:0 → bottom:0 handle this
+        lb.style.left   = '';
+        lb.style.right  = '';
+        lb.style.width  = '';
+        lb.style.height = vv.height + 'px';
+        // Expose height as CSS variable for video sizing
+        lb.style.setProperty('--vv-h', vv.height + 'px');
+      } else {
+        // Portrait: let CSS handle sizing (inset:0); clear any landscape overrides
+        lb.style.top = lb.style.bottom = lb.style.left = lb.style.right = '';
+        lb.style.width = lb.style.height = '';
+        lb.style.removeProperty('--vv-h');
+      }
+    }
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', fitLightboxToViewport);
+      window.visualViewport.addEventListener('scroll', fitLightboxToViewport);
+    }
+
     function openLb(catId, idx) {
       lbShared = null;
       lbCat = catId;
       lbIdx = idx;
       renderLb();
+      fitLightboxToViewport();
       document.getElementById('lightbox').classList.add('open');
+      document.body.classList.add('lb-open');
       lockScroll();
     }
 
@@ -1371,12 +1457,14 @@
     function closeLb() {
       lbShared = null;
       document.getElementById('lightbox').classList.remove('open');
+      document.body.classList.remove('lb-open');
       document.getElementById('lb-frame').innerHTML = '';
       unlockScroll();
     }
 
     function closeLbOverlay(e) {
-      if (e.target === document.getElementById('lightbox')) closeLb();
+      // Close on tap anywhere except the video frame itself, nav controls, and close button
+      if (!e.target.closest('#lb-frame, .lb-controls, .lb-close')) closeLb();
     }
 
     function lbNav(dir) {
@@ -1430,12 +1518,16 @@
       document.getElementById('lb-total').textContent   = items.length;
       document.getElementById('lb-prev').disabled = lbIdx === 0;
       document.getElementById('lb-next').disabled = lbIdx === items.length - 1;
+      const fprev = document.getElementById('lb-float-prev');
+      const fnext = document.getElementById('lb-float-next');
+      if (fprev) { fprev.disabled = lbIdx === 0; fprev.style.display = isShare ? 'none' : ''; }
+      if (fnext) { fnext.disabled = lbIdx === items.length - 1; fnext.style.display = isShare ? 'none' : ''; }
     }
 
     /* ── MEDIA TYPE DETECTION ── */
     function isVideoUrl(url) {
       if (!url) return false;
-      return /youtube\.com|youtu\.be|vimeo\.com|wistia/i.test(url);
+      return /youtube\.com|youtu\.be|vimeo\.com|wistia|bunnycdn\.com|mediadelivery\.net|cloudflarestream\.com/i.test(url);
     }
     function isImageUrl(url) {
       if (!url) return false;
@@ -1538,18 +1630,38 @@
     /* ── EMBED URL ── */
     function getEmbedUrl(url) {
       if (!url) return '';
+      // YouTube
       const yt = url.match(/(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/);
       if (yt) {
         const t = url.match(/[?&#]t=(\d+)/);
         return `https://www.youtube.com/embed/${yt[1]}?autoplay=1&rel=0&modestbranding=1${t ? '&start=' + t[1] : ''}`;
       }
+      // Vimeo
       const vi = url.match(/vimeo\.com\/(\d+)(?:\/([a-f0-9]+))?/);
       if (vi) {
         const t = url.match(/#t=(\d+)s?/);
         return `https://player.vimeo.com/video/${vi[1]}?autoplay=1&title=0&byline=0&portrait=0&background_color=000000${vi[2] ? '&h=' + vi[2] : ''}${t ? '#t=' + t[1] + 's' : ''}`;
       }
+      // Wistia
       const wi = url.match(/(?:wistia\.(?:com|net)\/(?:medias|embed\/iframe)\/)([a-zA-Z0-9]+)/);
       if (wi) return `https://fast.wistia.net/embed/iframe/${wi[1]}?autoPlay=true&fitStrategy=fill&playerColor=131110`;
+      // Bunny.net — watch URL: video.bunnycdn.com/play/LIBRARY/VIDEO_ID
+      //                     or player.mediadelivery.net/play/LIBRARY/VIDEO_ID
+      const bunny = url.match(/(?:video\.bunnycdn\.com|player\.mediadelivery\.net)\/play\/(\d+)\/([a-zA-Z0-9-]+)/);
+      if (bunny) return `https://iframe.mediadelivery.net/embed/${bunny[1]}/${bunny[2]}?autoplay=true&preload=true`;
+      // Bunny.net — already an embed URL (iframe.mediadelivery.net)
+      if (/iframe\.mediadelivery\.net\/embed/i.test(url)) {
+        return url.includes('autoplay') ? url : url + (url.includes('?') ? '&' : '?') + 'autoplay=true';
+      }
+      // Cloudflare Stream — customer subdomain: customer-xxx.cloudflarestream.com/ID/watch
+      const cfCustomer = url.match(/(https?:\/\/[a-z0-9-]+\.cloudflarestream\.com\/[a-zA-Z0-9]+)\/(watch|iframe)/);
+      if (cfCustomer) return cfCustomer[1] + '/iframe';
+      // Cloudflare Stream — watch.cloudflarestream.com/ID
+      const cfWatch = url.match(/watch\.cloudflarestream\.com\/([a-zA-Z0-9]+)/);
+      if (cfWatch) return `https://iframe.cloudflarestream.com/${cfWatch[1]}`;
+      // Cloudflare Stream — already an embed URL or bare cloudflarestream.com/ID/watch
+      const cfBare = url.match(/cloudflarestream\.com\/([a-zA-Z0-9]+)/);
+      if (cfBare) return `https://iframe.cloudflarestream.com/${cfBare[1]}`;
       return url;
     }
 
@@ -1587,13 +1699,20 @@
     function toggleDrawer() { document.getElementById('nav-drawer').classList.toggle('open'); }
     function closeDrawer()  { document.getElementById('nav-drawer').classList.remove('open'); }
 
-    // Close drawer when tapping anywhere outside the nav bar
+    // Close drawer on orientation change (avoids size/transition glitches)
+    window.addEventListener('orientationchange', closeDrawer);
+    window.addEventListener('resize', closeDrawer);
+
+    // Close drawer when tapping or scrolling outside the nav bar
     document.addEventListener('click', function(e) {
       const drawer = document.getElementById('nav-drawer');
       if (drawer && drawer.classList.contains('open') && !e.target.closest('nav')) {
         closeDrawer();
       }
     });
+    document.addEventListener('scroll', function() {
+      closeDrawer();
+    }, { passive: true });
 
     /* ── TOUCH SWIPE — gallery viewer ── */
     let _gvTouchX = null;
