@@ -512,7 +512,7 @@
       .lb-title { font-size: 18px; }
       .lb-controls { width: 100%; justify-content: space-between; }
       .lb-btn { font-size: 9px; padding: 10px 18px; }
-      .lb-close { top: 20px; right: 18px; font-size: 10px; }
+      .lb-close { top: 20px; right: auto; left: max(18px, env(safe-area-inset-left, 0px)); font-size: 10px; }
       body.lb-open nav { visibility: hidden; pointer-events: none; }
       .lb-desc { font-size: 11px; max-height: calc(1.7em * 3); }
 
@@ -601,7 +601,12 @@
       .gv-media { flex: 1; min-height: 0; height: 100%; padding: 0; }
       /* iframe: constrain by height in landscape (56.25vw overshoots short viewport) */
       .gv-iframe { height: 100%; width: auto; aspect-ratio: 16 / 9; max-width: 100%; }
-      .gv-back-btn { display: block; width: 100%; text-align: left; padding: 2px 0; }
+      /* Pull back button out of bottom controls, pin to upper-left like lb-close */
+      .gv-back-btn {
+        position: fixed; top: 20px; left: max(18px, env(safe-area-inset-left, 0px));
+        width: auto; text-align: left; padding: 2px 0;
+        font-size: 10px; z-index: 20;
+      }
 
       /* Side arrows: show at left/right edges instead of bottom Prev/Next buttons */
       .gv-arrow { display: flex !important; opacity: 1; }
@@ -706,7 +711,7 @@
 
   <!-- Lightbox -->
   <div id="lightbox" class="lightbox" onclick="closeLbOverlay(event)">
-    <button class="lb-close" onclick="closeLb()">Close</button>
+    <button class="lb-close" onclick="closeLb()">← Back</button>
     <div class="lb-inner">
       <button class="lb-float-prev" id="lb-float-prev" onclick="event.stopPropagation();lbNav(-1)" aria-label="Previous"><svg width="10" height="18" viewBox="0 0 10 18" fill="none"><path d="M9 1L1 9l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <button class="lb-float-next" id="lb-float-next" onclick="event.stopPropagation();lbNav(1)"  aria-label="Next"><svg width="10" height="18" viewBox="0 0 10 18" fill="none"><path d="M1 1l8 8-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
