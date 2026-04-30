@@ -620,44 +620,88 @@
         top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
       }
 
-      /* Gallery viewer: full bleed — let object-fit: contain handle letterboxing naturally */
-      .gv-media { flex: 1; min-height: 0; height: 100%; padding: 0; }
+      /* Gallery viewer: position:fixed pins gv-media directly to the viewport —
+         no containing-block inheritance chain for Safari to misinterpret. */
+      .gv-media { position: fixed; inset: 0; z-index: 301; flex: none; box-sizing: border-box;
+                  padding: 0 calc(max(18px, env(safe-area-inset-left, 0px)) + 36px); }
+      .gv-img { width: 100%; height: 100%; }
       /* iframe: constrain by height in landscape (56.25vw overshoots short viewport) */
       .gv-iframe { height: 100%; width: auto; aspect-ratio: 16 / 9; max-width: 100%; }
-      /* Pull back button out of bottom controls, pin to upper-left */
+      /* Pull back button out of bottom controls, pin to upper-left as a scrim pill.
+         z-index 302 keeps it above gv-media (301). Scrim keeps it legible over any image. */
       .gv-back-btn {
-        display: block; position: fixed; top: 40px; left: max(18px, env(safe-area-inset-left, 0px));
-        width: auto; text-align: left; padding: 2px 0;
-        font-size: 10px; z-index: 20;
+        display: block; position: fixed; top: 8px; left: max(18px, env(safe-area-inset-left, 0px));
+        width: auto; text-align: left;
+        padding: 6px 12px;
+        font-size: 10px; z-index: 302;
+        color: rgba(255, 255, 255, 0.96);
+        background: rgba(0, 0, 0, 0.32);
+        backdrop-filter: blur(12px) saturate(1.5);
+        -webkit-backdrop-filter: blur(12px) saturate(1.5);
+        border-radius: 999px;
       }
-      /* Move lb-close from upper-right to upper-left in landscape */
-      .lb-close { top: 20px; right: auto; left: max(18px, env(safe-area-inset-left, 0px)); font-size: 10px; }
+      .gv-back-btn:hover { color: rgba(255, 255, 255, 1); }
+      /* Move lb-close from upper-right to upper-left in landscape; match gallery back button */
+      .lb-close { top: 8px; right: auto; left: max(18px, env(safe-area-inset-left, 0px)); font-size: 10px; }
 
-      /* Side arrows: show at left/right edges instead of bottom Prev/Next buttons */
-      .gv-arrow { display: flex !important; opacity: 1; }
-      .gv-arrow::before { opacity: 0.45; }
+      /* Side arrows: show at left/right edges instead of bottom Prev/Next buttons.
+         ::before becomes a circular scrim pill; ::after draws the chevron on top. */
+      .gv-arrow { display: flex !important; opacity: 1; position: relative; }
+      .gv-arrow::before {
+        width: 34px; height: 34px;
+        border: none; border-radius: 50%;
+        background: rgba(0, 0, 0, 0.32);
+        backdrop-filter: blur(12px) saturate(1.5);
+        -webkit-backdrop-filter: blur(12px) saturate(1.5);
+        opacity: 1;
+      }
+      .gv-arrow-prev::before, .gv-arrow-next::before {
+        margin: 0; transform: none;
+      }
+      .gv-arrow::after {
+        content: '';
+        position: absolute;
+        top: 50%; left: 50%;
+        width: 11px; height: 11px;
+        border-top: 1.5px solid rgba(255, 255, 255, 0.96);
+        border-right: 1.5px solid rgba(255, 255, 255, 0.96);
+      }
+      .gv-arrow-prev::after { transform: translate(-50%, -50%) rotate(-135deg) translate(-1.5px, -1.5px); }
+      .gv-arrow-next::after { transform: translate(-50%, -50%) rotate(45deg) translate(-1.5px, -1.5px); }
       /* Inset arrows to clear camera cutout and rounded corners */
       .gv-arrow-prev { left: max(16px, env(safe-area-inset-left, 0px)); }
       .gv-arrow-next { right: max(16px, env(safe-area-inset-right, 0px)); }
       #gv-ctrl-prev, #gv-ctrl-next { display: none !important; }
 
-      /* Controls: keep in flex flow so gv-media fills only the remaining height,
-         eliminating the top letterbox gap (bottom gap is symmetric with top gap
-         when controls are absolute, but hidden — now both are gone) */
+      /* Controls: pull out of flex flow so gv-media fills the full viewport height.
+         Counter floats bottom-left, aligned with the back button above it. */
       .gv-controls {
-        flex-shrink: 0;
-        border-top: none;
-        padding: 8px 16px 8px;
-        background: none;
-        z-index: 11;
+        position: fixed;
+        bottom: max(8px, env(safe-area-inset-bottom, 0px));
+        left: max(18px, env(safe-area-inset-left, 0px));
+        right: auto;
+        padding: 6px 12px;
+        border: none;
+        background: rgba(0, 0, 0, 0.32);
+        backdrop-filter: blur(12px) saturate(1.5);
+        -webkit-backdrop-filter: blur(12px) saturate(1.5);
+        border-radius: 999px;
+        z-index: 302;
+      }
+      .gv-ctrl-counter {
+        color: rgba(255, 255, 255, 0.96);
+        min-width: 0;
       }
 
       /* Lightbox: cover full visual viewport; close button floats independently */
       .lightbox { padding-top: 0; box-sizing: border-box; }
       /* Video sized to visual viewport height via JS-set --vv-h; 100dvh as fallback */
       .lb-image-wrap { aspect-ratio: auto; height: calc(var(--vv-h, 100dvh) - 44px); width: min(100%, calc((var(--vv-h, 100dvh) - 44px) * 1.7778)); }
-      /* Hide all meta/controls — replaced by floating arrows */
-      .lb-meta { display: none; }
+      /* Hide title/buttons; float counter bottom-left to match gallery counter */
+      .lb-info { display: none; }
+      #lb-prev, #lb-next { display: none; }
+      .lb-meta { margin: 0; min-height: 0; }
+      .lb-counter { position: fixed; bottom: max(8px, env(safe-area-inset-bottom, 0px)); left: max(18px, env(safe-area-inset-left, 0px)); }
       .lb-inner { position: relative; }
       .lb-float-prev, .lb-float-next { display: flex; -webkit-tap-highlight-color: transparent; }
       /* Full-height tap zones so arrows are centred on the image */
