@@ -2775,6 +2775,7 @@
     "url": "gallery/333/leagueoftheirown-0959-2.webp",
     "award": "",
     "description": "",
-    "published": true
+    "published": true,
+    "overlay": "none"
   }
 ]
