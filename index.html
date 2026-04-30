@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Katrina Rumford — Styling / Custom Made</title>
   <meta name="description"        content="Katrina Rumford is a wardrobe stylist based in Los Angeles, California." />
   <meta property="og:type"        content="website" />
@@ -147,12 +147,12 @@
 
     .nav-drawer {
       position: fixed; top: calc(var(--nav-h) + env(safe-area-inset-top, 0px)); left: 0; right: 0;
-      background: var(--bg); border-bottom: 1px solid var(--fg-dimmer);
+      background: var(--bg);
       padding: 0 24px; z-index: 190;
       max-height: 0; overflow: hidden;
       transition: max-height 0.35s var(--ease), padding 0.35s var(--ease);
     }
-    .nav-drawer.open { max-height: 500px; padding: 16px 24px 20px; }
+    .nav-drawer.open { max-height: 500px; padding: 16px 24px 20px; border-bottom: 1px solid var(--fg-dimmer); }
     .nav-drawer a {
       display: block; text-decoration: none; font-size: 12px; letter-spacing: 0.16em;
       text-transform: uppercase; color: var(--fg-dim); padding: 14px 0 14px 10px;
@@ -193,6 +193,7 @@
     .page.leaving  { display: block; animation: pageOut 0.2s var(--ease) both; pointer-events: none; }
     @keyframes pageIn  { from { opacity: 0; transform: translateY(8px); }  to { opacity: 1; transform: translateY(0); } }
     @keyframes pageOut { from { opacity: 1; transform: translateY(0); }     to { opacity: 0; transform: translateY(-6px); } }
+    @keyframes gvIn    { from { opacity: 0; }                               to { opacity: 1; } }
 
     /* ── GRID — DESKTOP ── */
     /* masonry: JS positions items absolutely; layout-grid uses CSS grid */
@@ -330,7 +331,7 @@
     body.nav-left .gv { top: 0; left: var(--nav-w); right: 0; bottom: 0; }
     body:not(.nav-left) .gv { top: var(--nav-h); left: 0; right: 0; bottom: 0; }
     body.is-preview.nav-left .gv { top: 28px; }
-    .gv.open { display: flex; animation: pageIn 0.3s var(--ease); }
+    .gv.open { display: flex; animation: gvIn 0.3s var(--ease); }
 
     .gv-media { position: relative; width: 100%; flex: 1 1 0; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 36px 48px 20px; box-sizing: border-box; }
     .gv-img { width: 100%; height: 100%; object-fit: contain; display: block; user-select: none; -webkit-user-drag: none; }
@@ -515,9 +516,17 @@
       .lb-meta { flex-direction: column; gap: 18px; margin-top: 16px; }
       .lb-client { font-size: 9px; margin-bottom: 4px; }
       .lb-title { font-size: 18px; }
-      .lb-controls { width: 100%; justify-content: space-between; }
+      /* Lightbox: controls pinned to bottom of screen — don't jump with image aspect ratio */
+      .lb-controls {
+        position: fixed; bottom: 0; left: 0; right: 0; width: auto;
+        padding: 12px max(20px, env(safe-area-inset-left, 0px)) max(20px, env(safe-area-inset-bottom, 0px));
+        justify-content: space-between;
+        background: linear-gradient(transparent, var(--lb-bg) 55%);
+      }
       .lb-btn { font-size: 9px; padding: 10px 18px; }
       .lb-close { top: 20px; right: auto; left: max(18px, env(safe-area-inset-left, 0px)); font-size: 10px; }
+      /* Give lightbox bottom breathing room so image isn't hidden under fixed controls */
+      .lightbox { padding-bottom: 80px; }
       body.lb-open nav { visibility: hidden; pointer-events: none; }
       .lb-desc { font-size: 11px; max-height: calc(1.7em * 3); }
 
@@ -542,12 +551,21 @@
       body.nav-left main { padding-left: 0; padding-top: calc(var(--nav-h) + var(--safe-top)); }
       body.nav-left .gv { left: 0; top: calc(var(--nav-h) + var(--safe-top)); }
       body.nav-left .gv-nav-info { display: none !important; }
-      .gv-back-btn { display: block; width: 100%; text-align: left; padding: 8px 0 4px; }
+      /* Gallery viewer: back button top-left, prev/next spread to bottom edges */
+      .gv-back-btn {
+        display: block; position: fixed;
+        top: calc(var(--nav-h) + var(--safe-top) + 14px);
+        left: max(18px, env(safe-area-inset-left, 0px));
+        width: auto; padding: 2px 0; z-index: 20;
+      }
       .gv-media { padding: 0; } /* full bleed — image fills screen width */
       .gv-arrow { display: none; } /* use labeled buttons on mobile */
       .gv-ctrl-btn { display: block; font-size: 9px; padding: 7px 12px; }
       .gv-ctrl-counter { min-width: 48px; }
-      .gv-controls { padding: 8px 16px 20px; flex-wrap: wrap; justify-content: center; }
+      .gv-controls {
+        width: 100%; padding: 12px max(20px, env(safe-area-inset-left, 0px)) max(20px, env(safe-area-inset-bottom, 0px));
+        flex-wrap: nowrap; justify-content: space-between; border-top: none;
+      }
       body.is-preview.nav-left nav { top: 28px; height: var(--nav-h); right: 0; width: 100%; bottom: auto; }
       body.is-preview.nav-left main { padding-top: var(--nav-h); }
     }
@@ -602,13 +620,13 @@
         top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
       }
 
-      /* Gallery viewer: media fills the full viewport */
+      /* Gallery viewer: full bleed — let object-fit: contain handle letterboxing naturally */
       .gv-media { flex: 1; min-height: 0; height: 100%; padding: 0; }
       /* iframe: constrain by height in landscape (56.25vw overshoots short viewport) */
       .gv-iframe { height: 100%; width: auto; aspect-ratio: 16 / 9; max-width: 100%; }
       /* Pull back button out of bottom controls, pin to upper-left */
       .gv-back-btn {
-        display: block; position: fixed; top: 20px; left: max(18px, env(safe-area-inset-left, 0px));
+        display: block; position: fixed; top: 40px; left: max(18px, env(safe-area-inset-left, 0px));
         width: auto; text-align: left; padding: 2px 0;
         font-size: 10px; z-index: 20;
       }
@@ -642,9 +660,21 @@
       .lb-meta { display: none; }
       .lb-inner { position: relative; }
       .lb-float-prev, .lb-float-next { display: flex; -webkit-tap-highlight-color: transparent; }
-      /* Inset both buttons to clear camera cutouts and rounded corners; match top offset */
-      .lb-float-prev { left: max(16px, env(safe-area-inset-left, 0px)); top: 48px; }
-      .lb-float-next { right: max(16px, env(safe-area-inset-right, 0px)); top: 48px; }
+      /* Full-height tap zones so arrows are centred on the image */
+      .lb-float-prev { left: max(16px, env(safe-area-inset-left, 0px)); top: 0; }
+      .lb-float-next { right: max(16px, env(safe-area-inset-right, 0px)); top: 0; }
+    }
+
+    /* ── SAFE AREA TOP COVER ── */
+    /* Always keeps the status-bar zone filled with the background colour and
+       in front of any content that might bleed into it (portrait mobile). */
+    #safe-area-top {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: env(safe-area-inset-top, 0px);
+      background: var(--bg);
+      z-index: 201; /* just above nav (200), below preview-banner (210) & lightbox (500) */
+      pointer-events: none;
     }
 
     @media (max-width: 400px) {
@@ -656,6 +686,9 @@
   </style>
 </head>
 <body>
+
+  <!-- Safe-area top cover: keeps status-bar zone in background colour, always in front -->
+  <div id="safe-area-top" aria-hidden="true"></div>
 
   <!-- Splash -->
   <div id="splash" class="gone">
@@ -1743,6 +1776,15 @@
     }
     window.addEventListener('orientationchange', closeDrawerInstant);
     window.addEventListener('resize', closeDrawerInstant);
+
+    // Pinch-zoom lock — only active when siteConfig.zoomLock is true
+    if (siteConfig.zoomLock) {
+      document.addEventListener('gesturestart',  function(e) { e.preventDefault(); }, { passive: false, capture: true });
+      document.addEventListener('gesturechange', function(e) { e.preventDefault(); }, { passive: false, capture: true });
+      document.addEventListener('touchmove', function(e) {
+        if (e.touches.length > 1) e.preventDefault();
+      }, { passive: false, capture: true });
+    }
 
     // Close drawer when tapping or scrolling outside the nav bar
     document.addEventListener('click', function(e) {
