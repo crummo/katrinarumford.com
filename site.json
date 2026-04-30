@@ -51,8 +51,8 @@
     },
     {
       "id": "333",
-      "label": "333",
-      "published": false,
+      "label": "Lightbox masonry",
+      "published": true,
       "layout": "masonry",
       "type": "lightbox"
     },
