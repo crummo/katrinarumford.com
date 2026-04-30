@@ -2753,6 +2753,6 @@
     "client": "",
     "url": "gallery/test-gallery/DreamTabCrop3.webp",
     "thumbnail": "gallery/test-gallery/DreamTabCrop3.webp",
-    "published": false
+    "published": true
   }
 ]
