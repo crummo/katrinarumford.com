@@ -477,8 +477,9 @@
 
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
-      :root { --nav-h: 56px; --safe-top: env(safe-area-inset-top, 44px); }
+      :root { --nav-h: 56px; --safe-top: env(safe-area-inset-top, 0px); }
       nav {
+        position: fixed;
         padding-top: var(--safe-top);
         padding-left: 20px; padding-right: 20px;
         height: calc(var(--nav-h) + var(--safe-top));
