@@ -624,9 +624,10 @@
       /* Hide all meta/controls — replaced by floating arrows */
       .lb-meta { display: none; }
       .lb-inner { position: relative; }
-      .lb-float-prev, .lb-float-next { display: flex; }
-      /* Push next button's touch zone below the close button (top-right) */
-      .lb-float-next { top: 48px; }
+      .lb-float-prev, .lb-float-next { display: flex; -webkit-tap-highlight-color: transparent; }
+      /* Inset both buttons to clear camera cutouts and rounded corners */
+      .lb-float-prev { left: max(16px, env(safe-area-inset-left, 0px)); }
+      .lb-float-next { right: max(16px, env(safe-area-inset-right, 0px)); top: 48px; }
     }
 
     @media (max-width: 400px) {
