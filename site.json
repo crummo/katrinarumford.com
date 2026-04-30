@@ -158,5 +158,6 @@
   "themeMode": "light",
   "filmGrain": 0,
   "thumbnailFilter": 0,
-  "viewerBg": "auto"
+  "viewerBg": "auto",
+  "allowIndexing": true
 }
