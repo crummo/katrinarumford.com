@@ -616,12 +616,12 @@
       .gv-arrow-next { right: max(16px, env(safe-area-inset-right, 0px)); }
       #gv-ctrl-prev, #gv-ctrl-next { display: none !important; }
 
-      /* Controls: just Back + counter, overlaid at bottom with gradient */
+      /* Controls: counter only at bottom, no gradient */
       .gv-controls {
         position: absolute; bottom: 0; left: 0; right: 0;
         border-top: none;
-        padding: 20px 16px 8px;
-        background: linear-gradient(transparent, var(--gv-bg, var(--bg)));
+        padding: 8px 16px 8px;
+        background: none;
         z-index: 11;
       }
 
