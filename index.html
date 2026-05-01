@@ -112,6 +112,11 @@
       padding: env(safe-area-inset-top, 0px) 44px 0;
       background: var(--bg);
       border-bottom: 1px solid var(--fg-dimmer);
+      /* iOS Safari: force own compositing layer so scrolled page content
+         doesn't end up rendered above the nav during scroll. */
+      transform: translateZ(0);
+      -webkit-transform: translate3d(0, 0, 0);
+      will-change: transform;
     }
 
     .nav-brand { display: flex; align-items: baseline; gap: 14px; cursor: pointer; text-decoration: none; flex-shrink: 0; }
@@ -678,7 +683,9 @@
 
     /* ── SAFE AREA TOP COVER ── */
     /* Always keeps the status-bar zone filled with the background colour and
-       in front of any content that might bleed into it (portrait mobile). */
+       in front of any content that might bleed into it (portrait mobile).
+       transform/will-change forces a separate iOS Safari compositing layer
+       so scrolled content doesn't end up rendered above this element. */
     #safe-area-top {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -686,6 +693,9 @@
       background: var(--bg);
       z-index: 201; /* just above nav (200), below preview-banner (210) & lightbox (500) */
       pointer-events: none;
+      transform: translateZ(0);
+      -webkit-transform: translate3d(0, 0, 0);
+      will-change: transform;
     }
 
     @media (max-width: 400px) {
