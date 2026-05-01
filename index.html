@@ -540,17 +540,21 @@
       body.nav-left .about-wrap { left: 0; }
       /* Portrait mobile reveal: each item slides up + fades in as it
          enters the viewport (managed by IntersectionObserver in JS,
-         which adds .in-view). Replaces the cascade animation that
-         felt like loading on a phone. */
+         which adds .in-view). Uses a keyframe animation rather than
+         a transition so it always fires reliably — transitions can be
+         skipped by the browser when initial style and class-change
+         happen in the same paint frame. */
       .mobile-item {
         animation: none;
         opacity: 0;
         transform: translateY(16px);
-        transition: opacity 0.5s ease-out, transform 0.5s ease-out;
       }
       .mobile-item.in-view {
-        opacity: 1;
-        transform: translateY(0);
+        animation: mobileItemReveal 0.6s ease-out 0.08s forwards;
+      }
+      @keyframes mobileItemReveal {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
       }
       /* Project info under the image in portrait gallery viewer.
          Larger top padding pushes the text block down so it sits
