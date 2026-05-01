@@ -161,5 +161,6 @@
   "thumbnailFilter": 0,
   "viewerBg": "auto",
   "allowIndexing": true,
-  "zoomLock": false
+  "zoomLock": false,
+  "mobileThumbsNative": true
 }
