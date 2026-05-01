@@ -982,6 +982,9 @@
       const ownerName  = cfg.ownerName  || '';
       const ownerTitle = cfg.ownerTitle || '';
 
+      // Native-aspect-ratio mobile thumbnails — toggle body class
+      document.body.classList.toggle('thumbs-native', !!cfg.mobileThumbsNative);
+
       if (ownerName) document.title = ownerTitle ? `${ownerName} — ${ownerTitle}` : ownerName;
       document.querySelector('meta[property="og:title"]')?.setAttribute('content', ownerName);
       if (cfg.metaDescription) {
