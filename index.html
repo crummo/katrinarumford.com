@@ -1359,7 +1359,12 @@
       ? new IntersectionObserver(entries => {
           entries.forEach(entry => {
             if (entry.isIntersecting) {
-              entry.target.classList.add('in-view');
+              // rAF defers the class-add by one frame so the browser
+              // paints the initial (opacity:0, translateY) state first.
+              // Without this, items already in the viewport on load
+              // get the class in the same frame as their initial style
+              // and the browser short-circuits the transition.
+              requestAnimationFrame(() => entry.target.classList.add('in-view'));
               mobileItemObserver.unobserve(entry.target);
             }
           });
