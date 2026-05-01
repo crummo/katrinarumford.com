@@ -179,6 +179,14 @@
        the email to copy it. */
     .nav-drawer .nav-drawer-contact { display: flex; flex-direction: column; gap: 3px; padding-top: 14px; padding-bottom: 14px; }
     .nav-drawer .nav-drawer-contact .nav-drawer-contact-email { font-size: 13px; letter-spacing: 0; text-transform: none; color: var(--accent); font-weight: 400; }
+    /* Drawer email line that follows a regular Contact link — small, indented,
+       lowercase. Reads as a sub-item beneath CONTACT. */
+    .nav-drawer a.nav-drawer-contact-email-line {
+      font-size: 12px; letter-spacing: 0; text-transform: none;
+      color: var(--accent); padding-top: 4px; padding-bottom: 14px;
+      border-bottom: 1px solid var(--fg-dimmer); border-left-width: 0;
+      margin-top: -10px;
+    }
 
     /* ── LEFT NAV ── */
     body.nav-left nav {
@@ -469,6 +477,12 @@
     .contact-card-email { display: inline-block; font-size: 13px; color: var(--accent); text-decoration: none; letter-spacing: 0.04em; transition: opacity 0.2s; }
     .contact-card-email:hover { opacity: 0.7; }
     .contact-card-divider { height: 1px; background: var(--fg-dimmer); margin: 32px 0; }
+    /* Optional photo on the contact page — side-by-side with the card on
+       desktop, stacks above on mobile. */
+    .contact-layout { display: flex; flex-direction: row; gap: 36px; align-items: flex-start; }
+    .contact-photo-frame { flex: 0 0 auto; max-width: 380px; overflow: hidden; border: 1px solid var(--fg-dimmer); border-radius: 2px; }
+    .contact-photo-frame img { display: block; width: 100%; height: auto; }
+    .contact-content { flex: 1; min-width: 0; }
     .contact-field { margin-bottom: 22px; }
     .contact-field label { display: block; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--fg-mid); margin-bottom: 8px; font-weight: 400; }
     .contact-field input,
@@ -533,6 +547,9 @@
         padding-top: calc(var(--nav-h) + var(--safe-top));
       }
       .about-wrap, .contact-wrap { overflow-x: hidden; max-width: 100%; }
+      /* Stack contact photo above card on portrait mobile */
+      .contact-layout { flex-direction: column; gap: 24px; }
+      .contact-photo-frame { max-width: 100%; }
       nav {
         position: fixed;
         top: 0;
@@ -1142,6 +1159,16 @@
         drawerEl.appendChild(da);
       }
 
+      // showEmailInDrawer: pairs with form/card-only modes. Adds a clickable
+      // email line below the existing CONTACT drawer link (mailto on tap).
+      if ((_ctMode === 'card-only' || _ctMode === 'form') && siteConfig.contact?.showEmailInDrawer && _navEmail) {
+        const ea = document.createElement('a');
+        ea.className = 'nav-drawer-contact-email-line';
+        ea.href = `mailto:${_navEmail}`;
+        ea.textContent = _navEmail;
+        drawerEl.appendChild(ea);
+      }
+
       updateDrawerPadding();
     }
 
@@ -1199,17 +1226,21 @@
         </div>
         ${!isCardOnly ? `<div class="contact-card-divider"></div>` : ''}`;
       })() : '';
-      ctc.innerHTML = `
-        <div class="contact-wrap">
-          <h2 class="about-eyebrow">Get in Touch</h2>
-          ${cardHtml}
-          ${!isCardOnly ? `<form id="contact-form" onsubmit="handleContact(event)">
+      // Optional contact photo — renders side-by-side with the card on desktop
+      const photoHtml = cc.photo
+        ? `<div class="contact-photo-frame"><img src="${x(cc.photo)}" alt="${x(cc.photoAlt || '')}"></div>`
+        : '';
+      const cardWithFormHtml = `${cardHtml}${!isCardOnly ? `<form id="contact-form" onsubmit="handleContact(event)">
             <div class="contact-field"><label>Name</label><input type="text" name="name" required placeholder="Your name"></div>
             <div class="contact-field"><label>Email</label><input type="email" name="email" required placeholder="your@email.com"></div>
             <div class="contact-field"><label>Message</label><textarea name="message" required placeholder="Tell me about your project..."></textarea></div>
             <button type="submit" id="contact-submit" class="contact-submit">Send Message</button>
             <div id="contact-result" class="contact-result"></div>
-          </form>` : ''}
+          </form>` : ''}`;
+      ctc.innerHTML = `
+        <div class="contact-wrap">
+          <h2 class="about-eyebrow">Get in Touch</h2>
+          ${photoHtml ? `<div class="contact-layout">${photoHtml}<div class="contact-content">${cardWithFormHtml}</div></div>` : cardWithFormHtml}
         </div>`;
       main.appendChild(ctc);
     }

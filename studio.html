@@ -1394,6 +1394,21 @@
               </div>
               <div class="field-hint" style="margin-top:4px">Used on the contact card, email-in-nav, and mobile drawer. Leave blank to fall back to the About page email.</div>
             </div>
+            <div class="field">
+              <label>Contact Page Photo <span style="font-weight:normal;text-transform:none;letter-spacing:0;color:var(--fg-dim);font-size:11px">(optional)</span></label>
+              <div class="field-clearable">
+                <input type="url" id="contact-photo-input" placeholder="https://… or /uploads/contact.jpg" oninput="markDirty()" />
+                <button class="field-clear-btn" type="button" onclick="clearField('contact-photo-input')" title="Clear">×</button>
+              </div>
+              <div class="field-hint" style="margin-top:4px">Optional photo shown beside the contact card (side-by-side on desktop, stacked on mobile). Use a different image from About if you want — behind-the-scenes, environmental, etc.</div>
+            </div>
+            <div class="field">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:12px">
+                <input type="checkbox" id="contact-show-email-in-drawer" onchange="markDirty()" />
+                Show email under Contact in mobile menu
+              </label>
+              <div class="field-hint" style="margin-top:4px">Adds a clickable email line beneath the Contact item in the hamburger drawer. Long-press to copy. Pairs with Contact Card or Contact Form modes.</div>
+            </div>
             <div class="field" id="contact-show-card-field">
               <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
                 <input type="checkbox" id="contact-show-card" onchange="markDirty()" />
@@ -4890,7 +4905,9 @@ function populateContactEditor() {
   if (sel) sel.value = mode;
   document.getElementById('contact-endpoint').value = c.endpoint || '';
   document.getElementById('contact-email-input').value = c.email || '';
+  document.getElementById('contact-photo-input').value = c.photo || '';
   document.getElementById('contact-show-card').checked = !!c.showCard;
+  document.getElementById('contact-show-email-in-drawer').checked = !!c.showEmailInDrawer;
   updateContactMode();
 }
 
@@ -4928,6 +4945,8 @@ async function saveContactFields() {
     showCard: mode === 'form' ? (document.getElementById('contact-show-card')?.checked || false) : false,
     endpoint: document.getElementById('contact-endpoint')?.value.trim() || '',
     email:    document.getElementById('contact-email-input')?.value.trim() || '',
+    photo:    document.getElementById('contact-photo-input')?.value.trim() || '',
+    showEmailInDrawer: document.getElementById('contact-show-email-in-drawer')?.checked || false,
   };
   await saveToGitHub();
 }
@@ -5278,6 +5297,8 @@ function flushSettingsForms() {
     showCard: _cmode === 'form' ? (document.getElementById('contact-show-card')?.checked || false) : false,
     endpoint: document.getElementById('contact-endpoint')?.value.trim() || '',
     email:    document.getElementById('contact-email-input')?.value.trim() || '',
+    photo:    document.getElementById('contact-photo-input')?.value.trim() || '',
+    showEmailInDrawer: document.getElementById('contact-show-email-in-drawer')?.checked || false,
   };
 
   // Splash tab
