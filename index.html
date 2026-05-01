@@ -638,15 +638,24 @@
          nudge content toward the top, matching portrait spacing. */
       body.nav-left .about-wrap { left: 0; }
       .about-wrap { padding: 16px 44px 40px; }
-      /* Cap the about photo at 50vh in landscape so a tall portrait
-         photo doesn't dominate the viewport and push text below the
-         fold. Width auto preserves the photo's natural aspect ratio.
-         No-op for landscape-oriented photos, which are already short. */
+      /* Force side-by-side layout in landscape regardless of the explicit
+         placement choice — a tall portrait photo set to "above" otherwise
+         dominates the viewport and pushes all text below the fold. Photo
+         on the left, text to the right of it, no big white space. */
+      .about-layout {
+        flex-direction: row !important;
+        align-items: flex-start;
+        gap: 24px;
+      }
+      .about-photo-frame.shape-natural.photo-full-width {
+        width: auto !important;
+      }
       .about-photo-frame.shape-natural .about-photo-img,
-      .about-layout.placement-above .about-photo-frame.shape-natural.photo-full-width .about-photo-img {
-        max-height: 50vh;
-        width: auto;
-        max-width: 100%;
+      .about-photo-frame.shape-natural.photo-full-width .about-photo-img {
+        width: auto !important;
+        max-width: 40vw;
+        max-height: calc(100dvh - 80px);
+        height: auto;
       }
 
       /* Viewer covers the full viewport — sits above the nav (z-index 200) */
