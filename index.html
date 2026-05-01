@@ -625,11 +625,11 @@
       .nav-hamburger span { width: 25px; }
       /* Drawer inset to match gallery width */
       .nav-drawer { left: 10%; right: 10%; }
-      .nav-drawer.open { padding: 6px 16px 10px; max-height: min(180px, calc(100dvh - var(--nav-h) - 16px)); overflow-y: auto; }
+      .nav-drawer.open { padding: 6px 16px 10px; max-height: calc(100dvh - var(--nav-h) - 16px); overflow-y: auto; }
       .nav-drawer a { padding: 8px 0 8px 10px; font-size: 10px; }
       /* Allow drawer to open in landscape (desktop hides it with !important) */
       body.nav-left .nav-drawer { display: block !important; max-height: 0; overflow: hidden; left: 10%; right: 10%; }
-      body.nav-left .nav-drawer.open { max-height: min(180px, calc(100dvh - var(--nav-h) - 16px)); padding: 6px 16px 10px; overflow-y: auto; }
+      body.nav-left .nav-drawer.open { max-height: calc(100dvh - var(--nav-h) - 16px); padding: 6px 16px 10px; overflow-y: auto; }
 
       /* Grid: show masonry instead of the full-width mobile list */
       .gallery-grid { display: block !important; }
