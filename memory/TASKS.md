@@ -1,8 +1,8 @@
 # Tasks
 
 ## Mobile
+- [ ] Add client to lightbox/gallery viewer?
 - [ ] Staggered section animation — make the mobile list animation opt-in (stripped out, consider adding back as a setting or only on first load)
-- [ ] Swipe animation — add visual slide/swipe transition when navigating images on mobile (currently uses curtain fade)
 
 ## Admin UX
 - [ ] UI — commit messages?
