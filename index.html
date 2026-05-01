@@ -1829,6 +1829,39 @@
       galleryNav(dx < 0 ? 1 : -1);
     }, { passive: true });
 
+    /* ── PREVENT iOS RUBBER-BAND OVERSCROLL ──
+       iOS Safari ignores overscroll-behavior on html/body for the page-level
+       scroll. This handler intercepts touchmove at page boundaries and
+       preventDefault()s so the page doesn't bounce — eliminating the visible
+       gap above the nav after a pull-down. Inner scrollables (gallery,
+       lightbox, drawer, form fields) are excluded so they keep their native
+       scroll behavior. */
+    (function() {
+      let touchStartY = 0;
+      document.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+      }, { passive: true });
+
+      document.addEventListener('touchmove', (e) => {
+        // Allow inner scrollable contexts to behave normally
+        if (e.target.closest('.gv, .lightbox, .nav-drawer, textarea, input')) return;
+
+        const touchY = e.touches[0].clientY;
+        const scrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+        const scrollHeight = document.documentElement.scrollHeight;
+        const clientHeight = document.documentElement.clientHeight;
+
+        const atTop = scrollTop <= 0;
+        const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
+        const pullingDown = touchY > touchStartY;
+        const pullingUp = touchY < touchStartY;
+
+        if ((atTop && pullingDown) || (atBottom && pullingUp)) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+    })();
+
     /* ── KEYBOARD ── */
     document.addEventListener('keydown', e => {
       if (document.getElementById('gallery-viewer').classList.contains('open')) {
