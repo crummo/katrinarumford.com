@@ -103,6 +103,14 @@
       background-size: 180px 180px;
     }
 
+    /* Disable double-tap-to-zoom on tappable image elements. iOS Safari
+       respects user-scalable=no inconsistently for double-tap; this is
+       the reliable opt-out. Single tap, scroll, and (allowed) pinch all
+       still work. */
+    .gv-img, .gv-media, .mobile-item, .grid-item, .lb-image-wrap {
+      touch-action: manipulation;
+    }
+
     /* ── NAV ── */
     nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 200;
