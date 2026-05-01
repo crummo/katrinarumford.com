@@ -550,17 +550,8 @@
         transform: translateY(16px);
       }
       .mobile-item.in-view {
-        animation: mobileItemReveal 0.9s ease-out 0.2s forwards;
+        animation: mobileItemReveal 0.5s ease-out forwards;
       }
-      /* Stagger above-the-fold items so the cascade is visible on
-         initial load (otherwise they'd all animate simultaneously
-         in the same ~1s window and read as a single fade). */
-      .mobile-item:nth-child(1).in-view { animation-delay: 0.15s; }
-      .mobile-item:nth-child(2).in-view { animation-delay: 0.30s; }
-      .mobile-item:nth-child(3).in-view { animation-delay: 0.45s; }
-      .mobile-item:nth-child(4).in-view { animation-delay: 0.60s; }
-      .mobile-item:nth-child(5).in-view { animation-delay: 0.75s; }
-      .mobile-item:nth-child(n+6).in-view { animation-delay: 0.20s; }
       @keyframes mobileItemReveal {
         from { opacity: 0; transform: translateY(20px); }
         to   { opacity: 1; transform: translateY(0); }
