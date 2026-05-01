@@ -1114,6 +1114,9 @@
       pg.classList.add('visible');
       history.replaceState(null, '', '#' + id);
       window.scrollTo(0, 0);
+      // Path B mobile portrait: main is the scroll container, not window
+      const mainEl = document.getElementById('main-content');
+      if (mainEl) mainEl.scrollTop = 0;
 
       // update active nav
       document.querySelectorAll('#nav-links a, #nav-drawer a').forEach(a => {
