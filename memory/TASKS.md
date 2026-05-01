@@ -1,5 +1,8 @@
 # Tasks
 
+## Mobile
+- [ ] Bug: no native resolutions on scroll
+
 ## Admin UX
 - [ ] UI — commit messages?
 - [ ] UI — instead of "video" show "YouTube video", "Vimeo video", etc.
