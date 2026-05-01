@@ -1868,21 +1868,31 @@
       closeDrawer();
     }, { passive: true });
 
-    /* ── TOUCH SWIPE — gallery viewer ── */
-    // _gvTouchX is set to null whenever a second finger lands, so pinch-zoom
-    // never triggers image navigation.
-    let _gvTouchX = null;
+    /* ── TOUCH SWIPE — gallery viewer ──
+       Horizontal swipe → galleryNav(prev/next).
+       Downward swipe past threshold → closeGallery() (iOS-style dismiss).
+       _gvTouchX/Y are set to null whenever a second finger lands, so
+       pinch-zoom never triggers nav or close. */
+    let _gvTouchX = null, _gvTouchY = null;
     document.getElementById('gv-media').addEventListener('touchstart', e => {
-      if (e.touches.length > 1) { _gvTouchX = null; return; } // pinch — cancel swipe
+      if (e.touches.length > 1) { _gvTouchX = _gvTouchY = null; return; }
       _gvTouchX = e.touches[0].clientX;
+      _gvTouchY = e.touches[0].clientY;
     }, { passive: true });
     document.getElementById('gv-media').addEventListener('touchmove', e => {
-      if (e.touches.length > 1) _gvTouchX = null; // second finger joined mid-gesture
+      if (e.touches.length > 1) _gvTouchX = _gvTouchY = null;
     }, { passive: true });
     document.getElementById('gv-media').addEventListener('touchend', e => {
       if (_gvTouchX === null) return;
       const dx = e.changedTouches[0].clientX - _gvTouchX;
-      _gvTouchX = null;
+      const dy = e.changedTouches[0].clientY - _gvTouchY;
+      _gvTouchX = _gvTouchY = null;
+      // Vertical-dominant downward swipe past 60px → close
+      if (Math.abs(dy) > Math.abs(dx) && dy > 60) {
+        closeGallery();
+        return;
+      }
+      // Horizontal swipe past 40px → navigate
       if (Math.abs(dx) < 40) return;
       galleryNav(dx < 0 ? 1 : -1);
     }, { passive: true });
