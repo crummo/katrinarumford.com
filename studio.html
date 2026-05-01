@@ -1253,6 +1253,11 @@
           <div class="field">
             <label>Email</label>
             <input type="email" id="about-email-input" placeholder="you@example.com" oninput="markDirty()" />
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:12px;margin-top:8px">
+              <input type="checkbox" id="about-show-email" onchange="markDirty()" />
+              Show email on About page
+            </label>
+            <div class="field-hint" style="margin-top:4px">When unchecked, the email is hidden on the About page but still available for the contact card / nav.</div>
           </div>
           <div style="margin-bottom:16px">
             <button class="add-link" id="cv-toggle" data-closed="+ CV / Resume" data-open="− CV / Resume" onclick="toggleDisclosure('cv')">+ CV / Resume</button>
@@ -1380,6 +1385,14 @@
             <div class="field-hint" style="margin-top:6px" id="contact-mode-hint"></div>
           </div>
           <div id="contact-fields" style="display:none">
+            <div class="field">
+              <label>Card Email <span style="font-weight:normal;text-transform:none;letter-spacing:0;color:var(--fg-dim);font-size:11px">(optional)</span></label>
+              <div class="field-clearable">
+                <input type="email" id="contact-email-input" placeholder="defaults to About page email" oninput="markDirty()" />
+                <button class="field-clear-btn" type="button" onclick="clearField('contact-email-input')" title="Clear">×</button>
+              </div>
+              <div class="field-hint" style="margin-top:4px">Used on the contact card and email-in-nav. Leave blank to fall back to the About page email.</div>
+            </div>
             <div class="field" id="contact-show-card-field">
               <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
                 <input type="checkbox" id="contact-show-card" onchange="markDirty()" />
@@ -3559,6 +3572,7 @@ function populateAboutEditor() {
   document.getElementById('about-bio-input').value          = a.bio   || '';
   document.getElementById('about-bio2-input').value         = a.bio2  || '';
   document.getElementById('about-email-input').value        = a.contactEmail || '';
+  document.getElementById('about-show-email').checked       = a.showEmail !== false;
   document.getElementById('about-resume-input').value       = a.resume || '';
   const s = a.social || {};
   document.getElementById('social-imdb').value      = s.imdb      || '';
@@ -3760,6 +3774,7 @@ async function saveAboutFields() {
     bio:           document.getElementById('about-bio-input').value,
     bio2:         document.getElementById('about-bio2-input').value,
     contactEmail: document.getElementById('about-email-input').value.trim(),
+    showEmail:    document.getElementById('about-show-email').checked,
     resume:       document.getElementById('about-resume-input').value.trim(),
     social: {
       imdb:      document.getElementById('social-imdb').value.trim(),
@@ -4855,6 +4870,7 @@ function populateContactEditor() {
   const sel = document.getElementById('contact-mode-select');
   if (sel) sel.value = mode;
   document.getElementById('contact-endpoint').value = c.endpoint || '';
+  document.getElementById('contact-email-input').value = c.email || '';
   document.getElementById('contact-show-card').checked = !!c.showCard;
   updateContactMode();
 }
@@ -4890,6 +4906,7 @@ async function saveContactFields() {
     mode:     mode === 'off' ? undefined : mode,
     showCard: mode === 'form' ? (document.getElementById('contact-show-card')?.checked || false) : false,
     endpoint: document.getElementById('contact-endpoint')?.value.trim() || '',
+    email:    document.getElementById('contact-email-input')?.value.trim() || '',
   };
   await saveToGitHub();
 }
@@ -5212,6 +5229,7 @@ function flushSettingsForms() {
     bio:            document.getElementById('about-bio-input').value,
     bio2:           document.getElementById('about-bio2-input').value,
     contactEmail:   document.getElementById('about-email-input').value.trim(),
+    showEmail:      document.getElementById('about-show-email')?.checked !== false,
     resume:         document.getElementById('about-resume-input')?.value.trim() || '',
     social: {
       imdb:      document.getElementById('social-imdb')?.value.trim() || '',
@@ -5238,6 +5256,7 @@ function flushSettingsForms() {
     mode:     _cmode === 'off' ? undefined : _cmode,
     showCard: _cmode === 'form' ? (document.getElementById('contact-show-card')?.checked || false) : false,
     endpoint: document.getElementById('contact-endpoint')?.value.trim() || '',
+    email:    document.getElementById('contact-email-input')?.value.trim() || '',
   };
 
   // Splash tab

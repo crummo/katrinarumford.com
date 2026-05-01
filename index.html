@@ -1110,8 +1110,8 @@
       if (siteConfig.contact?.mode === 'email-nav' && _navEmail) {
         const li = document.createElement('li');
         const a = document.createElement('a');
-        a.href = `mailto:${siteConfig.about.contactEmail}`;
-        a.textContent = siteConfig.about.contactEmail;
+        a.href = `mailto:${_navEmail}`;
+        a.textContent = _navEmail;
         li.appendChild(a);
         document.getElementById('nav-links').appendChild(li);
       }
