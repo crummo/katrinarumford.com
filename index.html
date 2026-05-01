@@ -1421,7 +1421,13 @@
             ${isPreview ? `<button class="preview-hide-btn" onclick="event.stopPropagation();previewHideProject(${p._gi},'${x(cat)}')">×</button>` : ''}
           </div>`;
         list.appendChild(el);
-        if (mobileItemObserver) mobileItemObserver.observe(el);
+        // Only observe when splash isn't currently covering the page —
+        // otherwise the reveal animation plays invisibly under the splash.
+        // dismissSplash() picks up any items that were skipped here.
+        if (mobileItemObserver) {
+          const splashActive = !document.getElementById('splash').classList.contains('gone');
+          if (!splashActive) mobileItemObserver.observe(el);
+        }
       });
       resolveVimeoThumbs(list);
     }
@@ -1911,7 +1917,19 @@
     function dismissSplash() {
       const el = document.getElementById('splash');
       el.classList.add('fading');
-      setTimeout(() => el.classList.add('gone'), 650);
+      setTimeout(() => {
+        el.classList.add('gone');
+        // Kick off the IntersectionObserver-driven mobile-item reveal NOW
+        // that splash is out of the way. Items created during splash were
+        // intentionally not observed (otherwise their reveal animation
+        // would have played under the splash overlay and the user would
+        // never see it).
+        if (mobileItemObserver) {
+          document.querySelectorAll('.mobile-item:not(.in-view)').forEach(item => {
+            mobileItemObserver.observe(item);
+          });
+        }
+      }, 650);
     }
 
     /* ── NAV DRAWER ── */
