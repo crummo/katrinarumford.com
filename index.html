@@ -1819,9 +1819,15 @@
     }, { passive: true });
 
     /* ── TOUCH SWIPE — gallery viewer ── */
+    // _gvTouchX is set to null whenever a second finger lands, so pinch-zoom
+    // never triggers image navigation.
     let _gvTouchX = null;
     document.getElementById('gv-media').addEventListener('touchstart', e => {
+      if (e.touches.length > 1) { _gvTouchX = null; return; } // pinch — cancel swipe
       _gvTouchX = e.touches[0].clientX;
+    }, { passive: true });
+    document.getElementById('gv-media').addEventListener('touchmove', e => {
+      if (e.touches.length > 1) _gvTouchX = null; // second finger joined mid-gesture
     }, { passive: true });
     document.getElementById('gv-media').addEventListener('touchend', e => {
       if (_gvTouchX === null) return;
