@@ -479,24 +479,16 @@
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
       :root { --nav-h: 56px; --safe-top: env(safe-area-inset-top, 0px); }
-      /* Safe-area cover: pinned to absolute viewport top, painted with theme bg,
-         layered above the nav so the status-bar area always shows the theme
-         color regardless of how iOS Safari paints the nav itself. Replaces an
-         earlier nav::before with position:absolute that iOS clips to the nav. */
-      nav::before {
-        content: '';
-        position: fixed;
-        top: 0; left: 0; right: 0;
-        height: env(safe-area-inset-top, 0px);
-        background: var(--bg);
-        z-index: 201;
-        pointer-events: none;
-      }
       nav {
         position: fixed;
         padding-top: var(--safe-top);
         padding-left: 20px; padding-right: 20px;
         height: calc(var(--nav-h) + var(--safe-top));
+        /* Extend nav background 100vh upward via box-shadow. iOS Safari can
+           displace position:fixed elements during scroll, exposing a gap
+           above the nav where page content shows through. The shadow rides
+           with the nav and is plenty tall enough to cover any displacement. */
+        box-shadow: 0 -100vh 0 0 var(--bg);
       }
       main { padding-top: calc(var(--nav-h) + var(--safe-top)); }
       .nav-brand-name { font-size: 17px; }
