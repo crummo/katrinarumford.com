@@ -521,7 +521,20 @@
       .mobile-list { display: block; padding: 4px 0 32px; }
       .about-wrap { padding: 16px 22px 40px; }
       body.nav-left .about-wrap { left: 0; }
-      .mobile-item { animation: none; }
+      /* Portrait mobile reveal: each item slides up + fades in as it
+         enters the viewport (managed by IntersectionObserver in JS,
+         which adds .in-view). Replaces the cascade animation that
+         felt like loading on a phone. */
+      .mobile-item {
+        animation: none;
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity 0.32s ease-out, transform 0.32s ease-out;
+      }
+      .mobile-item.in-view {
+        opacity: 1;
+        transform: translateY(0);
+      }
       .contact-wrap { padding: 52px 22px 80px; }
       .about-layout.placement-left,
       .about-layout.placement-right { flex-direction: column; }
@@ -632,10 +645,6 @@
       /* Grid: show masonry instead of the full-width mobile list */
       .gallery-grid { display: block !important; }
       .mobile-list { display: none !important; }
-      /* No animated reveal in landscape mobile — desktop animation
-         feels like loading on a small phone screen. Items appear
-         instantly. */
-      .grid-item { animation: none !important; }
 
       /* About: cancel the desktop nav-left side-nav left-shift since
          landscape uses a top bar, not a side nav. Tighter padding to
@@ -1310,13 +1319,35 @@
       });
     });
 
+    /* IntersectionObserver-driven reveal for portrait mobile items.
+       Each .mobile-item gets .in-view added when it enters the viewport,
+       triggering the CSS transition. unobserve after first intersect so
+       animation only fires once per page load. */
+    const mobileItemObserver = ('IntersectionObserver' in window)
+      ? new IntersectionObserver(entries => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('in-view');
+              mobileItemObserver.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' })
+      : null;
+
     function reanimateMobileList(catId) {
       const list = document.getElementById('mlist-' + catId);
       if (!list) return;
       list.querySelectorAll('.mobile-item').forEach(el => {
+        // Reset cascade animation (if any, e.g. from previous category visit)
         el.style.animation = 'none';
-        void el.offsetWidth; // force reflow
+        void el.offsetWidth;
         el.style.animation = '';
+        // Reset IntersectionObserver-driven reveal so items animate in
+        // again as they're scrolled into view
+        if (mobileItemObserver) {
+          el.classList.remove('in-view');
+          mobileItemObserver.observe(el);
+        }
       });
     }
 
@@ -1349,6 +1380,7 @@
             ${isPreview ? `<button class="preview-hide-btn" onclick="event.stopPropagation();previewHideProject(${p._gi},'${x(cat)}')">×</button>` : ''}
           </div>`;
         list.appendChild(el);
+        if (mobileItemObserver) mobileItemObserver.observe(el);
       });
       resolveVimeoThumbs(list);
     }
