@@ -1,6 +1,7 @@
 # Tasks
 
 ## Admin UX
+- [ ] Fix contact card hints, behavior
 - [ ] Add appearance tab to UX
 - [ ] UI — commit messages?
 - [ ] UI — instead of "video" show "YouTube video", "Vimeo video", etc.

@@ -1376,9 +1376,10 @@
           <div class="settings-section-title">Contact</div>
           <div class="field">
             <label>Mode</label>
-            <select id="contact-mode-select" onchange="updateContactMode();markDirty()" style="margin-top:4px;width:200px">
+            <select id="contact-mode-select" onchange="updateContactMode();markDirty()" style="margin-top:4px;width:240px">
               <option value="off">Off</option>
               <option value="card-only">Contact Card</option>
+              <option value="card-mobile-only">Contact Card (Mobile Only)</option>
               <option value="form">Contact Form</option>
               <option value="email-nav">Email in Nav</option>
             </select>
@@ -1392,13 +1393,6 @@
                 <button class="field-clear-btn" type="button" onclick="clearField('contact-email-input')" title="Clear">×</button>
               </div>
               <div class="field-hint" style="margin-top:4px">Used on the contact card, email-in-nav, and mobile drawer. Leave blank to fall back to the About page email.</div>
-            </div>
-            <div class="field">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:12px">
-                <input type="checkbox" id="contact-show-in-drawer" onchange="markDirty()" />
-                Show contact in mobile menu
-              </label>
-              <div class="field-hint" style="margin-top:4px">Adds a Contact item with the email visible to the hamburger menu on phones. Tap navigates to the contact page if enabled, otherwise opens mail. Long-press the email to copy.</div>
             </div>
             <div class="field" id="contact-show-card-field">
               <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
@@ -1789,14 +1783,19 @@
       <div class="field-hint" style="margin-top:4px">YouTube or Vimeo URL</div>
     </div>
 
-    <!-- Hover preview MP4 (any project type) -->
+    <!-- Hover preview (any project type) — accepts MP4 or animated WebP/GIF -->
     <div class="field">
-      <label>Hover Preview Video <span style="font-weight:normal;text-transform:none;letter-spacing:0;color:var(--fg-dim);font-size:11px">(optional)</span></label>
+      <label>Hover Preview <span style="font-weight:normal;text-transform:none;letter-spacing:0;color:var(--fg-dim);font-size:11px">(optional)</span></label>
       <div class="field-clearable">
-        <input type="url" id="ge-hover-preview" placeholder="https://yourcdn.com/preview.mp4" />
+        <input type="url" id="ge-hover-preview" placeholder="…/preview.webp  or  …/720p.mp4" />
         <button class="field-clear-btn" type="button" onclick="clearField('ge-hover-preview')" title="Clear">×</button>
       </div>
-      <div class="field-hint" style="margin-top:4px">Direct MP4 URL (Bunny Stream, Cloudflare Stream MP4, S3, etc.). Plays muted on hover over the thumbnail · desktop only · YouTube/Vimeo URLs aren't supported here.</div>
+      <div class="field-hint" style="margin-top:4px">
+        Plays on hover over the grid thumbnail (desktop only). Two options:<br>
+        • <strong>WebP/GIF</strong> — Bunny's auto-generated <code>/preview.webp</code> is small (~100KB) and loads instantly. Recommended.<br>
+        • <strong>MP4/WebM</strong> — direct video URL (Bunny <code>/720p.mp4</code>, Cloudflare Stream MP4, S3, etc.). Higher quality, larger file.<br>
+        YouTube/Vimeo URLs aren't supported.
+      </div>
     </div>
 
     <div class="field">
@@ -4892,7 +4891,6 @@ function populateContactEditor() {
   document.getElementById('contact-endpoint').value = c.endpoint || '';
   document.getElementById('contact-email-input').value = c.email || '';
   document.getElementById('contact-show-card').checked = !!c.showCard;
-  document.getElementById('contact-show-in-drawer').checked = !!c.showInDrawer;
   updateContactMode();
 }
 
@@ -4903,14 +4901,16 @@ function updateContactMode() {
   const endpField  = document.getElementById('contact-endpoint-field');
   const hint       = document.getElementById('contact-mode-hint');
   // Show/hide sub-fields based on mode
-  if (fields)    fields.style.display    = (mode === 'form' || mode === 'card-only') ? '' : 'none';
-  if (cardField) cardField.style.display = mode === 'form' ? '' : 'none'; // card-only always shows card — no toggle needed
+  const showsFields = (mode === 'form' || mode === 'card-only' || mode === 'card-mobile-only');
+  if (fields)    fields.style.display    = showsFields ? '' : 'none';
+  if (cardField) cardField.style.display = mode === 'form' ? '' : 'none'; // card-only/mobile-only always show card — no toggle needed
   if (endpField) endpField.style.display = mode === 'form' ? '' : 'none';
   const hints = {
-    'email-nav':  'Your email address appears as a link in the nav bar. Uses the email set in About.',
-    'form':       'A contact page with a form appears in the nav.',
-    'card-only':  'A contact page with your name and email appears in the nav — no form.',
-    'off':        '',
+    'email-nav':         'Your email address appears as a link in the nav bar.',
+    'form':              'A contact page with a form appears in the nav.',
+    'card-only':         'A contact page with your name and email appears in the nav — no form.',
+    'card-mobile-only':  'On mobile, a Contact item with the email appears in the hamburger menu (long-press to copy). Hidden on desktop — no nav link, no contact page.',
+    'off':               '',
   };
   if (hint) hint.textContent = hints[mode] || '';
   // sync to siteConfig live so preview works
@@ -4928,7 +4928,6 @@ async function saveContactFields() {
     showCard: mode === 'form' ? (document.getElementById('contact-show-card')?.checked || false) : false,
     endpoint: document.getElementById('contact-endpoint')?.value.trim() || '',
     email:    document.getElementById('contact-email-input')?.value.trim() || '',
-    showInDrawer: document.getElementById('contact-show-in-drawer')?.checked || false,
   };
   await saveToGitHub();
 }
@@ -5279,7 +5278,6 @@ function flushSettingsForms() {
     showCard: _cmode === 'form' ? (document.getElementById('contact-show-card')?.checked || false) : false,
     endpoint: document.getElementById('contact-endpoint')?.value.trim() || '',
     email:    document.getElementById('contact-email-input')?.value.trim() || '',
-    showInDrawer: document.getElementById('contact-show-in-drawer')?.checked || false,
   };
 
   // Splash tab

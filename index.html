@@ -1117,9 +1117,13 @@
 
       cats.forEach(cat => addLink(cat.id, cat.label));
       if (siteConfig.about?.show !== false) addLink('about', 'About');
-      if ((siteConfig.contact?.enabled || siteConfig.contact?.mode === 'card-only') && siteConfig.contact?.mode !== 'email-nav') addLink('contact', 'Contact');
+      const _ctMode = siteConfig.contact?.mode;
+      // 'card-only' and 'form' put a Contact link in BOTH desktop nav and drawer
+      if ((siteConfig.contact?.enabled || _ctMode === 'card-only') && _ctMode !== 'email-nav') {
+        addLink('contact', 'Contact');
+      }
       const _navEmail = siteConfig.contact?.email || siteConfig.about?.contactEmail;
-      if (siteConfig.contact?.mode === 'email-nav' && _navEmail) {
+      if (_ctMode === 'email-nav' && _navEmail) {
         const li = document.createElement('li');
         const a = document.createElement('a');
         a.href = `mailto:${_navEmail}`;
@@ -1128,19 +1132,12 @@
         document.getElementById('nav-links').appendChild(li);
       }
 
-      // Mobile drawer contact item (mobile only — drawer hidden on desktop).
-      // Tap goes to contact page if one is enabled, else opens mail. Email
-      // text is visible so visitors can long-press to copy it.
-      if (siteConfig.contact?.showInDrawer && _navEmail) {
-        const goesToContactPage = siteConfig.contact?.enabled || siteConfig.contact?.mode === 'card-only';
+      // 'card-mobile-only': drawer-only Contact item with email visible.
+      // No desktop nav link, no /contact page. Tap → mailto.
+      if (_ctMode === 'card-mobile-only' && _navEmail) {
         const da = document.createElement('a');
         da.className = 'nav-drawer-contact';
-        if (goesToContactPage) {
-          da.href = '#contact';
-          da.onclick = e => { e.preventDefault(); showPage('contact'); closeDrawer(); };
-        } else {
-          da.href = `mailto:${_navEmail}`;
-        }
+        da.href = `mailto:${_navEmail}`;
         da.innerHTML = `<span>Contact</span><span class="nav-drawer-contact-email">${x(_navEmail)}</span>`;
         drawerEl.appendChild(da);
       }
@@ -1183,11 +1180,13 @@
       abt.innerHTML = '<div class="about-wrap" id="about-container"></div>';
       main.appendChild(abt);
 
-      // Contact
+      // Contact — skip rendering the page entirely for 'card-mobile-only'
+      // mode (drawer item handles it; no /contact page exists).
+      const cc = siteConfig.contact || {};
+      if (cc.mode === 'card-mobile-only') return;
       const ctc = document.createElement('section');
       ctc.id = 'page-contact';
       ctc.className = 'page';
-      const cc = siteConfig.contact || {};
       const isCardOnly = cc.mode === 'card-only';
       const showCard = isCardOnly || cc.showCard;
       const cardHtml = showCard && siteConfig.about ? (() => {
@@ -1343,8 +1342,15 @@
         el.className = 'grid-item' + (overlayClass === 'none' ? ' overlay-none' : '');
         const catDef2 = siteConfig.categories.find(c => c.id === cat);
         el.onclick = catDef2?.type === 'gallery' ? () => openGallery(cat, i) : () => openLb(cat, i);
+        // Hover preview accepts either a video file (mp4/webm) or an animated
+        // image (webp/gif) — Bunny Stream's auto-generated /preview.webp is
+        // typically the lightest and most compatible option.
+        const _hpExt = (p.hoverPreview || '').split('?')[0].split('#')[0].toLowerCase().split('.').pop();
+        const _hpIsVideo = ['mp4', 'webm', 'mov'].includes(_hpExt);
         const hoverVideoHtml = p.hoverPreview
-          ? `<video class="grid-thumb-video" muted loop playsinline preload="none" data-hover-src="${x(p.hoverPreview)}"></video>`
+          ? (_hpIsVideo
+              ? `<video class="grid-thumb-video" muted loop playsinline preload="none" data-hover-src="${x(p.hoverPreview)}"></video>`
+              : `<img class="grid-thumb-video grid-thumb-preview-img" alt="" data-hover-src="${x(p.hoverPreview)}">`)
           : '';
         el.innerHTML = `
           ${hideBtn}${draftBadge}
@@ -1358,25 +1364,32 @@
             ${p.award ? `<div class="grid-award">${x(p.award)}</div>` : ''}
           </div>`;
         // Hover-to-play handler — only on devices that actually hover (skip
-        // touch). Lazy-loads the video src on first hover so we don't
-        // download every preview MP4 on page load.
+        // touch). Lazy-loads the preview src on first hover so nothing is
+        // fetched until needed. Handles both <video> (mp4/webm) and <img>
+        // (animated webp/gif) preview elements.
         if (p.hoverPreview && matchMedia('(hover: hover)').matches) {
-          const v = el.querySelector('.grid-thumb-video');
+          const media = el.querySelector('.grid-thumb-video');
           el.addEventListener('mouseenter', () => {
-            if (!v) return;
-            if (!v.src) v.src = v.dataset.hoverSrc;
-            const playPromise = v.play();
-            if (playPromise && playPromise.then) {
-              playPromise.then(() => v.classList.add('ready')).catch(() => {});
+            if (!media) return;
+            if (!media.src) media.src = media.dataset.hoverSrc;
+            if (media.tagName === 'VIDEO') {
+              const playPromise = media.play();
+              if (playPromise && playPromise.then) {
+                playPromise.then(() => media.classList.add('ready')).catch(() => {});
+              } else {
+                media.classList.add('ready');
+              }
             } else {
-              v.classList.add('ready');
+              media.classList.add('ready');
             }
           });
           el.addEventListener('mouseleave', () => {
-            if (!v) return;
-            v.classList.remove('ready');
-            v.pause();
-            v.currentTime = 0;
+            if (!media) return;
+            media.classList.remove('ready');
+            if (media.tagName === 'VIDEO') {
+              media.pause();
+              media.currentTime = 0;
+            }
           });
         }
         grid.appendChild(el);
