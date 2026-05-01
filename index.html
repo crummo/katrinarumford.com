@@ -564,7 +564,25 @@
       .about-eyebrow { font-size: 8px; letter-spacing: 0.28em; margin-bottom: 28px; }
       .about-bio { font-size: 19px; line-height: 1.7; }
       .about-bio2 { font-size: 15px; line-height: 1.75; }
-      .about-contact-line { font-size: 13px; }
+      /* Mobile: surface email as a prominent CTA — Katrina's primary
+         contact path with no contact form to back it up. */
+      .about-contact-line {
+        font-size: 14px;
+        font-style: normal;
+        color: var(--fg);
+        margin-top: 28px;
+        margin-bottom: 40px;
+        line-height: 1.6;
+      }
+      .about-contact-line a {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 10px 18px;
+        border: 1px solid var(--accent);
+        border-radius: 4px;
+        font-size: 14px;
+        letter-spacing: 0.02em;
+      }
       .about-col-list li { font-size: 14px; line-height: 2.1; }
       .lb-inner { padding: 0 12px; }
       .lb-meta { flex-direction: column; gap: 18px; margin-top: 16px; }
@@ -672,6 +690,7 @@
          nudge content toward the top, matching portrait spacing. */
       body.nav-left .about-wrap { left: 0; }
       .about-wrap { padding: 16px 44px 12px; }
+      .contact-wrap { padding: 16px 44px 24px; }
       /* Tight eyebrow gap in landscape — was 36px which created a big
          band above the photo/text block. Pulls block up toward heading. */
       .about-eyebrow { margin-bottom: 8px; }
@@ -1087,7 +1106,8 @@
       cats.forEach(cat => addLink(cat.id, cat.label));
       if (siteConfig.about?.show !== false) addLink('about', 'About');
       if ((siteConfig.contact?.enabled || siteConfig.contact?.mode === 'card-only') && siteConfig.contact?.mode !== 'email-nav') addLink('contact', 'Contact');
-      if (siteConfig.contact?.mode === 'email-nav' && siteConfig.about?.contactEmail) {
+      const _navEmail = siteConfig.contact?.email || siteConfig.about?.contactEmail;
+      if (siteConfig.contact?.mode === 'email-nav' && _navEmail) {
         const li = document.createElement('li');
         const a = document.createElement('a');
         a.href = `mailto:${siteConfig.about.contactEmail}`;
@@ -1142,7 +1162,8 @@
       const showCard = isCardOnly || cc.showCard;
       const cardHtml = showCard && siteConfig.about ? (() => {
         const name  = siteConfig.ownerName || '';
-        const email = siteConfig.about.contactEmail || '';
+        // Prefer contact-card override email; fall back to About page email
+        const email = (siteConfig.contact?.email || siteConfig.about.contactEmail || '');
         return `<div class="contact-card">
           ${name  ? `<div class="contact-card-name">${x(name)}</div>` : ''}
           ${email ? `<a class="contact-card-email" href="mailto:${x(email)}">${x(email)}</a>` : ''}
@@ -1499,7 +1520,7 @@
           <div class="about-content">
             ${a.bio  ? `<div class="about-bio">${a.bio}</div>`   : ''}
             ${a.bio2 ? `<div class="about-bio2">${a.bio2}</div>` : ''}
-            ${a.contactEmail ? `<div class="about-contact-line">Reach me at <a href="mailto:${x(a.contactEmail)}">${x(a.contactEmail)}</a></div>` : ''}
+            ${a.contactEmail && a.showEmail !== false ? `<div class="about-contact-line">Reach me at <a href="mailto:${x(a.contactEmail)}">${x(a.contactEmail)}</a></div>` : ''}
             ${resumeLink}
           </div>
         </div>
