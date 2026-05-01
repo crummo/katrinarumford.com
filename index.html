@@ -544,18 +544,10 @@
          a transition so it always fires reliably — transitions can be
          skipped by the browser when initial style and class-change
          happen in the same paint frame. */
-      .mobile-item {
-        animation: none;
-        opacity: 0;
-        transform: translateY(16px);
-      }
-      .mobile-item.in-view {
-        animation: mobileItemReveal 0.5s ease-out forwards;
-      }
-      @keyframes mobileItemReveal {
-        from { opacity: 0; transform: translateY(20px); }
-        to   { opacity: 1; transform: translateY(0); }
-      }
+      /* Reveal animation removed — items appear immediately on portrait
+         mobile. The base gridIn cascade is also disabled so items don't
+         scale/fade in. */
+      .mobile-item { animation: none; }
       /* Project info under the image in portrait gallery viewer.
          Larger top padding pushes the text block down so it sits
          closer to the prev/next/counter bar at the bottom, balancing
@@ -1355,42 +1347,10 @@
       });
     });
 
-    /* IntersectionObserver-driven reveal for portrait mobile items.
-       Each .mobile-item gets .in-view added when it enters the viewport,
-       triggering the CSS transition. unobserve after first intersect so
-       animation only fires once per page load. */
-    const mobileItemObserver = ('IntersectionObserver' in window)
-      ? new IntersectionObserver(entries => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              // rAF defers the class-add by one frame so the browser
-              // paints the initial (opacity:0, translateY) state first.
-              // Without this, items already in the viewport on load
-              // get the class in the same frame as their initial style
-              // and the browser short-circuits the transition.
-              requestAnimationFrame(() => entry.target.classList.add('in-view'));
-              mobileItemObserver.unobserve(entry.target);
-            }
-          });
-        }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' })
-      : null;
-
-    function reanimateMobileList(catId) {
-      const list = document.getElementById('mlist-' + catId);
-      if (!list) return;
-      list.querySelectorAll('.mobile-item').forEach(el => {
-        // Reset cascade animation (if any, e.g. from previous category visit)
-        el.style.animation = 'none';
-        void el.offsetWidth;
-        el.style.animation = '';
-        // Reset IntersectionObserver-driven reveal so items animate in
-        // again as they're scrolled into view
-        if (mobileItemObserver) {
-          el.classList.remove('in-view');
-          mobileItemObserver.observe(el);
-        }
-      });
-    }
+    /* Reveal animation removed for portrait mobile — items just appear.
+       reanimateMobileList is now a no-op stub kept so call sites don't
+       need to be touched. */
+    function reanimateMobileList(_catId) {}
 
     function buildMobileList(cat, items) {
       const list = document.getElementById('mlist-' + cat);
@@ -1421,13 +1381,6 @@
             ${isPreview ? `<button class="preview-hide-btn" onclick="event.stopPropagation();previewHideProject(${p._gi},'${x(cat)}')">×</button>` : ''}
           </div>`;
         list.appendChild(el);
-        // Only observe when splash isn't currently covering the page —
-        // otherwise the reveal animation plays invisibly under the splash.
-        // dismissSplash() picks up any items that were skipped here.
-        if (mobileItemObserver) {
-          const splashActive = !document.getElementById('splash').classList.contains('gone');
-          if (!splashActive) mobileItemObserver.observe(el);
-        }
       });
       resolveVimeoThumbs(list);
     }
@@ -1917,19 +1870,7 @@
     function dismissSplash() {
       const el = document.getElementById('splash');
       el.classList.add('fading');
-      setTimeout(() => {
-        el.classList.add('gone');
-        // Kick off the IntersectionObserver-driven mobile-item reveal NOW
-        // that splash is out of the way. Items created during splash were
-        // intentionally not observed (otherwise their reveal animation
-        // would have played under the splash overlay and the user would
-        // never see it).
-        if (mobileItemObserver) {
-          document.querySelectorAll('.mobile-item:not(.in-view)').forEach(item => {
-            mobileItemObserver.observe(item);
-          });
-        }
-      }, 650);
+      setTimeout(() => el.classList.add('gone'), 650);
     }
 
     /* ── NAV DRAWER ── */
