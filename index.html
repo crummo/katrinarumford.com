@@ -638,6 +638,16 @@
          nudge content toward the top, matching portrait spacing. */
       body.nav-left .about-wrap { left: 0; }
       .about-wrap { padding: 16px 44px 40px; }
+      /* Cap the about photo at 50vh in landscape so a tall portrait
+         photo doesn't dominate the viewport and push text below the
+         fold. Width auto preserves the photo's natural aspect ratio.
+         No-op for landscape-oriented photos, which are already short. */
+      .about-photo-frame.shape-natural .about-photo-img,
+      .about-layout.placement-above .about-photo-frame.shape-natural.photo-full-width .about-photo-img {
+        max-height: 50vh;
+        width: auto;
+        max-width: 100%;
+      }
 
       /* Viewer covers the full viewport — sits above the nav (z-index 200) */
       .gv.open {
