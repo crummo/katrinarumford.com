@@ -637,7 +637,7 @@
          landscape uses a top bar, not a side nav. Tighter padding to
          nudge content toward the top, matching portrait spacing. */
       body.nav-left .about-wrap { left: 0; }
-      .about-wrap { padding: 16px 44px 24px; }
+      .about-wrap { padding: 16px 44px 12px; }
       /* Tight eyebrow gap in landscape — was 36px which created a big
          band above the photo/text block. Pulls block up toward heading. */
       .about-eyebrow { margin-bottom: 8px; }
@@ -657,10 +657,10 @@
       .about-photo-frame.shape-natural.photo-full-width .about-photo-img {
         width: auto !important;
         max-width: 40vw;
-        /* Vertical cap accounts for nav, about padding, eyebrow + its
-           margin, and ~16px of breathing room below the photo so it
-           doesn't look clipped at the viewport bottom. */
-        max-height: calc(100dvh - 140px);
+        /* Use svh (smallest viewport height) instead of dvh so the photo
+           stays the same size when iOS Safari's URL bar collapses on
+           scroll — sized once for URL-bar-visible state and stays put. */
+        max-height: calc(100svh - 120px);
         height: auto;
       }
 
