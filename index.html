@@ -637,7 +637,10 @@
          landscape uses a top bar, not a side nav. Tighter padding to
          nudge content toward the top, matching portrait spacing. */
       body.nav-left .about-wrap { left: 0; }
-      .about-wrap { padding: 16px 44px 40px; }
+      .about-wrap { padding: 16px 44px 24px; }
+      /* Tight eyebrow gap in landscape — was 36px which created a big
+         band above the photo/text block. Pulls block up toward heading. */
+      .about-eyebrow { margin-bottom: 8px; }
       /* Force side-by-side layout in landscape regardless of the explicit
          placement choice — a tall portrait photo set to "above" otherwise
          dominates the viewport and pushes all text below the fold. Photo
@@ -654,10 +657,10 @@
       .about-photo-frame.shape-natural.photo-full-width .about-photo-img {
         width: auto !important;
         max-width: 40vw;
-        /* Tight vertical cap: 60% of viewport, also clamped to fit
-           within the available area (after nav + about padding).
-           Ensures the whole photo shows without scrolling. */
-        max-height: min(60vh, calc(100dvh - 100px));
+        /* Vertical cap accounts for nav, about padding, eyebrow + its
+           margin, and ~16px of breathing room below the photo so it
+           doesn't look clipped at the viewport bottom. */
+        max-height: calc(100dvh - 140px);
         height: auto;
       }
 
