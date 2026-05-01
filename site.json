@@ -31,28 +31,28 @@
     {
       "id": "test",
       "label": "Test Lightbox masonry",
-      "published": true,
+      "published": false,
       "layout": "masonry",
       "type": "lightbox"
     },
     {
       "id": "333",
       "label": "Lightbox masonry",
-      "published": true,
+      "published": false,
       "layout": "grid",
       "type": "lightbox"
     },
     {
       "id": "test-gallery",
       "label": "test gallery Masonry",
-      "published": true,
+      "published": false,
       "layout": "masonry",
       "type": "gallery"
     },
     {
       "id": "231",
       "label": "gallery grid",
-      "published": true,
+      "published": false,
       "layout": "grid",
       "type": "gallery"
     },
