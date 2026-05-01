@@ -484,26 +484,32 @@
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
       :root { --nav-h: 56px; --safe-top: env(safe-area-inset-top, 0px); }
+      /* Path B: body becomes a non-scrolling fixed viewport container, main
+         is the scroll container. This sidesteps the iOS Safari bug where
+         scrolled body content gets composited above position:fixed elements
+         during scroll regardless of z-index, GPU hints, or sticky tricks.
+         With body not scrolling, nav has no scroll-layer to compete with. */
+      body {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        overflow: hidden;
+      }
+      main, body.nav-left main {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
+        padding-top: calc(var(--nav-h) + var(--safe-top));
+      }
       nav {
-        /* Use sticky instead of fixed: avoids the iOS Safari bug where
-           scrolled content gets composited above position:fixed elements,
-           which the previous box-shadow / pseudo / GPU-layer fixes couldn't
-           defeat. Sticky stays in document flow and scrolls with the body's
-           own scroll layer, so there's no layer-ordering conflict. */
-        position: -webkit-sticky;
-        position: sticky;
+        position: fixed;
         top: 0;
         padding-top: var(--safe-top);
         padding-left: 20px; padding-right: 20px;
         height: calc(var(--nav-h) + var(--safe-top));
-        /* Belt-and-suspenders: extend nav bg 100vh upward in case any
-           overscroll briefly pulls the nav down past viewport top. */
         box-shadow: 0 -100vh 0 0 var(--bg);
       }
-      /* Sticky nav is in document flow, so main no longer needs padding-top
-         to clear it — the nav's own height pushes main down naturally. */
-      main { padding-top: 0; }
-      body.nav-left main { padding-top: 0; }
       .nav-brand-name { font-size: 17px; }
       .nav-brand-rule, .nav-brand-title { display: none; }
       .nav-links { display: none; }
@@ -1859,8 +1865,10 @@
       }, { passive: true });
 
       document.addEventListener('touchmove', (e) => {
-        // Allow inner scrollable contexts to behave normally
-        if (e.target.closest('.gv, .lightbox, .nav-drawer, textarea, input')) return;
+        // Allow inner scrollable contexts to behave normally — main is the
+        // scroll container on mobile portrait (Path B), so it must be excluded
+        // or rubber-band-prevention would block legitimate scrolling.
+        if (e.target.closest('main, .gv, .lightbox, .nav-drawer, textarea, input')) return;
 
         const touchY = e.touches[0].clientY;
         const scrollTop = window.scrollY || document.documentElement.scrollTop || 0;
