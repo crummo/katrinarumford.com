@@ -140,11 +140,12 @@
   },
   "contact": {
     "enabled": false,
-    "mode": "card-only",
+    "mode": "card-mobile-only",
     "showCard": false,
     "endpoint": "",
     "email": "",
-    "showInDrawer": false
+    "photo": "",
+    "showEmailInDrawer": true
   },
   "splash": {
     "enabled": false,
