@@ -42,7 +42,7 @@
     "id": 2004,
     "category": "motion",
     "title": "Lyft - What Is Ridesharing?",
-    "client": "Directors: Sing-Sing",
+    "client": "Director: Sing-Sing",
     "thumbnail": "thumbs/kr-motion-2004.webp",
     "url": "https://vimeo.com/274170445",
     "award": "",
@@ -79,7 +79,7 @@
     "id": 2007,
     "category": "motion",
     "title": "BASKIN ROBBINS - Scoops and Cakes GOT ME LIKE",
-    "client": "Directors: Georgia Tribuiani and Trevor Conrad",
+    "client": "Director: Georgia Tribuiani and Trevor Conrad",
     "thumbnail": "thumbs/kr-motion-2007.webp",
     "url": "https://www.youtube.com/watch?v=Ys8wmYBiEFc",
     "award": "",
@@ -238,7 +238,7 @@
     "id": 2020,
     "category": "motion",
     "title": "Nicolas Godin - Orca",
-    "client": "Director: Sing Sing",
+    "client": "Director: Sing-Sing",
     "thumbnail": "thumbs/kr-motion-2020.webp",
     "url": "https://vimeo.com/129247701",
     "award": "",
@@ -511,45 +511,49 @@
     "id": 1777384600019,
     "category": "kids",
     "title": "Fruit of the Loom",
-    "client": "Fruit of the Loom / Photo: Sing Sing",
+    "client": "Fruit of the Loom",
     "url": "gallery/kids/SCHOOL_AKIRA_2002-v4.webp",
     "thumbnail": "gallery/kids/SCHOOL_AKIRA_2002-v4.webp",
     "published": true,
     "overlay": "none",
-    "vignette": 0
+    "vignette": 0,
+    "photographer": "Photography: Sing-Sing"
   },
   {
     "id": 1777384600018,
     "category": "kids",
     "title": "Fruit of the Loom",
-    "client": "Fruit of the Loom / Photo: Sing Sing",
+    "client": "Fruit of the Loom",
     "url": "gallery/kids/SCHOOL_AKIRA_2375-v3.webp",
     "thumbnail": "gallery/kids/SCHOOL_AKIRA_2375-v3.webp",
     "published": true,
     "overlay": "none",
-    "vignette": 0
+    "vignette": 0,
+    "photographer": "Photography: Sing-Sing"
   },
   {
     "id": 1777384600020,
     "category": "kids",
     "title": "Fruit of the Loom",
-    "client": "Fruit of the Loom / Photo: Sing Sing",
+    "client": "Fruit of the Loom",
     "url": "gallery/kids/SCHOOL_EZRA_1546-v4.webp",
     "thumbnail": "gallery/kids/SCHOOL_EZRA_1546-v4.webp",
     "published": true,
     "overlay": "none",
-    "vignette": 0
+    "vignette": 0,
+    "photographer": "Photography: Sing-Sing"
   },
   {
     "id": 1777384600021,
     "category": "kids",
     "title": "Fruit of the Loom",
-    "client": "Fruit of the Loom / Photo: Sing Sing",
+    "client": "Fruit of the Loom",
     "url": "gallery/kids/SCHOOL_EZRA+AKIRA_2643-comp-v5.webp",
     "thumbnail": "gallery/kids/SCHOOL_EZRA+AKIRA_2643-comp-v5.webp",
     "published": true,
     "overlay": "none",
-    "vignette": 0
+    "vignette": 0,
+    "photographer": "Photography: Sing-Sing"
   },
   {
     "id": 1777384600031,
@@ -687,12 +691,13 @@
     "id": 1777384600008,
     "category": "kids",
     "title": "She Plays We Win",
-    "client": "She Plays We Win / Photo: Christin Rose",
+    "client": "She Plays We Win",
     "url": "gallery/kids/leagueoftheirown-0636.webp",
     "thumbnail": "gallery/kids/leagueoftheirown-0636.webp",
     "published": true,
     "overlay": "none",
-    "vignette": 0
+    "vignette": 0,
+    "photographer": "Photo: Christin Rose"
   },
   {
     "id": 1777384600032,
@@ -709,111 +714,121 @@
     "id": 1777384600011,
     "category": "kids",
     "title": "She Plays We Win",
-    "client": "She Plays We Win / Photo: Christin Rose",
+    "client": "She Plays We Win",
     "url": "gallery/kids/leagueoftheirown-0981.webp",
     "thumbnail": "gallery/kids/leagueoftheirown-0981.webp",
     "published": true,
     "overlay": "none",
-    "vignette": 0
+    "vignette": 0,
+    "photographer": "Photo: Christin Rose"
   },
   {
     "id": 1777384600014,
     "category": "kids",
     "title": "She Plays We Win",
-    "client": "She Plays We Win / Photo: Christin Rose",
+    "client": "She Plays We Win",
     "url": "gallery/kids/leagueoftheirown-1704.webp",
     "thumbnail": "gallery/kids/leagueoftheirown-1704.webp",
     "published": true,
     "overlay": "none",
-    "vignette": 0
+    "vignette": 0,
+    "photographer": "Photo: Christin Rose"
   },
   {
     "id": 1777384600007,
     "category": "kids",
     "title": "She Plays We Win",
-    "client": "She Plays We Win / Photo: Christin Rose",
+    "client": "She Plays We Win",
     "url": "gallery/kids/leagueoftheirown-0435.webp",
     "thumbnail": "gallery/kids/leagueoftheirown-0435.webp",
     "published": true,
     "overlay": "none",
-    "vignette": 0
+    "vignette": 0,
+    "photographer": "Photo: Christin Rose"
   },
   {
     "id": 1777384600012,
     "category": "kids",
     "title": "She Plays We Win",
-    "client": "She Plays We Win / Photo: Christin Rose",
+    "client": "She Plays We Win",
     "url": "gallery/kids/leagueoftheirown-1294.webp",
     "thumbnail": "gallery/kids/leagueoftheirown-1294.webp",
     "published": true,
     "overlay": "none",
-    "vignette": 0
+    "vignette": 0,
+    "photographer": "Photo: Christin Rose"
   },
   {
     "id": 1777384600010,
     "category": "kids",
     "title": "She Plays We Win",
-    "client": "She Plays We Win / Photo: Christin Rose",
+    "client": "She Plays We Win",
     "url": "gallery/kids/leagueoftheirown-0959-2.webp",
     "thumbnail": "gallery/kids/leagueoftheirown-0959-2.webp",
     "published": true,
     "overlay": "none",
-    "vignette": 0
+    "vignette": 0,
+    "photographer": "Photo: Christin Rose"
   },
   {
     "id": 1777384600017,
     "category": "kids",
     "title": "She Plays We Win",
-    "client": "She Plays We Win / Photo: Christin Rose",
+    "client": "She Plays We Win",
     "url": "gallery/kids/leagueoftheirown-2404.webp",
     "thumbnail": "gallery/kids/leagueoftheirown-2404.webp",
     "published": true,
     "overlay": "none",
-    "vignette": 0
+    "vignette": 0,
+    "photographer": "Photo: Christin Rose"
   },
   {
     "id": 1777384600015,
     "category": "kids",
     "title": "She Plays We Win",
-    "client": "She Plays We Win / Photo: Christin Rose",
+    "client": "She Plays We Win",
     "url": "gallery/kids/leagueoftheirown-1704-2.webp",
     "thumbnail": "gallery/kids/leagueoftheirown-1704-2.webp",
     "published": true,
     "overlay": "none",
-    "vignette": 0
+    "vignette": 0,
+    "photographer": "Photo: Christin Rose"
   },
   {
     "id": 1777384600013,
     "category": "kids",
     "title": "She Plays We Win",
-    "client": "She Plays We Win / Photo: Christin Rose",
+    "client": "She Plays We Win",
     "url": "gallery/kids/leagueoftheirown-1309.webp",
     "thumbnail": "gallery/kids/leagueoftheirown-1309.webp",
     "published": true,
     "overlay": "none",
-    "vignette": 0
+    "vignette": 0,
+    "photographer": "Photo: Christin Rose"
   },
   {
     "id": 1777384600016,
     "category": "kids",
     "title": "She Plays We Win",
-    "client": "She Plays We Win / Photo: Christin Rose",
+    "client": "She Plays We Win",
     "url": "gallery/kids/leagueoftheirown-2353.webp",
     "thumbnail": "gallery/kids/leagueoftheirown-2353.webp",
     "published": true,
     "overlay": "none",
-    "vignette": 0
+    "vignette": 0,
+    "photographer": "Photo: Christin Rose"
   },
   {
     "id": 1777384600009,
     "category": "kids",
     "title": "She Plays We Win",
-    "client": "She Plays We Win / Photo: Christin Rose",
+    "client": "She Plays We Win",
     "url": "gallery/kids/leagueoftheirown-0864.webp",
     "thumbnail": "gallery/kids/leagueoftheirown-0864.webp",
     "published": true,
     "overlay": "none",
-    "vignette": 0
+    "vignette": 0,
+    "photographer": "Photo: Christin Rose"
   },
   {
     "id": 1777384600045,
