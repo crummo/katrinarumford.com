@@ -235,6 +235,14 @@
 
     .grid-thumb { width: 100%; height: auto; display: block; transition: transform 0.65s var(--ease), filter 0.65s var(--ease); filter: var(--thumb-filter, none); }
     .grid-item:hover .grid-thumb { transform: scale(1.04); filter: saturate(0.55) brightness(0.28); }
+    /* Hover-to-play video overlay — only attached when project has hoverPreview.
+       Sits on top of the image thumbnail at the same dimensions; fades in once
+       playback is ready. Hidden on touch devices via :hover not matching. */
+    .grid-thumb-video {
+      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+      opacity: 0; transition: opacity 0.4s var(--ease); pointer-events: none; z-index: 2;
+    }
+    .grid-item:hover .grid-thumb-video.ready { opacity: 1; }
 
     .grid-scrim { position: absolute; inset: 0; pointer-events: none; opacity: 1; transition: opacity 0.4s var(--ease); }
     .grid-item:hover .grid-scrim { opacity: 0; }
@@ -1335,9 +1343,13 @@
         el.className = 'grid-item' + (overlayClass === 'none' ? ' overlay-none' : '');
         const catDef2 = siteConfig.categories.find(c => c.id === cat);
         el.onclick = catDef2?.type === 'gallery' ? () => openGallery(cat, i) : () => openLb(cat, i);
+        const hoverVideoHtml = p.hoverPreview
+          ? `<video class="grid-thumb-video" muted loop playsinline preload="none" data-hover-src="${x(p.hoverPreview)}"></video>`
+          : '';
         el.innerHTML = `
           ${hideBtn}${draftBadge}
           ${thumbHtml}
+          ${hoverVideoHtml}
           <div class="grid-scrim" style="background:radial-gradient(circle,rgba(19,17,16,${p.vignette ?? 0.35}) 0%,transparent 70%)"></div>
           <div class="grid-center overlay-${x(overlayClass)}${!p.client ? ' solo' : ''}">
             ${p.client ? `<div class="grid-client">${x(p.client)}</div>` : ''}
@@ -1345,6 +1357,28 @@
             <div class="grid-play"></div>
             ${p.award ? `<div class="grid-award">${x(p.award)}</div>` : ''}
           </div>`;
+        // Hover-to-play handler — only on devices that actually hover (skip
+        // touch). Lazy-loads the video src on first hover so we don't
+        // download every preview MP4 on page load.
+        if (p.hoverPreview && matchMedia('(hover: hover)').matches) {
+          const v = el.querySelector('.grid-thumb-video');
+          el.addEventListener('mouseenter', () => {
+            if (!v) return;
+            if (!v.src) v.src = v.dataset.hoverSrc;
+            const playPromise = v.play();
+            if (playPromise && playPromise.then) {
+              playPromise.then(() => v.classList.add('ready')).catch(() => {});
+            } else {
+              v.classList.add('ready');
+            }
+          });
+          el.addEventListener('mouseleave', () => {
+            if (!v) return;
+            v.classList.remove('ready');
+            v.pause();
+            v.currentTime = 0;
+          });
+        }
         grid.appendChild(el);
       });
       resolveVimeoThumbs(grid);

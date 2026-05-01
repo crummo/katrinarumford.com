@@ -1789,6 +1789,16 @@
       <div class="field-hint" style="margin-top:4px">YouTube or Vimeo URL</div>
     </div>
 
+    <!-- Hover preview MP4 (any project type) -->
+    <div class="field">
+      <label>Hover Preview Video <span style="font-weight:normal;text-transform:none;letter-spacing:0;color:var(--fg-dim);font-size:11px">(optional)</span></label>
+      <div class="field-clearable">
+        <input type="url" id="ge-hover-preview" placeholder="https://yourcdn.com/preview.mp4" />
+        <button class="field-clear-btn" type="button" onclick="clearField('ge-hover-preview')" title="Clear">×</button>
+      </div>
+      <div class="field-hint" style="margin-top:4px">Direct MP4 URL (Bunny Stream, Cloudflare Stream MP4, S3, etc.). Plays muted on hover over the thumbnail · desktop only · YouTube/Vimeo URLs aren't supported here.</div>
+    </div>
+
     <div class="field">
       <label>Title <span style="color:var(--fg-dim);font-size:9px;text-transform:none;letter-spacing:0">(optional)</span></label>
       <input type="text" id="ge-title" placeholder="e.g. Editorial shoot, Spring 2024" />
@@ -2767,6 +2777,7 @@ function openGalleryEdit(globalIdx) {
   document.getElementById('ge-video-field').style.display = isVid ? '' : 'none';
   document.getElementById('ge-thumb-field').style.display = isVid ? '' : 'none';
   document.getElementById('ge-video-url').value  = isVid ? (p.url || '') : '';
+  document.getElementById('ge-hover-preview').value = p.hoverPreview || '';
   document.getElementById('ge-title').value      = p.title  || '';
   document.getElementById('ge-client').value     = p.client || '';
   document.getElementById('ge-published').checked = p.published !== false;
@@ -2808,6 +2819,8 @@ async function saveGalleryEdit() {
   p.published   = document.getElementById('ge-published').checked;
   const thumb   = document.getElementById('ge-thumbnail').value.trim();
   if (thumb) p.thumbnail = thumb; else delete p.thumbnail;
+  const hoverPrev = document.getElementById('ge-hover-preview').value.trim();
+  if (hoverPrev) p.hoverPreview = hoverPrev; else delete p.hoverPreview;
   const award   = document.getElementById('ge-award').value.trim();
   if (award) p.award = award; else delete p.award;
   const desc    = document.getElementById('ge-description').value.trim();
