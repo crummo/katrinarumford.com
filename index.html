@@ -92,8 +92,8 @@
       --gv-bg: #131110; --gv-fg: #ede8e0; --gv-fg-dim: #5a5248; --gv-fg-dimmer: #2a2623; --gv-bg2: #1c1917;
     }
 
-    html { background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-weight: 300; -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-    body { min-height: 100vh; background: var(--bg); }
+    html { background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-weight: 300; -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overscroll-behavior-y: none; }
+    body { min-height: 100vh; background: var(--bg); overscroll-behavior-y: none; }
 
     /* film grain */
     body::before {
@@ -479,10 +479,18 @@
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
       :root { --nav-h: 56px; --safe-top: env(safe-area-inset-top, 0px); }
-      /* Extend nav background upward so rubber-band overscroll shows theme color, not content */
+      /* Safe-area cover: pinned to absolute viewport top, painted with theme bg,
+         layered above the nav so the status-bar area always shows the theme
+         color regardless of how iOS Safari paints the nav itself. Replaces an
+         earlier nav::before with position:absolute that iOS clips to the nav. */
       nav::before {
-        content: ''; position: absolute; bottom: 100%; left: 0; right: 0;
-        height: 100vh; background: var(--bg);
+        content: '';
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: env(safe-area-inset-top, 0px);
+        background: var(--bg);
+        z-index: 201;
+        pointer-events: none;
       }
       nav {
         position: fixed;
