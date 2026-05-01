@@ -519,7 +519,7 @@
       .nav-hamburger { display: flex; }
       .gallery-grid { display: none !important; }
       .mobile-list { display: block; padding: 4px 0 32px; }
-      .about-wrap { padding: 52px 22px 80px; }
+      .about-wrap { padding: 16px 22px 40px; }
       body.nav-left .about-wrap { left: 0; }
       .mobile-item { animation: none; }
       .contact-wrap { padding: 52px 22px 80px; }
@@ -634,8 +634,10 @@
       .mobile-list { display: none !important; }
 
       /* About: cancel the desktop nav-left side-nav left-shift since
-         landscape uses a top bar, not a side nav */
+         landscape uses a top bar, not a side nav. Tighter padding to
+         nudge content toward the top, matching portrait spacing. */
       body.nav-left .about-wrap { left: 0; }
+      .about-wrap { padding: 16px 44px 40px; }
 
       /* Viewer covers the full viewport — sits above the nav (z-index 200) */
       .gv.open {
