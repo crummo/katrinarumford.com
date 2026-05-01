@@ -1391,7 +1391,14 @@
                 <input type="email" id="contact-email-input" placeholder="defaults to About page email" oninput="markDirty()" />
                 <button class="field-clear-btn" type="button" onclick="clearField('contact-email-input')" title="Clear">×</button>
               </div>
-              <div class="field-hint" style="margin-top:4px">Used on the contact card and email-in-nav. Leave blank to fall back to the About page email.</div>
+              <div class="field-hint" style="margin-top:4px">Used on the contact card, email-in-nav, and mobile drawer. Leave blank to fall back to the About page email.</div>
+            </div>
+            <div class="field">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:12px">
+                <input type="checkbox" id="contact-show-in-drawer" onchange="markDirty()" />
+                Show contact in mobile menu
+              </label>
+              <div class="field-hint" style="margin-top:4px">Adds a Contact item with the email visible to the hamburger menu on phones. Tap navigates to the contact page if enabled, otherwise opens mail. Long-press the email to copy.</div>
             </div>
             <div class="field" id="contact-show-card-field">
               <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
@@ -4872,6 +4879,7 @@ function populateContactEditor() {
   document.getElementById('contact-endpoint').value = c.endpoint || '';
   document.getElementById('contact-email-input').value = c.email || '';
   document.getElementById('contact-show-card').checked = !!c.showCard;
+  document.getElementById('contact-show-in-drawer').checked = !!c.showInDrawer;
   updateContactMode();
 }
 
@@ -4907,6 +4915,7 @@ async function saveContactFields() {
     showCard: mode === 'form' ? (document.getElementById('contact-show-card')?.checked || false) : false,
     endpoint: document.getElementById('contact-endpoint')?.value.trim() || '',
     email:    document.getElementById('contact-email-input')?.value.trim() || '',
+    showInDrawer: document.getElementById('contact-show-in-drawer')?.checked || false,
   };
   await saveToGitHub();
 }
@@ -5257,6 +5266,7 @@ function flushSettingsForms() {
     showCard: _cmode === 'form' ? (document.getElementById('contact-show-card')?.checked || false) : false,
     endpoint: document.getElementById('contact-endpoint')?.value.trim() || '',
     email:    document.getElementById('contact-email-input')?.value.trim() || '',
+    showInDrawer: document.getElementById('contact-show-in-drawer')?.checked || false,
   };
 
   // Splash tab

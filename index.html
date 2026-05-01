@@ -175,6 +175,10 @@
     .nav-drawer a:last-child { border-bottom: none; }
     .nav-drawer a:hover { color: var(--fg); }
     .nav-drawer a.active { color: var(--accent); border-left-color: var(--accent); }
+    /* Drawer contact item — two lines (label + email) so visitors can long-press
+       the email to copy it. */
+    .nav-drawer .nav-drawer-contact { display: flex; flex-direction: column; gap: 3px; padding-top: 14px; padding-bottom: 14px; }
+    .nav-drawer .nav-drawer-contact .nav-drawer-contact-email { font-size: 13px; letter-spacing: 0; text-transform: none; color: var(--accent); font-weight: 400; }
 
     /* ── LEFT NAV ── */
     body.nav-left nav {
@@ -1115,6 +1119,24 @@
         li.appendChild(a);
         document.getElementById('nav-links').appendChild(li);
       }
+
+      // Mobile drawer contact item (mobile only — drawer hidden on desktop).
+      // Tap goes to contact page if one is enabled, else opens mail. Email
+      // text is visible so visitors can long-press to copy it.
+      if (siteConfig.contact?.showInDrawer && _navEmail) {
+        const goesToContactPage = siteConfig.contact?.enabled || siteConfig.contact?.mode === 'card-only';
+        const da = document.createElement('a');
+        da.className = 'nav-drawer-contact';
+        if (goesToContactPage) {
+          da.href = '#contact';
+          da.onclick = e => { e.preventDefault(); showPage('contact'); closeDrawer(); };
+        } else {
+          da.href = `mailto:${_navEmail}`;
+        }
+        da.innerHTML = `<span>Contact</span><span class="nav-drawer-contact-email">${x(_navEmail)}</span>`;
+        drawerEl.appendChild(da);
+      }
+
       updateDrawerPadding();
     }
 
