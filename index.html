@@ -511,6 +511,7 @@
         padding-left: 20px; padding-right: 20px;
         height: calc(var(--nav-h) + var(--safe-top));
         box-shadow: 0 -100vh 0 0 var(--bg);
+        border-bottom: none;
       }
       .nav-brand-name { font-size: 17px; }
       .nav-brand-rule, .nav-brand-title { display: none; }
@@ -603,11 +604,8 @@
         flex-direction: row; align-items: center; justify-content: space-between;
         border-bottom: none; border-right: none;
       }
-      /* Nav underline and drawer inset to match the 15% gallery margins */
-      nav::after, body.nav-left nav::after {
-        content: ''; position: absolute; bottom: 0; left: 10%; right: 10%;
-        height: 1px; background: var(--fg-dimmer);
-      }
+      /* Drawer inset to match the 15% gallery margins (no underline) */
+      nav::after, body.nav-left nav::after { display: none; }
       /* Content starts below the 40px nav; 15% side margins so theme color frames the gallery */
       main, body.nav-left main { padding-top: var(--nav-h); padding-left: 10%; padding-right: 10%; }
       /* Kill any sidebar-style sub-element overrides */
