@@ -304,6 +304,11 @@
     .mobile-thumb-wrap img { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.85) brightness(0.9); transition: transform 0.5s var(--ease); }
     .mobile-item:active .mobile-thumb-wrap img { transform: scale(1.02); }
     .mobile-thumb-wrap::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(19,17,16,0.65) 100%); pointer-events: none; }
+    /* Native-aspect-ratio mode: each thumbnail keeps its source dimensions
+       instead of being cropped to a uniform 16:9. Toggled via admin
+       (siteConfig.mobileThumbsNative → body.thumbs-native). */
+    body.thumbs-native .mobile-thumb-wrap { aspect-ratio: auto; display: block; }
+    body.thumbs-native .mobile-thumb-wrap img { height: auto; object-fit: contain; }
     .mobile-placeholder-icon { width: 28px; height: 20px; border: 1.5px solid var(--fg-dim); border-radius: 2px; position: relative; opacity: 0.15; }
     .mobile-placeholder-icon::after { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-38%,-50%); border-left: 7px solid var(--fg-dim); border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
     .mobile-meta { padding: 14px 18px 18px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
@@ -1911,6 +1916,11 @@
     }
     window.addEventListener('orientationchange', closeDrawerInstant);
     window.addEventListener('resize', closeDrawerInstant);
+
+    // Native-aspect-ratio mobile thumbnails (per siteConfig.mobileThumbsNative)
+    if (siteConfig.mobileThumbsNative) {
+      document.body.classList.add('thumbs-native');
+    }
 
     // Pinch-zoom lock — only active when siteConfig.zoomLock is true
     if (siteConfig.zoomLock) {

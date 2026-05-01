@@ -1125,6 +1125,13 @@
             </label>
             <div class="field-hint" style="margin-top:4px">Prevents pinch-to-zoom on phones and tablets. Off by default — visitors can zoom in to inspect detail.</div>
           </div>
+          <div class="field" style="margin-top:12px">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:12px">
+              <input type="checkbox" id="site-mobile-thumbs-native" onchange="markDirty()" />
+              Native aspect ratio for mobile thumbnails
+            </label>
+            <div class="field-hint" style="margin-top:4px">Each thumbnail in the mobile list keeps its original proportions instead of being cropped to 16:9. Magazine-feed style.</div>
+          </div>
         </div>
 
       </div>
@@ -5254,6 +5261,7 @@ function flushSettingsForms() {
   siteConfig.viewerBg       = document.getElementById('site-viewer-bg')?.value || 'auto';
   siteConfig.thumbnailFilter = parseInt(document.getElementById('site-thumb-filter')?.value || 0);
   siteConfig.zoomLock       = document.getElementById('site-zoom-lock')?.checked || false;
+  siteConfig.mobileThumbsNative = document.getElementById('site-mobile-thumbs-native')?.checked || false;
 
   updateNavBrand();
 }
@@ -5683,6 +5691,7 @@ function populateGeneralSettings() {
   document.getElementById('site-theme-mode').value = themeMode;
   document.getElementById('site-allow-theme-toggle').checked = !!siteConfig.allowThemeToggle;
   document.getElementById('site-zoom-lock').checked = !!siteConfig.zoomLock;
+  document.getElementById('site-mobile-thumbs-native').checked = !!siteConfig.mobileThumbsNative;
   applyAdminTheme(themeMode);
   document.getElementById('site-viewer-bg').value = siteConfig.viewerBg || 'auto';
   // Version
