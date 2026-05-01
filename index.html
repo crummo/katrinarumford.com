@@ -1870,32 +1870,71 @@
 
     /* ── TOUCH SWIPE — gallery viewer ──
        Horizontal swipe → galleryNav(prev/next).
-       Downward swipe past threshold → closeGallery() (iOS-style dismiss).
+       Downward drag → image follows finger, fades out as it goes;
+                       past threshold release → closeGallery();
+                       short release → snaps back into place.
        _gvTouchX/Y are set to null whenever a second finger lands, so
-       pinch-zoom never triggers nav or close. */
-    let _gvTouchX = null, _gvTouchY = null;
-    document.getElementById('gv-media').addEventListener('touchstart', e => {
-      if (e.touches.length > 1) { _gvTouchX = _gvTouchY = null; return; }
-      _gvTouchX = e.touches[0].clientX;
-      _gvTouchY = e.touches[0].clientY;
-    }, { passive: true });
-    document.getElementById('gv-media').addEventListener('touchmove', e => {
-      if (e.touches.length > 1) _gvTouchX = _gvTouchY = null;
-    }, { passive: true });
-    document.getElementById('gv-media').addEventListener('touchend', e => {
-      if (_gvTouchX === null) return;
-      const dx = e.changedTouches[0].clientX - _gvTouchX;
-      const dy = e.changedTouches[0].clientY - _gvTouchY;
-      _gvTouchX = _gvTouchY = null;
-      // Vertical-dominant downward swipe past 60px → close
-      if (Math.abs(dy) > Math.abs(dx) && dy > 60) {
-        closeGallery();
-        return;
+       pinch-zoom never triggers nav, drag, or close. */
+    (function() {
+      const gvMedia = document.getElementById('gv-media');
+      let startX = null, startY = null, dir = null, dragging = false;
+
+      function resetTransform(animate) {
+        gvMedia.style.transition = animate ? 'transform 0.2s ease-out, opacity 0.2s ease-out' : 'none';
+        gvMedia.style.transform = '';
+        gvMedia.style.opacity = '';
       }
-      // Horizontal swipe past 40px → navigate
-      if (Math.abs(dx) < 40) return;
-      galleryNav(dx < 0 ? 1 : -1);
-    }, { passive: true });
+
+      gvMedia.addEventListener('touchstart', e => {
+        if (e.touches.length > 1) { startX = startY = null; dragging = false; return; }
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        dir = null;
+        dragging = true;
+        resetTransform(false);
+      }, { passive: true });
+
+      gvMedia.addEventListener('touchmove', e => {
+        if (e.touches.length > 1) { startX = startY = null; dragging = false; return; }
+        if (!dragging || startY === null) return;
+        const dx = e.touches[0].clientX - startX;
+        const dy = e.touches[0].clientY - startY;
+        // Lock direction once movement passes 10px
+        if (dir === null && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+          dir = Math.abs(dy) > Math.abs(dx) ? 'v' : 'h';
+        }
+        // Drag image with finger only on downward vertical
+        if (dir === 'v' && dy > 0) {
+          gvMedia.style.transition = 'none';
+          gvMedia.style.transform = `translateY(${dy}px)`;
+          gvMedia.style.opacity = String(Math.max(0.35, 1 - dy / 500));
+        }
+      }, { passive: true });
+
+      gvMedia.addEventListener('touchend', e => {
+        if (!dragging) { startX = startY = null; return; }
+        dragging = false;
+        if (startY === null) return;
+        const dx = e.changedTouches[0].clientX - startX;
+        const dy = e.changedTouches[0].clientY - startY;
+        startX = startY = null;
+        // Past threshold → animate out and close
+        if (dir === 'v' && dy > 100) {
+          gvMedia.style.transition = 'transform 0.22s ease-out, opacity 0.22s ease-out';
+          gvMedia.style.transform = `translateY(${window.innerHeight}px)`;
+          gvMedia.style.opacity = '0';
+          setTimeout(() => { closeGallery(); resetTransform(false); }, 220);
+          return;
+        }
+        // Vertical drag that didn't reach threshold → snap back
+        if (dir === 'v' && dy > 0) {
+          resetTransform(true);
+          return;
+        }
+        // Horizontal swipe past 40px → navigate
+        if (Math.abs(dx) >= 40) galleryNav(dx < 0 ? 1 : -1);
+      }, { passive: true });
+    })();
 
     /* ── PREVENT iOS RUBBER-BAND OVERSCROLL ──
        iOS Safari ignores overscroll-behavior on html/body for the page-level
