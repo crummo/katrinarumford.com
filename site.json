@@ -138,7 +138,8 @@
     "back": "Back home"
   },
   "contact": {
-    "enabled": false,
+    "enabled": true,
+    "mode": "form",
     "showCard": false,
     "endpoint": ""
   },
