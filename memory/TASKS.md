@@ -1,10 +1,9 @@
 # Tasks
 
 ## Mobile
-- [ ] Video landscape missing x/y counter in lower left
+- [ ] Pinch zoom doesn't switch image
 - [ ] Hamburger scroll buttons in landscape bugfix
 - [ ] Kinks in mobile landscape
-- [ ] Full bleed landscape in gallery?
 - [ ] Block out top bar in portrait
 - [ ] Staggered section animation — make the mobile list animation opt-in (stripped out, consider adding back as a setting or only on first load)
 - [ ] Swipe animation — add visual slide/swipe transition when navigating images on mobile (currently uses curtain fade)
@@ -61,6 +60,8 @@
 - [ ] Admin login splash — research feasibility of a password gate on the entire admin UI (AES-GCM via WebCrypto, PBKDF2 key derivation, blob URL injection); consider pros/cons vs. current GitHub token model, build step complexity, and lockout risk
 
 ## Completed
+- [x] ~~Full bleed landscape in gallery?~~ (2026-04-29)
+- [x] ~~Video landscape missing x/y counter in lower left~~ (2026-04-29)
 - [x] ~~Move back button up?~~ (2026-04-29)
 - [x] ~~Limit landscape width to prevent back button coverage~~ (2026-04-29)
 - [x] ~~Move prev arrow in landscape~~ (2026-04-29)
