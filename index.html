@@ -1916,11 +1916,6 @@
     window.addEventListener('orientationchange', closeDrawerInstant);
     window.addEventListener('resize', closeDrawerInstant);
 
-    // Native-aspect-ratio mobile thumbnails (per siteConfig.mobileThumbsNative)
-    if (siteConfig.mobileThumbsNative) {
-      document.body.classList.add('thumbs-native');
-    }
-
     // Pinch-zoom lock — only active when siteConfig.zoomLock is true
     if (siteConfig.zoomLock) {
       document.addEventListener('gesturestart',  function(e) { e.preventDefault(); }, { passive: false, capture: true });
