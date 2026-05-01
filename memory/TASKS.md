@@ -1,8 +1,5 @@
 # Tasks
 
-## Mobile
-- [ ] Bug: no native resolutions on scroll
-
 ## Admin UX
 - [ ] Add appearance tab to UX
 - [ ] UI — commit messages?
@@ -56,6 +53,7 @@
 - [ ] Admin login splash — research feasibility of a password gate on the entire admin UI (AES-GCM via WebCrypto, PBKDF2 key derivation, blob URL injection); consider pros/cons vs. current GitHub token model, build step complexity, and lockout risk
 
 ## Completed
+- [x] ~~Bug: no native resolutions on scroll~~ (2026-04-29)
 - [x] ~~Staggered section animation — make the mobile list animation opt-in (stripped out, consider adding back as a setting or only on first load)~~ (2026-04-29)
 - [x] ~~Add client to lightbox/gallery viewer?~~ (2026-04-29)
 - [x] ~~Hamburger scroll buttons in landscape bugfix~~ (2026-04-29)
