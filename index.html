@@ -632,6 +632,10 @@
       /* Grid: show masonry instead of the full-width mobile list */
       .gallery-grid { display: block !important; }
       .mobile-list { display: none !important; }
+      /* No animated reveal in landscape mobile — desktop animation
+         feels like loading on a small phone screen. Items appear
+         instantly. */
+      .grid-item { animation: none !important; }
 
       /* About: cancel the desktop nav-left side-nav left-shift since
          landscape uses a top bar, not a side nav. Tighter padding to
