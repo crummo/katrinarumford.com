@@ -1,9 +1,5 @@
 # Tasks
 
-## Mobile
-- [ ] Add client to lightbox/gallery viewer?
-- [ ] Staggered section animation — make the mobile list animation opt-in (stripped out, consider adding back as a setting or only on first load)
-
 ## Admin UX
 - [ ] UI — commit messages?
 - [ ] UI — instead of "video" show "YouTube video", "Vimeo video", etc.
@@ -56,6 +52,8 @@
 - [ ] Admin login splash — research feasibility of a password gate on the entire admin UI (AES-GCM via WebCrypto, PBKDF2 key derivation, blob URL injection); consider pros/cons vs. current GitHub token model, build step complexity, and lockout risk
 
 ## Completed
+- [x] ~~Staggered section animation — make the mobile list animation opt-in (stripped out, consider adding back as a setting or only on first load)~~ (2026-04-29)
+- [x] ~~Add client to lightbox/gallery viewer?~~ (2026-04-29)
 - [x] ~~Hamburger scroll buttons in landscape bugfix~~ (2026-04-29)
 - [x] ~~Pinch zoom doesn't switch image~~ (2026-04-29)
 - [x] ~~Block out top bar in portrait~~ (2026-04-29)

@@ -540,8 +540,11 @@
         opacity: 1;
         transform: translateY(0);
       }
-      /* Project info under the image in portrait gallery viewer */
-      .gv-info { display: block; padding: 16px max(20px, env(safe-area-inset-left, 0px)) 8px; flex-shrink: 0; }
+      /* Project info under the image in portrait gallery viewer.
+         Slight extra padding-top to give breathing room from the
+         image, tight client→title spacing for compact reading. */
+      .gv-info { display: block; padding: 24px max(20px, env(safe-area-inset-left, 0px)) 8px; flex-shrink: 0; }
+      .gv-info-client { margin-bottom: 2px; }
       .contact-wrap { padding: 52px 22px 80px; }
       .about-layout.placement-left,
       .about-layout.placement-right { flex-direction: column; }
@@ -600,7 +603,10 @@
         left: max(18px, env(safe-area-inset-left, 0px));
         width: auto; padding: 2px 0; z-index: 20;
       }
-      .gv-media { padding: 0; } /* full bleed — image fills screen width */
+      /* Top padding clears the BACK button (which is at top: nav-h + safe-top + 14px)
+         so a tall portrait image doesn't visually overlap it. Sides remain
+         full-bleed. */
+      .gv-media { padding: calc(var(--safe-top) + 30px) 0 0; }
       .gv-arrow { display: none; } /* use labeled buttons on mobile */
       .gv-ctrl-btn { display: block; font-size: 9px; padding: 7px 12px; }
       .gv-ctrl-counter { min-width: 48px; }
