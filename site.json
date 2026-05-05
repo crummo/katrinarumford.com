@@ -159,7 +159,7 @@
     "id": ""
   },
   "navStyle": "left",
-  "allowThemeToggle": true,
+  "allowThemeToggle": false,
   "themeMode": "light",
   "filmGrain": 0,
   "thumbnailFilter": 0,
