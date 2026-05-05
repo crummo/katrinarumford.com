@@ -1422,13 +1422,21 @@
       const catDef = siteConfig.categories.find(c => c.id === cat);
       if (catDef?.layout !== 'grid') {
         layoutMasonry(grid);
+        // Debounce per-image reflows — batch all load events into one layout pass
+        // instead of re-running for every single image (avoids cascading jumps)
+        let _imgRaf;
         grid.querySelectorAll('img.grid-thumb').forEach(img => {
-          if (!img.complete) img.addEventListener('load', () => layoutMasonry(grid), { once: true });
+          if (!img.complete) img.addEventListener('load', () => {
+            cancelAnimationFrame(_imgRaf);
+            _imgRaf = requestAnimationFrame(() => layoutMasonry(grid));
+          }, { once: true });
         });
       }
     }
 
     function layoutMasonry(grid, _retry) {
+      // Skip layout on pages that are mid-exit — avoids blip when switching away
+      if (grid.closest('.page.leaving')) return;
       const COLS = 3, GAP = 3, PAD = 3;
       const items = Array.from(grid.querySelectorAll(':scope > .grid-item'));
       if (!items.length) return;
