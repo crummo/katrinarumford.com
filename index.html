@@ -1247,6 +1247,8 @@
         if (p === pg) return;
         p.classList.remove('visible');
         p.classList.add('leaving');
+        // Freeze grid items in their current state so gridIn doesn't replay during exit
+        p.querySelectorAll('.grid-item, .mobile-item').forEach(el => el.style.animation = 'none');
         const onEnd = () => { p.classList.remove('leaving'); p.removeEventListener('animationend', onEnd); };
         p.addEventListener('animationend', onEnd);
         // safety: remove leaving class after 300ms in case animationend never fires
