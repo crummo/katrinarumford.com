@@ -213,7 +213,7 @@
 
     /* ── MAIN ── */
     main { padding-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px)); }
-    .page { display: none; }
+    .page { display: none; overflow-x: hidden; }
     .page.visible { display: block; animation: pageIn 0.35s var(--ease) both; }
     .page.leaving  { display: block; animation: pageOut 0.2s var(--ease) both; pointer-events: none; }
     @keyframes pageIn  { from { opacity: 0; transform: translateY(8px); }  to { opacity: 1; transform: translateY(0); } }
@@ -1247,8 +1247,6 @@
         if (p === pg) return;
         p.classList.remove('visible');
         p.classList.add('leaving');
-        // Freeze grid items in their current state so gridIn doesn't replay during exit
-        p.querySelectorAll('.grid-item, .mobile-item').forEach(el => el.style.animation = 'none');
         const onEnd = () => { p.classList.remove('leaving'); p.removeEventListener('animationend', onEnd); };
         p.addEventListener('animationend', onEnd);
         // safety: remove leaving class after 300ms in case animationend never fires
@@ -1416,6 +1414,8 @@
             }
           });
         }
+        // Remove gridIn after it plays so it can't replay on page exit
+        el.addEventListener('animationend', () => { el.style.animation = 'none'; }, { once: true });
         grid.appendChild(el);
       });
       resolveVimeoThumbs(grid);
